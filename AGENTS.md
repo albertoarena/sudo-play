@@ -12,18 +12,24 @@ Tagline: `$ sudo play --mood friday-deploy`
 
 Read both before starting any work. If they conflict with this file, ask.
 
+Two supporting files, neither is a source of truth:
+
+- `docs/DECISIONS.md` (log of choices the plan left open, append one entry when you make one)
+- `docs/QA.md` (manual checks that tests cannot cover)
+
 ## Stack
 
 - PHP 8.4+, latest Laravel version supported by NativePHP
 - NativePHP Desktop (check https://nativephp.com/docs for the current package name, install steps and APIs before using them, do not rely on memory)
 - Inertia + Vue 3 + **TypeScript** (`<script setup lang="ts">`) + Tailwind CSS
 - SQLite (NativePHP default database)
-- Pest for tests, Larastan for static analysis, Pint for code style
+- Pest for backend tests, Vitest and Vue Test Utils for components
+- Larastan for static analysis, Pint for code style
 - `vue-tsc` for type checking the frontend
 
 ## Non-negotiable rules
 
-1. **TDD always.** Write a failing Pest test first, run it, see it fail, then write the code to make it pass, then refactor. No production code without a test that required it. UI glue (NativePHP facades) is wrapped behind interfaces so the logic can be tested with fakes.
+1. **TDD always.** Write a failing test first, run it, see it fail, then write the code to make it pass, then refactor. No production code without a test that required it. Pest for PHP, Vitest for Vue components. UI glue (NativePHP facades) is wrapped behind interfaces so the logic can be tested with fakes.
 2. **No Spotify Web API.** No OAuth, no client ID, no API calls to Spotify. The app only opens public playlist links. This is a product decision, not a temporary shortcut.
 3. **No accounts, no analytics, no tracking.** The only network call is downloading the public catalog file.
 4. **Keep it simple.** No event sourcing, no queues, no extra packages unless a milestone in `docs/INSTRUCTIONS.md` asks for them. Plain Eloquent and plain PHP classes are fine.
@@ -53,12 +59,15 @@ tests/
 
 Business logic lives in `Catalog/` and `Rotation/` and must not depend on NativePHP. Controllers stay thin.
 
+Settings are read and written only through `SettingsStore`. Nothing else touches a settings facade or table. Section 11 of `docs/REQUIREMENTS.md` lists the seams that keep later work possible, read it before changing an interface.
+
 ## Commands
 
 ```bash
 composer test          # pest
 composer analyse       # larastan
 composer lint          # pint --test
+npm test               # vitest run
 npm run typecheck      # vue-tsc --noEmit
 php artisan native:serve   # run the app in development
 ```
@@ -85,6 +94,8 @@ Add these scripts to `composer.json` and `package.json` in milestone 0 if they d
 ## Definition of done (every milestone)
 
 - All tests green, no skipped tests
-- `composer analyse`, `composer lint`, `npm run typecheck` pass
+- `composer analyse`, `composer lint`, `npm test`, `npm run typecheck` pass
 - New behaviour is covered by tests written before the code
+- Any choice the plan left open is logged in `docs/DECISIONS.md`
+- The milestone is ticked in the Status list in `docs/INSTRUCTIONS.md`
 - Short summary posted for review, then wait

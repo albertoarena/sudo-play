@@ -11,6 +11,19 @@ Work through the milestones in order. Each milestone:
 
 If something in the requirements is unclear or NativePHP does not support a feature, stop and ask. Do not invent a workaround silently.
 
+Every choice the plan leaves open goes in `docs/DECISIONS.md` as one short entry, on the day it is made.
+
+## Status
+
+- [ ] M0 Scaffold
+- [ ] M1 Catalog parsing and validation
+- [ ] M2 Daily rotation
+- [ ] M3 Storage, settings and sync
+- [ ] M4 Player
+- [ ] M5 Menu bar UI
+- [ ] M6 Settings window and daily reminder
+- [ ] M7 Repository, CI and release
+
 ---
 
 ## M0. Scaffold
@@ -18,10 +31,12 @@ If something in the requirements is unclear or NativePHP does not support a feat
 - New Laravel app with Inertia + Vue 3 + TypeScript + Tailwind
 - Install NativePHP Desktop following the **current** official docs (check them first)
 - Install Pest, Larastan (level 8), Pint
-- Add scripts: `composer test`, `composer analyse`, `composer lint`, `npm run typecheck`
-- Create the folder structure described in `CLAUDE.md`
+- Install Vitest and Vue Test Utils, so rule 1 in `AGENTS.md` holds for the Vue layer too
+- Add scripts: `composer test`, `composer analyse`, `composer lint`, `npm run typecheck`, `npm test`
+- Create the folder structure described in `AGENTS.md`
 - Add `LICENSE` (MIT) and a placeholder `README.md`
 - One smoke test: the home route returns the Inertia `MenuBar` page
+- One smoke Vitest test, so the frontend harness is proven before M5 needs it
 
 **Done when:** `php artisan native:serve` opens an empty app and all checks pass.
 
@@ -39,44 +54,58 @@ Tests (use fixtures in `tests/fixtures/catalogs/`):
 - rejects wrong version and broken YAML as a whole
 - skips a playlist with unknown genre, unknown mood, empty moods, bad URL, duplicate id, and reports why
 - strips query strings from Spotify URLs
+- strips the locale segment, so `intl-it/playlist/{id}?si=abc` normalises to `playlist/{id}`
+- rejects an id that is not 22 letters and digits
+- keeps a playlist that carries an unknown extra field, and logs it
 - converts a URL to URI and back
 
-Also add `php artisan catalog:validate {path?}` that exits non-zero on errors (used by CI later).
+Also add `php artisan catalog:validate {path?} {--release}` that exits non-zero on errors (used by CI later). With `--release` it also fails on zero playlists or any `TODO` field, per requirements 10.1.
 
 ## M2. Daily rotation
 
 Requirements: section 5. Pure PHP, no framework.
 
 - `DailyPicker` with methods for: today's pick, next candidate, fallback, surprise
-- Inject the date and the random source so tests are deterministic
+- Inject the date and the random source so tests are deterministic. The date is the local calendar date, passed in, never read from `now()` inside the picker
+- The yesterday tiebreak is part of the pure function, nothing is stored
 
 Tests:
 
 - same date + genre + mood returns the same playlist
 - different date can return a different playlist
 - today differs from yesterday when there are 2+ candidates
+- a date pair that collides on the raw crc32 index still returns different picks (pick the fixture dates so the collision is real, do not mock crc32)
+- the tiebreak wraps, so a collision on the last index returns the first
 - one candidate returns that candidate every day
 - next cycles through all candidates and wraps
 - fallback order: same mood any genre, then same genre any mood, then null
+- the fallback pick is deterministic over the fallback candidate list
+- an empty catalog returns null and does not throw
 - fallback result says which fallback was used (for the UI note)
 - surprise only picks combinations with at least one candidate
 
-## M3. Storage and sync
+## M3. Storage, settings and sync
 
-Requirements: section 4.4.
+Requirements: section 4.4. Settings land here, not in M6, because M4 and M5 both read them.
 
-- Migrations and models to store the active catalog (simple tables or one JSON column, choose the simplest)
-- `CatalogSync`: download from the configured URL with Laravel HTTP client, validate, replace the stored catalog only on success
-- On first run with an empty database, load the bundled `catalog/playlists.yaml`
-- Schedule sync daily, and run it at app startup
+- Migrations and models to store the active catalog (simple tables or one JSON column, choose the simplest, log the choice in `docs/DECISIONS.md`)
+- `SettingsStore` interface with one implementation and an in-memory fake for tests. It holds: default genre, default mood, last used genre, last used mood, player mode, reminder on/off, reminder time, weekdays only, launch at login, catalog URL. No settings UI yet, that is M6
+- `CatalogSync`: download from the configured URL with Laravel HTTP client (5 second timeout, 1 MB limit), validate, replace the stored catalog only on success. Record the sync timestamp, which is the date shown in the footer
+- A `CatalogSource` that resolves the bundled `catalog/playlists.yaml` through one method, because the path differs between `native:serve` and a packaged app. Decide and log it here, do not discover it in M7
+- On first run with an empty database, load the bundled catalog
+- Schedule sync daily, and run it after startup, never blocking the first render
 
 Tests (use `Http::fake()`):
 
 - first run loads the bundled catalog
-- successful download replaces the catalog
-- invalid download keeps the previous catalog
+- successful download replaces the catalog and updates the sync timestamp
+- invalid download keeps the previous catalog and leaves the timestamp alone
 - network error keeps the previous catalog
+- timeout is handled like a network error
+- a response over the size limit is rejected
 - partially invalid download keeps valid playlists only
+- a download that parses but has zero valid playlists keeps the previous catalog
+- settings round trip through the store, and unknown keys return their default
 
 ## M4. Player
 
@@ -84,7 +113,8 @@ Requirements: section 6.
 
 - `PlayerInterface` with `play(Playlist $playlist): PlayResult`
 - `AppleScriptPlayer` (runs `osascript` through Laravel `Process`), `OpenAppPlayer` and `WebPlayer` (through NativePHP `Shell::openExternal`, wrapped in a small `UrlOpener` interface)
-- `PlayerResolver` chooses the player from settings and falls back to web on failure
+- `PlayerResolver` chooses the player from the M3 `SettingsStore` and falls back to web on failure
+- The AppleScript call gets a timeout, because `tell application "Spotify"` hangs while Spotify launches
 
 Tests (use `Process::fake()` and a fake `UrlOpener`):
 
@@ -94,7 +124,7 @@ Tests (use `Process::fake()` and a fake `UrlOpener`):
 - web player opens the https URL
 - resolver returns the player matching the setting
 
-Check by hand at the end: run the app and play a real public playlist.
+Tests cannot cover the macOS Automation permission prompt. Record the manual checks in `docs/QA.md` and run them at the end of this milestone: a real public playlist plays, a denied permission falls back to the web player, and Spotify not installed falls back too.
 
 ## M5. Menu bar UI
 
@@ -103,7 +133,8 @@ Requirements: section 7.1.
 - Configure the menu bar in `NativeAppServiceProvider` (icon as template image, window size about 360 x 480)
 - Inertia page `MenuBar.vue` with typed props (`resources/js/types`)
 - Endpoints: get state, select genre/mood, play, next, surprise
-- Remember last genre and mood
+- Remember last genre and mood through the M3 `SettingsStore`
+- The Next cycle position lives in memory and resets on restart and on date change
 
 Tests (Feature):
 
@@ -112,15 +143,15 @@ Tests (Feature):
 - play calls the player (fake bound in the container)
 - next and surprise return the expected playlist
 - fallback note is included when a fallback was used
+- an empty catalog returns the empty state and the actions are disabled
 
-Frontend: keep components small (`CommandLine.vue`, `ChipGroup.vue`, `PickCard.vue`). Strict TypeScript, no `any`.
+Frontend: keep components small (`CommandLine.vue`, `ChipGroup.vue`, `PickCard.vue`). Strict TypeScript, no `any`. Each component gets a Vitest test written before it: the command line renders the current selection, the chip group emits the selected id, the pick card renders a pick and renders the empty state.
 
-## M6. Settings and daily reminder
+## M6. Settings window and daily reminder
 
-Requirements: section 7.2 and 7.3.
+Requirements: section 7.2 and 7.3. The settings store already exists from M3, this milestone adds the window and the reminder.
 
-- Settings stored with NativePHP settings or a simple table (choose the simplest, explain the choice in the summary)
-- Settings window opened from the menu bar footer
+- Settings window opened from the menu bar footer, writing through the M3 `SettingsStore`
 - `DailyReminder` decides IF and WHAT to notify (pure logic, testable), a thin adapter sends the NativePHP notification
 - Launch at login through NativePHP if supported
 
@@ -129,21 +160,24 @@ Tests:
 - reminder fires at the chosen time, not before
 - weekdays-only skips Saturday and Sunday
 - disabled reminder never fires
-- notification text uses default mood emoji, label and today's pick title
+- notification text uses default mood emoji, label and today's pick title, from the plain daily pick and not a cycled Next result
 - saving settings validates input (time format, known genre and mood, valid player mode, https catalog URL)
 
 ## M7. Repository, CI and release
 
 Requirements: section 9.
 
-- `README.md` and `CONTRIBUTING.md` (plain English, short, no em dashes)
-- Seed `catalog/playlists.yaml` with the genres and moods from section 4.2 and **placeholder playlists marked `TODO`**. Do not invent real Spotify playlist ids: the maintainer fills them in.
+- `README.md`, `CONTRIBUTING.md` and `PRIVACY.md` (plain English, short, no em dashes). `PRIVACY.md` is already drafted, review it against what the app actually does before release
+- The About panel links `PRIVACY.md` and lists catalog curators, see requirements 7.2
+- Seed `catalog/playlists.yaml` with the genres and moods from section 4.2 and an empty `playlists` list. Do not invent real Spotify playlist ids: the maintainer fills them in before the tag, and `--release` enforces it
 - GitHub Actions:
-  - `ci.yml`: Pest, Larastan, Pint, vue-tsc, `albertoarena/envaudit` on `.env.example`
+  - `ci.yml`: Pest, Vitest, Larastan, Pint, vue-tsc, `albertoarena/envaudit` on `.env.example`
   - `catalog.yml`: runs `php artisan catalog:validate` on PRs that touch `catalog/`
+  - `release.yml`: runs `php artisan catalog:validate --release` and refuses to build an empty catalog
 - Build a DMG with NativePHP. Document code signing and notarization steps in `docs/RELEASE.md` (do not add secrets)
+- Run the full `docs/QA.md` list against the DMG, not against `native:serve`
 
-**Done when:** CI is green and a local DMG installs and runs.
+**Done when:** CI is green, a local DMG installs and runs, and `docs/QA.md` passes.
 
 ---
 
