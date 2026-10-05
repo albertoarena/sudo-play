@@ -1,0 +1,25 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE and editors
+.idea/
+.vscode/
+.fleet/
+.zed/
+*.iml
+*.ipr
+*.iws
+*.sublime-project
+*.sublime-workspace
+.nova/
+*.swp
+*.swo
+*~
+
+# Local scratch docs (not the tracked docs/ folder)
+.docs/
+
+# Local agent instructions
+CLAUDE.local.md
+AGENTS.local.md
