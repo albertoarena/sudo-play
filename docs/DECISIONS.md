@@ -119,3 +119,11 @@ The daily pick must be deterministic and must differ from yesterday. crc32 colli
 **Why:** you cannot sell code in a desktop app, because the DMG contains readable PHP and a licence check inside it is a speed bump rather than a lock. What a fork cannot copy is a catalog you host and keep curating.
 
 **Before any of it:** the no accounts, no analytics and one network call rules in `AGENTS.md` would have to be amended deliberately, and `PRIVACY.md` would be the first file to change.
+
+## 2026-10-06: CI moved forward from M7 to M0
+
+**Choice:** `.github/workflows/ci.yml` ships with the M0 scaffold instead of M7. It runs Pest, Larastan, Pint, Vitest and vue-tsc on every pull request and on pushes to `main`. The other workflows stay in M7, as do the `envaudit` step and branch protection.
+
+**Why:** from M1 onward each milestone arrives as a pull request written by an agent that ran the suite in its own container and reported the result. Without CI, the reviewer is trusting that report. `AGENTS.md` also already told agents that `ci.yml` is a required check, which was not true. One Linux job of two to four minutes closes both gaps.
+
+**Detail worth keeping:** `npm run build` has to run before `composer test`. The feature test renders the Blade layout, which calls `@vite` and fails without `public/build/manifest.json`.

@@ -15,7 +15,7 @@ Every choice the plan leaves open goes in `docs/DECISIONS.md` as one short entry
 
 ## Status
 
-- [ ] M0 Scaffold
+- [x] M0 Scaffold
 - [ ] M1 Catalog parsing and validation
 - [ ] M2 Daily rotation
 - [ ] M3 Storage, settings and sync
@@ -37,6 +37,7 @@ Every choice the plan leaves open goes in `docs/DECISIONS.md` as one short entry
 - Add `LICENSE` (MIT) and a placeholder `README.md`
 - One smoke test: the home route returns the Inertia `MenuBar` page
 - One smoke Vitest test, so the frontend harness is proven before M5 needs it
+- `.github/workflows/ci.yml`, per requirements 12.3. Brought forward from M7, because every later milestone arrives as a pull request that needs checking independently of whatever the author reports
 
 **Done when:** `php artisan native:serve` opens an empty app and all checks pass.
 
@@ -172,8 +173,7 @@ Requirements: section 9.
 - The About panel links `PRIVACY.md` and lists catalog curators, see requirements 7.2
 - Seed `catalog/playlists.yaml` with the genres and moods from section 4.2 and an empty `playlists` list. Do not invent real Spotify playlist ids: the maintainer fills them in before the tag, and `--release` enforces it
 - `CONTRIBUTING.md` carries the licensing paragraph from requirements 9. It has to be there before the repository goes public
-- GitHub Actions, per requirements 12.3. Write the three Linux ones now:
-  - `ci.yml`: Pest, Vitest, Larastan, Pint, vue-tsc, `albertoarena/envaudit` on `.env.example`, on pull requests and pushes to `main`, no path filter
+- GitHub Actions, per requirements 12.3. `ci.yml` already exists from M0. Add the other two Linux ones, and add `albertoarena/envaudit` on `.env.example` to `ci.yml`:
   - `catalog.yml`: `php artisan catalog:validate` on PRs that touch `catalog/`
   - `catalog-publish.yml`: fast forwards `catalog-live` from `main` when `catalog/**` changes
 - Turn on branch protection for `main` with `ci.yml` as a required check. Create the `catalog-live` branch
