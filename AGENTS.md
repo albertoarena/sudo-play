@@ -94,6 +94,18 @@ Add these scripts to `composer.json` and `package.json` in milestone 0 if they d
 - Releases are tags on `main` (`vMAJOR.MINOR.PATCH`). There is no release branch. See `docs/REQUIREMENTS.md` section 12 and `docs/RELEASE.md`
 - Never commit a version bump. The version comes from the tag at build time
 
+## Working as an agent
+
+These rules keep the human in the loop. Follow them even when you have the access to do otherwise.
+
+- One milestone, one branch, one pull request. Name the branch after the milestone: `feat/m1-catalog-parsing`
+- Commit per green TDD cycle on that branch. When the milestone is done, push the branch, open the pull request, then stop
+- **Never merge your own pull request.** A human reviews and merges it. Never push to `main`
+- The markdown-only exception in the git conventions does not apply inside a code milestone. Documentation that belongs to a milestone goes in that milestone's pull request, not straight to `main`
+- Tick the Status box in `docs/INSTRUCTIONS.md` as part of the milestone's pull request. It becomes true when the pull request is merged, not when you write it
+- If a step cannot be run in your environment, stop and say so in the summary. Anything needing macOS, a visible window, real AppleScript, a signed build or the checks in `docs/QA.md` falls in this group. Never skip a check silently, and never report one as passed that you did not run
+- If the requirements and the build plan disagree, or NativePHP does not support something, stop and ask. Do not invent a workaround
+
 ## Definition of done (every milestone)
 
 - All tests green, no skipped tests

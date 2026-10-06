@@ -4,6 +4,8 @@
 $ sudo play --mood friday-deploy
 ```
 
+That is the tagline, not a command. There is nothing to run in a terminal. The app shows that line inside its window, and it changes as you pick a genre and a mood.
+
 A small macOS menu bar app that picks today's Spotify playlist for you, based on what you are coding and how you feel about it.
 
 Pick a genre. Pick a developer mood. Press play.
