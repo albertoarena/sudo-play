@@ -46,8 +46,8 @@ app/
   Http/Controllers # thin Inertia controllers only
   Providers/NativeAppServiceProvider.php  # menu bar, windows, scheduler wiring
 resources/js/
-  Pages/           # Inertia pages (MenuBar.vue, Settings.vue)
-  Components/
+  pages/           # Inertia pages (MenuBar.vue, Settings.vue), lowercase, this is where Inertia looks
+  components/
   types/           # shared TypeScript types (Playlist, Mood, Genre, Settings)
 catalog/
   playlists.yaml   # the community catalog, also bundled as offline fallback

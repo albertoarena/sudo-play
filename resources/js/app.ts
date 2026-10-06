@@ -5,10 +5,10 @@ import '../css/app.css';
 
 createInertiaApp({
     resolve: (name: string) => {
-        const pages = import.meta.glob<{ default: DefineComponent }>('./Pages/**/*.vue', {
+        const pages = import.meta.glob<{ default: DefineComponent }>('./pages/**/*.vue', {
             eager: true,
         });
-        const page = pages[`./Pages/${name}.vue`];
+        const page = pages[`./pages/${name}.vue`];
 
         if (page === undefined) {
             throw new Error(`Inertia page not found: ${name}`);
