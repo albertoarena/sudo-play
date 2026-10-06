@@ -90,6 +90,9 @@ Add these scripts to `composer.json` and `package.json` in milestone 0 if they d
 - Never attribute commits or pull requests to Claude Code, Codex or any other tool. No "Generated with Claude Code", no `Co-Authored-By` trailer for a tool
 - Every commit goes through a pull request, never straight to `main`
 - Only exception: a commit that touches markdown files only can go straight to `main`
+- `main` is protected and `ci.yml` is a required check, so nothing merges red
+- Releases are tags on `main` (`vMAJOR.MINOR.PATCH`). There is no release branch. See `docs/REQUIREMENTS.md` section 12 and `docs/RELEASE.md`
+- Never commit a version bump. The version comes from the tag at build time
 
 ## Definition of done (every milestone)
 

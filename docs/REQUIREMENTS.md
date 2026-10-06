@@ -78,7 +78,7 @@ Genres and moods are defined in the catalog, so new ones need no code change.
 ### 4.4 Sync
 
 - A copy of the catalog is bundled in the app as offline fallback
-- At startup and once a day, the app downloads the latest file from a configurable URL (default: raw GitHub URL of `main`)
+- At startup and once a day, the app downloads the latest file from a configurable URL. The default is the raw GitHub URL of the `catalog-live` branch, never `main`. See section 12.2 for why
 - The startup sync never blocks the UI. The window renders from the stored catalog first, the sync runs after, and the view refreshes if the catalog changed
 - The download uses a short timeout (5 seconds) and a size limit (1 MB). A timeout is treated like a network error
 - The parsed catalog is stored in SQLite and replaced only after a successful validation
@@ -158,8 +158,8 @@ If autoplay fails (Spotify not installed, AppleScript error), fall back to the w
 - `README.md`: what it is, screenshot or GIF, install, how to add a playlist, a short privacy line linking to `PRIVACY.md`, "not affiliated with Spotify"
 - `PRIVACY.md`: what the app sends and stores, in plain English. One network call, no accounts, no analytics. Linked from the README and from the About panel
 - `CONTRIBUTING.md`: rules for adding playlists (public Spotify playlists only, one PR can add several, correct genre and mood, no duplicates, keep it work-friendly)
-- GitHub Action that validates `catalog/playlists.yaml` on every PR, using the same validator as the app (`php artisan catalog:validate`)
-- GitHub Action for tests, Larastan, Pint, vue-tsc, and `albertoarena/envaudit` on `.env.example`
+- `CONTRIBUTING.md` also states that contributions are made under MIT and that future versions may be released under other terms. It must say this before the repository goes public, because a licence cannot be changed later without the agreement of every contributor
+- GitHub Actions, see section 12.3
 
 ## 10. Success criteria for v1
 
@@ -203,3 +203,36 @@ Apple Music and YouTube Music are out of scope, and section 3 already says the f
 
 - `PlayerInterface` takes a playlist and returns a result. Nothing outside the `Player/` namespace knows what Spotify is
 - The URL normaliser is Spotify specific and stays behind its own class
+
+## 12. Repository, branches and releases
+
+### 12.1 Branches
+
+- `main` is the only long lived code branch. It is protected, and `ci.yml` is a required check, so nothing merges red
+- Work happens on short lived branches and reaches `main` through a pull request. The one exception is a commit touching only markdown, per `AGENTS.md`
+- There is no standing release branch. A tag already is an immutable pointer to an approved release, and what people install is a DMG attached to a GitHub Release, not a branch
+- A hotfix branch is created from the tag when one is actually needed (`git switch -c hotfix/1.0.1 v1.0.0`), tagged, merged back to `main`, then deleted
+- The version comes from the tag and is injected at build time. Nothing commits a version bump, because that would mean a workflow pushing to `main`
+
+### 12.2 The catalog branch
+
+- `catalog-live` is a data branch. It holds the catalog the shipped apps actually read
+- `catalog-publish.yml` fast forwards it from `main` whenever `catalog/**` changes, so a merged playlist is live within a day
+- The reason for the extra branch is that the catalog URL is frozen into every binary. Pointing shipped apps at an indirection means a review step can be added later by switching the workflow off, with no new release and no stranded installs
+- Playlist changes never need a release. They are data. Only code changes get a tag and a DMG
+- The pull request review is the only check on content. The validator catches malformed files, not a dead link or a wrong mood
+
+### 12.3 Workflows
+
+- `ci.yml`, on every pull request and on pushes to `main`. Pest, Vitest, Larastan, Pint, vue-tsc, `albertoarena/envaudit` on `.env.example`. No path filter, because a broken catalog can break a test that reads the bundled file. No secrets, so pull requests from forks run it fine
+- `catalog.yml`, on pull requests touching `catalog/**`. Runs `php artisan catalog:validate` only, as fast feedback for contributors. It adds to `ci.yml`, it does not replace it
+- `catalog-publish.yml`, on pushes to `main` touching `catalog/**`. Fast forwards `catalog-live`
+- `release.yml`, on tags matching `v*`, on a macOS runner, behind a protected environment. Runs `catalog:validate --release`, builds, signs, notarizes, staples, and attaches the DMG to a GitHub Release
+- Only the release workflow needs macOS. Those runners bill at ten times the Linux rate
+
+### 12.4 Signing and notarization
+
+- Releases are signed and notarized with a paid Apple Developer account, so the DMG opens without a Gatekeeper warning
+- Notarization uses an App Store Connect API key, not an Apple ID with an app specific password, because a key is scoped and can be revoked without touching the account
+- Four repository secrets: the Developer ID certificate as base64 p12, its password, a keychain password, and the API key. None of them live in the repository
+- The first release is built, signed and notarized by hand on the maintainer's Mac. `docs/RELEASE.md` records what worked. `release.yml` is written afterwards from those same commands, because notarization fails in ways that are slow to debug inside a workflow

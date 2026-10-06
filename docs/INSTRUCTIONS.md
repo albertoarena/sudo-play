@@ -91,6 +91,7 @@ Requirements: section 4.4. Settings land here, not in M6, because M4 and M5 both
 - Migrations and models to store the active catalog (simple tables or one JSON column, choose the simplest, log the choice in `docs/DECISIONS.md`)
 - `SettingsStore` interface with one implementation and an in-memory fake for tests. It holds: default genre, default mood, last used genre, last used mood, player mode, reminder on/off, reminder time, weekdays only, launch at login, catalog URL. No settings UI yet, that is M6
 - `CatalogSync`: download from the configured URL with Laravel HTTP client (5 second timeout, 1 MB limit), validate, replace the stored catalog only on success. Record the sync timestamp, which is the date shown in the footer
+- The default catalog URL is the raw GitHub URL of the `catalog-live` branch, not `main`, see requirements 12.2. While the repository is private that URL returns 404, which the sync already treats as a network error, so M3 is fully buildable before the repository goes public
 - A `CatalogSource` that resolves the bundled `catalog/playlists.yaml` through one method, because the path differs between `native:serve` and a packaged app. Decide and log it here, do not discover it in M7
 - On first run with an empty database, load the bundled catalog
 - Schedule sync daily, and run it after startup, never blocking the first render
@@ -170,14 +171,19 @@ Requirements: section 9.
 - `README.md`, `CONTRIBUTING.md` and `PRIVACY.md` (plain English, short, no em dashes). `PRIVACY.md` is already drafted, review it against what the app actually does before release
 - The About panel links `PRIVACY.md` and lists catalog curators, see requirements 7.2
 - Seed `catalog/playlists.yaml` with the genres and moods from section 4.2 and an empty `playlists` list. Do not invent real Spotify playlist ids: the maintainer fills them in before the tag, and `--release` enforces it
-- GitHub Actions:
-  - `ci.yml`: Pest, Vitest, Larastan, Pint, vue-tsc, `albertoarena/envaudit` on `.env.example`
-  - `catalog.yml`: runs `php artisan catalog:validate` on PRs that touch `catalog/`
-  - `release.yml`: runs `php artisan catalog:validate --release` and refuses to build an empty catalog
-- Build a DMG with NativePHP. Document code signing and notarization steps in `docs/RELEASE.md` (do not add secrets)
-- Run the full `docs/QA.md` list against the DMG, not against `native:serve`
+- `CONTRIBUTING.md` carries the licensing paragraph from requirements 9. It has to be there before the repository goes public
+- GitHub Actions, per requirements 12.3. Write the three Linux ones now:
+  - `ci.yml`: Pest, Vitest, Larastan, Pint, vue-tsc, `albertoarena/envaudit` on `.env.example`, on pull requests and pushes to `main`, no path filter
+  - `catalog.yml`: `php artisan catalog:validate` on PRs that touch `catalog/`
+  - `catalog-publish.yml`: fast forwards `catalog-live` from `main` when `catalog/**` changes
+- Turn on branch protection for `main` with `ci.yml` as a required check. Create the `catalog-live` branch
+- Build, sign and notarize the DMG **by hand** on the maintainer's Mac, and write down what actually worked in `docs/RELEASE.md`. Name the four secrets, do not add them
+- Only then write `release.yml` from those same commands, on a `v*` tag, on macOS, behind a protected environment
+- Run the full `docs/QA.md` list against the signed DMG, not against `native:serve`
 
-**Done when:** CI is green, a local DMG installs and runs, and `docs/QA.md` passes.
+**Done when:** CI is green, branch protection is on, a signed DMG installs with no Gatekeeper warning, `docs/QA.md` passes, and `docs/RELEASE.md` describes a release someone else could repeat.
+
+Note on order: the repository goes public at this milestone. Before flipping it, check that `CONTRIBUTING.md` has the licensing paragraph and that `catalog-live` exists, because both are harder to add once people are watching.
 
 ---
 
