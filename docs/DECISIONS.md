@@ -144,4 +144,16 @@ The daily pick must be deterministic and must differ from yesterday. crc32 colli
 
 **Why:** the build plan is the source of truth for scope and order, and the command is the only caller that proves the parser reports errors in a way a human can read. M7 also assumes it exists: `catalog.yml` runs it on contributor pull requests and `release.yml` runs it with `--release`. Leaving it out would mean writing the parser's error output twice.
 
-**Where the release gate lives:** the zero playlists and leftover `TODO` checks from requirements 10.1 sit in the command, not in the parser. They are release policy, not catalog validity, and a catalog with no playlists is a normal development state.
+**Where the release gate lives:** the zero playlists and leftover `TODO` checks from requirements 10.1 sit in a small `ReleaseGate` beside the parser, not inside `CatalogParser`. They are release policy, not catalog validity, and a catalog with no playlists is a normal development state that the app has to handle.
+
+## 2026-10-07: The parser returns errors and warnings, and logs nothing
+
+**Choice:** `CatalogParser::parse()` returns a `CatalogParseResult` with three things: a `Catalog` or null, a list of error messages, and a list of warning messages. All messages are plain strings. The parser never writes to a log.
+
+**Why:** the format needs two channels, not one. An unknown field on a playlist must be reported and the playlist still kept, per requirements 4.3, so it cannot be an error. If it were, `catalog:validate` would fail a catalog the app is required to load. A null catalog is the separate signal that the whole file was rejected and the last good catalog should be kept.
+
+**Why plain strings:** the messages are read by people, in command output and in a log line. A message object would need a renderer before it said anything more, and nothing in v1 filters or groups them.
+
+**Why no logging:** `app/Catalog/` must not depend on the framework. The caller decides, so the command prints and the M3 sync logs.
+
+**Would change if:** the settings window ever shows catalog problems in the UI. Then the messages need a code and a row reference, not a sentence.
