@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Rotation;
 
 use App\Catalog\Playlist;
+use InvalidArgumentException;
 
 /**
  * Today's playlist, from a day, a genre and a mood. Requirements 5.
@@ -28,13 +29,47 @@ final readonly class DailyPicker
      */
     public function pick(CalendarDate $date, string $genre, string $mood, array $playlists): ?Pick
     {
+        return $this->at($date, $genre, $mood, $playlists, 0);
+    }
+
+    /**
+     * Where the Next button lands. Requirements 5.
+     *
+     * Next walks on from today's pick through the other candidates, in the
+     * same sorted order, and wraps at the end. $presses is how many times the
+     * button has been pressed, which the caller keeps in memory: the position
+     * is not stored anywhere, so it starts again at today's pick when the app
+     * restarts or the local date changes.
+     *
+     * @param  list<Playlist>  $playlists
+     *
+     * @throws InvalidArgumentException when $presses is negative
+     */
+    public function next(CalendarDate $date, string $genre, string $mood, array $playlists, int $presses): ?Pick
+    {
+        if ($presses < 0) {
+            throw new InvalidArgumentException('Next only goes forwards, so the number of presses cannot be negative.');
+        }
+
+        return $this->at($date, $genre, $mood, $playlists, $presses);
+    }
+
+    /**
+     * The candidate $presses places on from where the day landed.
+     *
+     * @param  list<Playlist>  $playlists
+     * @param  int  $presses  0 or more
+     */
+    private function at(CalendarDate $date, string $genre, string $mood, array $playlists, int $presses): ?Pick
+    {
         $candidates = $this->candidates($playlists, $genre, $mood);
 
         if ($candidates === []) {
             return null;
         }
 
-        $index = DailyRotation::indexFor($date, $genre, $mood, count($candidates));
+        $count = count($candidates);
+        $index = (DailyRotation::indexFor($date, $genre, $mood, $count) + $presses) % $count;
 
         return new Pick($candidates[$index], $genre, $mood, PickSource::Exact);
     }

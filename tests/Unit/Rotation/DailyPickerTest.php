@@ -212,3 +212,70 @@ it('has nothing to surprise with when the catalog is empty', function (): void {
     expect($pick)->toBeNull()
         ->and($random->lastCount)->toBeNull();
 });
+
+it('starts the next cycle on today pick', function (): void {
+    $date = CalendarDate::fromString('2026-01-05');
+    $playlists = rotationCandidates();
+
+    $pick = rotationPicker()->pick($date, 'rock', 'flow-state', $playlists);
+    $none = rotationPicker()->next($date, 'rock', 'flow-state', $playlists, 0);
+
+    expect($none?->playlist->id)->toBe($pick?->playlist->id);
+});
+
+it('moves to the candidate after today pick, in id order', function (): void {
+    $date = CalendarDate::fromString('2026-01-05');
+    $playlists = rotationCandidates();
+    $order = ['rock-flow-01', 'rock-flow-02', 'rock-flow-03'];
+
+    $pick = rotationPicker()->pick($date, 'rock', 'flow-state', $playlists);
+    $next = rotationPicker()->next($date, 'rock', 'flow-state', $playlists, 1);
+
+    $after = $order[(array_search($pick?->playlist->id, $order, true) + 1) % 3];
+
+    expect($next?->playlist->id)->toBe($after);
+});
+
+it('cycles through every candidate and wraps', function (): void {
+    $date = CalendarDate::fromString('2026-01-05');
+    $playlists = rotationCandidates();
+    $picker = rotationPicker();
+
+    $seen = [];
+
+    for ($presses = 0; $presses < 3; $presses++) {
+        $seen[] = $picker->next($date, 'rock', 'flow-state', $playlists, $presses)?->playlist->id;
+    }
+
+    $wrapped = $picker->next($date, 'rock', 'flow-state', $playlists, 3);
+
+    expect(array_unique($seen))->toHaveCount(3)
+        ->and($wrapped?->playlist->id)->toBe($seen[0]);
+});
+
+it('keeps returning the only candidate however often next is pressed', function (): void {
+    $playlists = [rotationPlaylist('rock-flow-01', 'rock', ['flow-state'])];
+    $picker = rotationPicker();
+
+    foreach ([0, 1, 2, 7] as $presses) {
+        $pick = $picker->next(CalendarDate::fromString('2026-01-05'), 'rock', 'flow-state', $playlists, $presses);
+
+        expect($pick?->playlist->id)->toBe('rock-flow-01');
+    }
+});
+
+it('has no next when the catalog is empty', function (): void {
+    $pick = rotationPicker()->next(CalendarDate::fromString('2026-01-05'), 'rock', 'flow-state', [], 1);
+
+    expect($pick)->toBeNull();
+});
+
+it('refuses to go backwards', function (): void {
+    expect(fn () => rotationPicker()->next(
+        CalendarDate::fromString('2026-01-05'),
+        'rock',
+        'flow-state',
+        rotationCandidates(),
+        -1,
+    ))->toThrow(InvalidArgumentException::class);
+});
