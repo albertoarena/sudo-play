@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Rotation\CalendarDate;
 use App\Rotation\DailyRotation;
+use Tests\Support\CalendarDays;
 
 /**
  * Worked out in the test, so the coprime check does not lean on the same code
@@ -16,25 +17,6 @@ function rotationGcd(int $a, int $b): int
     }
 
     return $a;
-}
-
-/**
- * A run of consecutive days, starting on $from.
- *
- * @return list<CalendarDate>
- */
-function rotationRun(string $from, int $days): array
-{
-    $moment = new DateTimeImmutable($from.' 00:00:00', new DateTimeZone('UTC'));
-
-    $run = [];
-
-    for ($day = 0; $day < $days; $day++) {
-        $run[] = CalendarDate::fromDateTime($moment);
-        $moment = $moment->modify('+1 day');
-    }
-
-    return $run;
 }
 
 /**
@@ -56,7 +38,7 @@ function rotationPairs(): array
 }
 
 it('puts the only candidate at index 0, whatever the day', function (): void {
-    foreach (rotationRun('2026-01-01', 40) as $date) {
+    foreach (CalendarDays::run('2026-01-01', 40) as $date) {
         expect(DailyRotation::indexFor($date, 'rock', 'flow-state', 1))->toBe(0);
     }
 });
@@ -70,7 +52,7 @@ it('gives the same index for the same day, genre, mood and count', function (): 
 
 it('always lands inside the candidate list', function (int $count): void {
     foreach (rotationPairs() as [$genre, $mood]) {
-        foreach (rotationRun('2026-01-01', 120) as $date) {
+        foreach (CalendarDays::run('2026-01-01', 120) as $date) {
             $index = DailyRotation::indexFor($date, $genre, $mood, $count);
 
             expect($index)->toBeGreaterThanOrEqual(0)
@@ -83,7 +65,7 @@ it('never lands on the same index two days running', function (int $count): void
     foreach (rotationPairs() as [$genre, $mood]) {
         $previous = null;
 
-        foreach (rotationRun('2026-01-01', 400) as $date) {
+        foreach (CalendarDays::run('2026-01-01', 400) as $date) {
             $index = DailyRotation::indexFor($date, $genre, $mood, $count);
 
             if ($previous !== null) {
@@ -121,7 +103,7 @@ it('gives every candidate a turn within one round', function (int $count): void 
     foreach (rotationPairs() as [$genre, $mood]) {
         $seen = [];
 
-        foreach (rotationRun('2026-01-01', $count) as $date) {
+        foreach (CalendarDays::run('2026-01-01', $count) as $date) {
             $seen[] = DailyRotation::indexFor($date, $genre, $mood, $count);
         }
 
@@ -130,7 +112,7 @@ it('gives every candidate a turn within one round', function (int $count): void 
 })->with([2, 3, 4, 5, 7, 12]);
 
 it('runs a different cycle for a different genre or mood', function (): void {
-    $run = rotationRun('2026-01-01', 30);
+    $run = CalendarDays::run('2026-01-01', 30);
 
     $sequence = function (string $genre, string $mood) use ($run): array {
         return array_map(
