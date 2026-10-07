@@ -127,3 +127,21 @@ The daily pick must be deterministic and must differ from yesterday. crc32 colli
 **Why:** from M1 onward each milestone arrives as a pull request written by an agent that ran the suite in its own container and reported the result. Without CI, the reviewer is trusting that report. `AGENTS.md` also already told agents that `ci.yml` is a required check, which was not true. One Linux job of two to four minutes closes both gaps.
 
 **Detail worth keeping:** `npm run build` has to run before `composer test`. The feature test renders the Blade layout, which calls `@vite` and fails without `public/build/manifest.json`.
+
+## 2026-10-07: `symfony/yaml` is the one package M1 adds
+
+**Choice:** add `symfony/yaml` to `require` in `composer.json`. It is the only package M1 adds.
+
+**Why:** the catalog is YAML, so `CatalogParser` has to read YAML. The `yaml` PHP extension is not installed and CI does not install it, and the package was only in the lock file as a dev dependency of `laravel/sail`, so production code could not use it. The alternatives were worse: a hand written parser is real code to own, and it would reject valid YAML a contributor wrote in good faith, while moving the catalog to JSON contradicts requirements 4.1 and makes community pull requests harder to read.
+
+**Why this package:** it is a first party Symfony component already resolved in `composer.lock`, so no new vendor enters the dependency tree.
+
+**Would change if:** the app ever needs to dump YAML as well as read it, which would not change the package, only how much of it is used.
+
+## 2026-10-07: `catalog:validate` stays in M1
+
+**Choice:** `php artisan catalog:validate {path?} {--release}` ships with M1, as `docs/INSTRUCTIONS.md` M1 says, even though it is a command rather than one of the three classes M1 is named after.
+
+**Why:** the build plan is the source of truth for scope and order, and the command is the only caller that proves the parser reports errors in a way a human can read. M7 also assumes it exists: `catalog.yml` runs it on contributor pull requests and `release.yml` runs it with `--release`. Leaving it out would mean writing the parser's error output twice.
+
+**Where the release gate lives:** the zero playlists and leftover `TODO` checks from requirements 10.1 sit in the command, not in the parser. They are release policy, not catalog validity, and a catalog with no playlists is a normal development state.
