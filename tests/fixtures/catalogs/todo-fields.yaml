@@ -1,0 +1,18 @@
+version: 1
+
+genres:
+  - id: rock
+    label: Rock
+
+moods:
+  - id: flow-state
+    label: Flow State
+
+# Valid YAML, valid rows, but the maintainer has not chosen a real playlist
+# yet. Fine during development, not releasable.
+playlists:
+  - id: rock-flow-state-01
+    title: TODO pick a real playlist
+    url: https://open.spotify.com/playlist/aB1cD2eF3gH4iJ5kL6mN7o
+    genre: rock
+    moods: [flow-state]
