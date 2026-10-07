@@ -2,7 +2,7 @@
 
 Checks that tests cannot cover, because they need a real Mac, a real Spotify install or a real macOS permission prompt.
 
-Run the player checks at the end of M4 against `native:serve`. Run the whole list at the end of M7 against the installed DMG, on a Mac that has never run the app.
+Run the player checks at the end of M5, not M4, against `native:serve`. M4 builds the players but gives no way to trigger one: the menu bar arrives in M5, and there is no command that plays. The two permission checks need M5 as well, because macOS grants Automation permission per application, so it has to be the app asking and not a terminal. Run the whole list at the end of M7 against the installed DMG, on a Mac that has never run the app.
 
 ## Player
 
