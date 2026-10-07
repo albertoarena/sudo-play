@@ -24,6 +24,11 @@ final readonly class PlayResult
         return new self(PlayOutcome::Played, message: null, reason: null);
     }
 
+    public static function fellBack(string $message, string $reason): self
+    {
+        return new self(PlayOutcome::FellBack, $message, $reason);
+    }
+
     public static function failed(string $message, string $reason): self
     {
         return new self(PlayOutcome::Failed, $message, $reason);
