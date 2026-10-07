@@ -1,0 +1,76 @@
+# Sudo Play catalog
+#
+# This file is the catalog. The app reads it, and a copy of it ships inside the
+# app as the offline fallback.
+#
+# To add a playlist, open a pull request that adds an entry under `playlists`:
+#
+#   - id: rock-friday-deploy-01          # unique lowercase slug
+#     title: Riffs for risky releases
+#     url: https://open.spotify.com/playlist/XXXXXXXXXXXXXXXXXXXXXX
+#     genre: rock                        # must be one of the genres below
+#     moods: [friday-deploy, flow-state] # each must be one of the moods below
+#     curator: your-github-handle        # optional
+#
+# Run `php artisan catalog:validate` before you push. CI runs it too.
+#
+# The playlist list is empty on purpose. Real Spotify playlist ids are chosen by
+# the maintainer, never invented, and `catalog:validate --release` refuses to
+# release a catalog that is still empty.
+
+version: 1
+
+genres:
+  - id: classical
+    label: Classical
+
+  - id: rock
+    label: Rock
+
+  - id: pop
+    label: Pop
+
+  - id: indie
+    label: Indie
+
+  - id: electronic
+    label: Electronic
+
+  - id: jazz
+    label: Jazz
+
+  - id: lofi
+    label: Lo-fi
+
+moods:
+  - id: shipped-it
+    label: Shipped It
+    emoji: "🎉"
+    description: Happy, something just went live.
+
+  - id: coffee-needed
+    label: Coffee Needed
+    emoji: "☕"
+    description: Tired, slow start.
+
+  - id: blue-monday
+    label: Blue Monday
+    emoji: "😔"
+    description: Low energy, start of the week.
+
+  - id: flow-state
+    label: Flow State
+    emoji: "🎧"
+    description: Deep focus, no distractions.
+
+  - id: debugging
+    label: Debugging
+    emoji: "🐛"
+    description: Calm and patient, a long investigation.
+
+  - id: friday-deploy
+    label: Friday Deploy
+    emoji: "🚀"
+    description: Brave, energetic, a bit risky.
+
+playlists: []

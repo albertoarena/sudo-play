@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Catalog\BundledCatalogSource;
+use App\Catalog\CatalogSource;
 use App\Catalog\CatalogStore;
 use App\Catalog\DatabaseCatalogStore;
 use App\Settings\DatabaseSettingsStore;
@@ -19,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(SettingsStore::class, DatabaseSettingsStore::class);
         $this->app->singleton(CatalogStore::class, DatabaseCatalogStore::class);
+        $this->app->singleton(CatalogSource::class, static fn (): CatalogSource => BundledCatalogSource::bundled());
     }
 
     /**
