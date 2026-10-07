@@ -185,3 +185,71 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Why:** the caller does not always know the pair. "Surprise me" chooses it, so without carrying it the window could not show what was chosen. The source is what the fallback note in requirements 5 is built from, and keeping it an enum rather than a sentence leaves the wording to the UI, where it can be translated later.
 
 **Would change if:** a third fallback is added. Then the order belongs in the enum itself rather than in the picker.
+
+## 2026-10-07: The catalog is one JSON column
+
+**Choice:** `catalog_snapshots` holds one row with the whole catalog as a JSON payload, plus the last successful sync time.
+
+**Why:** tables for genres, moods, playlists and the moods on each playlist would be four tables and a pivot, and nothing would ever query them. The rotation is a pure function over the whole candidate list, so the app reads the catalog whole, uses it whole and replaces it whole.
+
+**Reading it back is all or nothing:** the YAML parser is lenient because a contributor wrote that file, but this payload was written by the app, so a row that does not fit means a damaged database. The store then reports no catalog, which sends the caller to the bundled copy.
+
+**Would change if:** the settings window ever needs to list or search playlists without loading them all.
+
+## 2026-10-07: Settings go in our own table, not the NativePHP store
+
+**Choice:** `SettingsStore` is backed by a `settings` key and value table in the app's SQLite database. Values are stored as JSON, so a checkbox comes back a boolean rather than the string "1".
+
+**Why:** the NativePHP `Settings` facade writes to an Electron store over the local API, so every read needs an Electron process answering. That makes settings unreadable in a plain `artisan` run and turns every test that touches one into an HTTP fake. The catalog already needs the database, so one storage mechanism is simpler than two.
+
+**Would change if:** settings ever have to be read by the Electron side rather than by PHP.
+
+## 2026-10-07: A setting that was never changed has no row
+
+**Choice:** defaults live in the `SettingKey` enum, not in the database. A key with no row answers with its default. A known key always answers with its own default, even when the caller offers another.
+
+**Why:** seeding defaults on install freezes them into every existing database, so improving one would need a migration. This way a default changes with an app update. It also means the store stays the flat key to value interface requirements 11.1 asks for, without magic strings at the call sites.
+
+## 2026-10-07: The reminder and launch at login start off
+
+**Choice:** `reminder_enabled` and `launch_at_login` both default to false. The default genre and the default mood default to null, meaning not chosen yet.
+
+**Why:** requirements 7.2 gives defaults for the reminder time and for weekdays only, but not for the reminder itself or for launch at login. An app that notifies you at 09:00 and adds itself to your login items without being asked is the kind of thing that gets uninstalled, so the quiet reading wins. A null genre and mood let the window open on the first pair the catalog offers, so no default can name an id a fork's catalog does not have.
+
+**Worth confirming:** this is a gap in the requirements rather than something they state. If the reminder is meant to be on out of the box, it is a one line change.
+
+## 2026-10-07: The bundled catalog is found with base_path()
+
+**Choice:** `BundledCatalogSource::bundled()` reads `base_path('catalog/playlists.yaml')`, and that one method is the only place that knows where the file is.
+
+**Why:** NativePHP starts PHP with the Laravel project root as its working directory in both modes. In development that is the project on disk; in a packaged app it is the copy inside the bundle, unpacked from the archive. The build copies the whole project apart from the patterns in `cleanup_exclude_files`, and `catalog` is not one of them. Checked against the installed package source, not from memory.
+
+**Would change if:** a future NativePHP version serves the app from a read only archive without unpacking it. Then the file has to be copied out on first run.
+
+## 2026-10-07: The no-playlists rule protects a catalog, it does not create one
+
+**Choice:** a download that parses but ends with no playlists is refused and the stored catalog is kept, per requirements 4.3. A first run with an empty database still loads a bundled catalog that has no playlists.
+
+**Why:** the rule exists so one bad pull request cannot take the catalog away from people who already have a good one. On a first run there is nothing to protect, and the genres and the moods are still needed for the window to draw its chips and its empty state.
+
+## 2026-10-07: The bundled catalog ships from M3, not M7
+
+**Choice:** `catalog/playlists.yaml` lands in this milestone with the genres and moods from requirements 4.2 and an empty `playlists` list. The build plan puts it in M7.
+
+**Why:** M3 has to load the bundled catalog on a first run, and there was nothing to load. The file is data with no code behind it, so bringing it forward costs nothing and M7 keeps the review of it.
+
+**Unchanged:** no playlist ids are invented. They are the maintainer's to add, and `catalog:validate --release` already refuses to ship a catalog without them.
+
+## 2026-10-07: The startup sync is a child process, the daily one is the scheduler
+
+**Choice:** `Schedule::command('catalog:sync')->daily()->withoutOverlapping()` in the console routes, and a NativePHP child process running the same command just after startup, behind a `SyncLauncher` interface.
+
+**Why:** NativePHP runs `artisan schedule:run` every minute while the app is open, so the daily half needs no NativePHP API at all. The startup half cannot run inside the request that draws the window, because requirements 4.4 says the sync never blocks the first render. A child process returns at once and the window draws from the stored catalog.
+
+**Known gap:** `daily()` fires at midnight. A Mac asleep at midnight misses that slot, and the scheduler restarting on resume does not make it up, so such a machine syncs only when the app is launched again. Worth revisiting in M6, where a "last synced more than a day ago" check could run hourly instead.
+
+## 2026-10-07: PlayerMode is a setting's value, so it sits with the settings
+
+**Choice:** the `PlayerMode` enum lives in `app/Settings/`, not in `app/Player/`.
+
+**Why:** M3 defines the `player_mode` setting, and a setting cannot have a default without its allowed values. Keeping the enum here means `app/Player/` stays about players: M4 maps a case to a player, M6 uses the cases to validate what the settings window saves.

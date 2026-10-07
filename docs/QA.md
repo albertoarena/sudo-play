@@ -19,6 +19,8 @@ Run the player checks at the end of M4 against `native:serve`. Run the whole lis
 - [ ] The app works with the network off, using the stored catalog
 - [ ] A bad catalog URL in settings leaves the previous catalog in place and does not break the window
 - [ ] "Update catalog now" refreshes the footer date
+- [ ] The startup sync runs as its own process and finishes, leaving the catalog updated without the window ever waiting
+- [ ] The daily schedule actually fires in a packaged app, where NativePHP runs the scheduler rather than cron
 
 ## Window and system
 
