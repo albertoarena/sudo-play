@@ -279,3 +279,114 @@ it('refuses to go backwards', function (): void {
         -1,
     ))->toThrow(InvalidArgumentException::class);
 });
+
+it('falls back to the same mood in another genre', function (): void {
+    $playlists = [
+        rotationPlaylist('jazz-debug-01', 'jazz', ['debugging']),
+        rotationPlaylist('rock-monday-01', 'rock', ['blue-monday']),
+    ];
+
+    $pick = rotationPicker()->pick(CalendarDate::fromString('2026-01-05'), 'rock', 'debugging', $playlists);
+
+    expect($pick?->playlist->id)->toBe('jazz-debug-01')
+        ->and($pick?->source)->toBe(PickSource::SameMoodAnyGenre)
+        ->and($pick?->isFallback())->toBeTrue()
+        ->and($pick?->genre)->toBe('rock')
+        ->and($pick?->mood)->toBe('debugging');
+});
+
+it('prefers the same mood in another genre over another mood in the same genre', function (): void {
+    $playlists = [
+        rotationPlaylist('jazz-debug-01', 'jazz', ['debugging']),
+        rotationPlaylist('rock-flow-01', 'rock', ['flow-state']),
+    ];
+
+    $pick = rotationPicker()->pick(CalendarDate::fromString('2026-01-05'), 'rock', 'debugging', $playlists);
+
+    expect($pick?->playlist->id)->toBe('jazz-debug-01')
+        ->and($pick?->source)->toBe(PickSource::SameMoodAnyGenre);
+});
+
+it('falls back to another mood in the same genre when no playlist carries the mood', function (): void {
+    $playlists = [
+        rotationPlaylist('rock-flow-01', 'rock', ['flow-state']),
+        rotationPlaylist('jazz-monday-01', 'jazz', ['blue-monday']),
+    ];
+
+    $pick = rotationPicker()->pick(CalendarDate::fromString('2026-01-05'), 'rock', 'debugging', $playlists);
+
+    expect($pick?->playlist->id)->toBe('rock-flow-01')
+        ->and($pick?->source)->toBe(PickSource::SameGenreAnyMood)
+        ->and($pick?->isFallback())->toBeTrue();
+});
+
+it('has no pick when the catalog covers neither the genre nor the mood', function (): void {
+    $playlists = [
+        rotationPlaylist('rock-flow-01', 'rock', ['flow-state']),
+        rotationPlaylist('jazz-debug-01', 'jazz', ['debugging']),
+    ];
+
+    $pick = rotationPicker()->pick(CalendarDate::fromString('2026-01-05'), 'pop', 'shipped-it', $playlists);
+
+    expect($pick)->toBeNull();
+});
+
+it('has no pick when the catalog is empty', function (): void {
+    $pick = rotationPicker()->pick(CalendarDate::fromString('2026-01-05'), 'rock', 'flow-state', []);
+
+    expect($pick)->toBeNull();
+});
+
+it('runs the same daily rule over the fallback list', function (): void {
+    $playlists = [
+        rotationPlaylist('jazz-debug-01', 'jazz', ['debugging']),
+        rotationPlaylist('lofi-debug-01', 'lofi', ['debugging']),
+        rotationPlaylist('pop-debug-01', 'pop', ['debugging']),
+    ];
+
+    $date = CalendarDate::fromString('2026-01-05');
+    $picker = rotationPicker();
+
+    $twice = $picker->pick($date, 'rock', 'debugging', $playlists);
+
+    expect($picker->pick($date, 'rock', 'debugging', $playlists)?->playlist->id)
+        ->toBe($twice?->playlist->id);
+
+    $previous = null;
+
+    foreach (CalendarDays::run('2026-01-01', 90) as $day) {
+        $pick = $picker->pick($day, 'rock', 'debugging', $playlists);
+
+        expect($pick?->source)->toBe(PickSource::SameMoodAnyGenre);
+
+        if ($previous !== null) {
+            expect($pick?->playlist->id)->not->toBe($previous, 'repeated on '.$day->value);
+        }
+
+        $previous = $pick?->playlist->id;
+    }
+});
+
+it('cycles through the fallback list with next', function (): void {
+    $playlists = [
+        rotationPlaylist('jazz-debug-01', 'jazz', ['debugging']),
+        rotationPlaylist('lofi-debug-01', 'lofi', ['debugging']),
+        rotationPlaylist('pop-debug-01', 'pop', ['debugging']),
+    ];
+
+    $date = CalendarDate::fromString('2026-01-05');
+    $picker = rotationPicker();
+
+    $seen = [];
+
+    for ($presses = 0; $presses < 3; $presses++) {
+        $pick = $picker->next($date, 'rock', 'debugging', $playlists, $presses);
+
+        expect($pick?->source)->toBe(PickSource::SameMoodAnyGenre);
+
+        $seen[] = $pick?->playlist->id;
+    }
+
+    expect(array_unique($seen))->toHaveCount(3)
+        ->and($picker->next($date, 'rock', 'debugging', $playlists, 3)?->playlist->id)->toBe($seen[0]);
+});

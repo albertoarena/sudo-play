@@ -62,16 +62,52 @@ final readonly class DailyPicker
      */
     private function at(CalendarDate $date, string $genre, string $mood, array $playlists, int $presses): ?Pick
     {
-        $candidates = $this->candidates($playlists, $genre, $mood);
+        $resolved = $this->resolve($playlists, $genre, $mood);
 
-        if ($candidates === []) {
+        if ($resolved === null) {
             return null;
         }
+
+        [$candidates, $source] = $resolved;
 
         $count = count($candidates);
         $index = (DailyRotation::indexFor($date, $genre, $mood, $count) + $presses) % $count;
 
-        return new Pick($candidates[$index], $genre, $mood, PickSource::Exact);
+        return new Pick($candidates[$index], $genre, $mood, $source);
+    }
+
+    /**
+     * The list the pick is made from, and where it came from.
+     *
+     * The chosen pair comes first. When the catalog has nothing for it the
+     * search widens, in the order set by requirements 5: the same mood in any
+     * genre, then the same genre in any mood. Null means even that found
+     * nothing, and the window shows its empty state.
+     *
+     * The day, the genre and the mood that go into the rotation are the ones
+     * the user asked for, whichever list is used, so a fallback pick is as
+     * steady and as shareable as any other.
+     *
+     * @param  list<Playlist>  $playlists
+     * @return array{list<Playlist>, PickSource}|null
+     */
+    private function resolve(array $playlists, string $genre, string $mood): ?array
+    {
+        $searches = [
+            [PickSource::Exact, $genre, $mood],
+            [PickSource::SameMoodAnyGenre, null, $mood],
+            [PickSource::SameGenreAnyMood, $genre, null],
+        ];
+
+        foreach ($searches as [$source, $byGenre, $byMood]) {
+            $candidates = $this->candidates($playlists, $byGenre, $byMood);
+
+            if ($candidates !== []) {
+                return [$candidates, $source];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -124,15 +160,18 @@ final readonly class DailyPicker
      * The playlists of that genre carrying that mood, sorted by id in byte
      * order so every copy of the app agrees on the order.
      *
+     * A null genre or mood means "any", which is how the fallback searches
+     * widen one side at a time.
+     *
      * @param  list<Playlist>  $playlists
      * @return list<Playlist>
      */
-    private function candidates(array $playlists, string $genre, string $mood): array
+    private function candidates(array $playlists, ?string $genre, ?string $mood): array
     {
         $candidates = array_values(array_filter(
             $playlists,
-            fn (Playlist $playlist): bool => $playlist->genre === $genre
-                && in_array($mood, $playlist->moods, true),
+            fn (Playlist $playlist): bool => ($genre === null || $playlist->genre === $genre)
+                && ($mood === null || in_array($mood, $playlist->moods, true)),
         ));
 
         usort($candidates, fn (Playlist $a, Playlist $b): int => strcmp($a->id, $b->id));
