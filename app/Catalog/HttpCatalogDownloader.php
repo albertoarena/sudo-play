@@ -65,6 +65,11 @@ final class HttpCatalogDownloader implements CatalogDownloader
     /**
      * Reads the body a chunk at a time and stops the moment it goes over the
      * limit, so an endless response cannot fill memory.
+     *
+     * The stream is closed only when the read is abandoned, which is what hangs
+     * up on a server still sending. A stream read to the end has nothing left to
+     * release, and closing it would leave the response unreadable for anyone
+     * else holding it.
      */
     private function read(StreamInterface $stream): DownloadResult
     {
@@ -75,13 +80,15 @@ final class HttpCatalogDownloader implements CatalogDownloader
                 $body .= $stream->read(self::CHUNK_BYTES);
 
                 if (strlen($body) > self::SIZE_LIMIT_BYTES) {
+                    $stream->close();
+
                     return $this->tooBig();
                 }
             }
         } catch (Throwable $exception) {
-            return DownloadResult::failed($exception->getMessage());
-        } finally {
             $stream->close();
+
+            return DownloadResult::failed($exception->getMessage());
         }
 
         return DownloadResult::received($body);
