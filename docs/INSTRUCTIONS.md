@@ -18,7 +18,7 @@ Every choice the plan leaves open goes in `docs/DECISIONS.md` as one short entry
 - [x] M0 Scaffold
 - [x] M1 Catalog parsing and validation
 - [x] M2 Daily rotation
-- [ ] M3 Storage, settings and sync
+- [x] M3 Storage, settings and sync
 - [ ] M4 Player
 - [ ] M5 Menu bar UI
 - [ ] M6 Settings window and daily reminder
