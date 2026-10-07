@@ -253,3 +253,35 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Choice:** the `PlayerMode` enum lives in `app/Settings/`, not in `app/Player/`.
 
 **Why:** M3 defines the `player_mode` setting, and a setting cannot have a default without its allowed values. Keeping the enum here means `app/Player/` stays about players: M4 maps a case to a player, M6 uses the cases to validate what the settings window saves.
+
+## 2026-10-07: The resolver is the player the app uses
+
+**Choice:** `PlayerResolver` implements `PlayerInterface` itself. It reads `player_mode` on every play, plays through the matching player, and falls back to `WebPlayer` when that player returns a failed result. The container binds `PlayerInterface` to it.
+
+**Why:** the fallback in requirements 6 applies whatever the mode, so it belongs in one place rather than inside each player. M5 then depends on `PlayerInterface` alone, and its tests can bind a fake there. Reading the setting on every play means a change in the settings window needs no restart.
+
+**Messages:** each player says what went wrong in one sentence. The resolver adds "Opened the playlist in your browser instead." The raw error goes to the log, never to the window.
+
+## 2026-10-07: AppleScript gives up after 8 seconds
+
+**Choice:** `osascript` runs with an 8 second timeout. A timeout counts as a failure, so the playlist opens in the browser.
+
+**Why:** `tell application "Spotify"` waits while Spotify launches, and the user is waiting on the Play button. A cold start usually takes a few seconds. After 8 seconds the browser is the better answer.
+
+**Accepted cost:** if Spotify finishes launching just after the timeout, the script may still play, and the browser opens as well. This is rare and harmless, and better than a window that hangs.
+
+**Would change if:** the manual checks in `docs/QA.md` show cold starts regularly taking longer on a normal Mac.
+
+## 2026-10-07: A denied Automation permission gets its own message
+
+**Choice:** when `osascript` fails with error -1743 ("Not authorized to send Apple events"), the message tells the user where to allow it: System Settings, Privacy & Security, Automation. Every other failure says "Could not start Spotify."
+
+**Why:** this is the one failure only the user can fix, and macOS only shows its own prompt once. Without the hint, autoplay silently becomes the web player forever.
+
+## 2026-10-07: Open only mode cannot see a missing Spotify app
+
+**Choice:** `OpenAppPlayer` falls back only when the link cannot be handed to Electron at all.
+
+**Why:** NativePHP's `Shell::openExternal` returns nothing, so when macOS has no app for a `spotify:` link the app is never told. Checking for Spotify on disk would be a second, macOS specific code path for a mode the user chose on purpose. The default mode, autoplay, does detect it and falls back.
+
+**Would change if:** NativePHP starts returning the result of `shell.openExternal`.

@@ -2,15 +2,18 @@
 
 Checks that tests cannot cover, because they need a real Mac, a real Spotify install or a real macOS permission prompt.
 
-Run the player checks at the end of M4 against `native:serve`. Run the whole list at the end of M7 against the installed DMG, on a Mac that has never run the app.
+Run the player checks at the end of M5, not M4, against `native:serve`. M4 builds the players but gives no way to trigger one: the menu bar arrives in M5, and there is no command that plays. The two permission checks need M5 as well, because macOS grants Automation permission per application, so it has to be the app asking and not a terminal. Run the whole list at the end of M7 against the installed DMG, on a Mac that has never run the app.
 
 ## Player
 
 - [ ] Autoplay mode plays a real public playlist in the Spotify app
 - [ ] The first autoplay attempt shows the macOS Automation permission prompt, and the app explains it in one line before or alongside the prompt
 - [ ] Denying that permission falls back to the web player and shows a short message
+- [ ] With the permission denied, the message says where to allow it (System Settings, Privacy & Security, Automation)
+- [ ] Autoplay with Spotify not installed falls back to the web player and shows a short message
 - [ ] Autoplay with Spotify closed either launches it and plays, or times out and falls back. It never hangs the window
 - [ ] Open only mode opens the playlist in the Spotify app without starting playback
+- [ ] Open only mode with Spotify not installed: write down what macOS does. The app cannot detect it, see `docs/DECISIONS.md`
 - [ ] Web player mode opens the playlist in the default browser
 
 ## Catalog and offline
