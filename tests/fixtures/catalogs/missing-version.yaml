@@ -1,0 +1,14 @@
+genres:
+  - id: rock
+    label: Rock
+
+moods:
+  - id: flow-state
+    label: Flow State
+
+playlists:
+  - id: rock-flow-state-01
+    title: No version at the top
+    url: https://open.spotify.com/playlist/aB1cD2eF3gH4iJ5kL6mN7o
+    genre: rock
+    moods: [flow-state]

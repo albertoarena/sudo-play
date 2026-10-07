@@ -1,0 +1,33 @@
+version: 1
+
+genres:
+  - id: rock
+    label: Rock
+  - id: jazz
+    label: Jazz
+
+moods:
+  - id: friday-deploy
+    label: Friday Deploy
+    emoji: "🚀"
+    description: Shipping to production on a Friday. Be brave.
+  - id: debugging
+    label: Debugging
+    emoji: "🐞"
+    description: Calm and patient, long investigation.
+
+playlists:
+  # A plain link, with a curator.
+  - id: rock-friday-deploy-01
+    title: Riffs for risky releases
+    url: https://open.spotify.com/playlist/aB1cD2eF3gH4iJ5kL6mN7o
+    genre: rock
+    moods: [friday-deploy, debugging]
+    curator: octocat
+
+  # A link as a browser copies it: locale segment and share query attached.
+  - id: jazz-debugging-01
+    title: Slow jazz for long stack traces
+    url: https://open.spotify.com/intl-it/playlist/zZ9yY8xX7wW6vV5uU4tT3s?si=abc123
+    genre: jazz
+    moods: [debugging]
