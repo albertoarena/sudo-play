@@ -55,6 +55,30 @@ final readonly class DailyPicker
     }
 
     /**
+     * A pick for a genre and mood chosen at random, from the pairs the catalog
+     * actually covers. Requirements 5.
+     *
+     * The pairs come from the playlists themselves, so every pair offered has
+     * at least one playlist behind it and the result never needs a fallback.
+     * Only the pair is random: once it is chosen, the playlist is the one the
+     * day gives, the same as if the user had picked that pair by hand.
+     *
+     * @param  list<Playlist>  $playlists
+     */
+    public function surprise(CalendarDate $date, array $playlists): ?Pick
+    {
+        $pairs = $this->pairs($playlists);
+
+        if ($pairs === []) {
+            return null;
+        }
+
+        [$genre, $mood] = $pairs[$this->random->indexBelow(count($pairs))];
+
+        return $this->pick($date, $genre, $mood, $playlists);
+    }
+
+    /**
      * The candidate $presses places on from where the day landed.
      *
      * @param  list<Playlist>  $playlists
@@ -111,30 +135,6 @@ final readonly class DailyPicker
     }
 
     /**
-     * A pick for a genre and mood chosen at random, from the pairs the catalog
-     * actually covers. Requirements 5.
-     *
-     * The pairs come from the playlists themselves, so every pair offered has
-     * at least one playlist behind it and the result never needs a fallback.
-     * Only the pair is random: once it is chosen, the playlist is the one the
-     * day gives, the same as if the user had picked that pair by hand.
-     *
-     * @param  list<Playlist>  $playlists
-     */
-    public function surprise(CalendarDate $date, array $playlists): ?Pick
-    {
-        $pairs = $this->pairs($playlists);
-
-        if ($pairs === []) {
-            return null;
-        }
-
-        [$genre, $mood] = $pairs[$this->random->indexBelow(count($pairs))];
-
-        return $this->pick($date, $genre, $mood, $playlists);
-    }
-
-    /**
      * Every genre and mood pair the catalog has a playlist for, sorted, so the
      * same catalog always offers the same choices in the same order.
      *
@@ -151,7 +151,7 @@ final readonly class DailyPicker
             }
         }
 
-        ksort($pairs);
+        ksort($pairs, SORT_STRING);
 
         return array_values($pairs);
     }
