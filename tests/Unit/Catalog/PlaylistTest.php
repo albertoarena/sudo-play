@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Catalog\Playlist;
 
-function playlist(?string $curator = 'octocat'): Playlist
+function aPlaylist(?string $curator = 'octocat'): Playlist
 {
     return new Playlist(
         id: 'rock-friday-deploy-01',
@@ -17,7 +17,7 @@ function playlist(?string $curator = 'octocat'): Playlist
 }
 
 it('keeps what it was given', function (): void {
-    expect(playlist())
+    expect(aPlaylist())
         ->id->toBe('rock-friday-deploy-01')
         ->title->toBe('Riffs for risky releases')
         ->spotifyId->toBe('aB1cD2eF3gH4iJ5kL6mN7o')
@@ -39,15 +39,15 @@ it('has no curator by default', function (): void {
 });
 
 it('builds the web url from the stored spotify id', function (): void {
-    expect(playlist()->webUrl())->toBe('https://open.spotify.com/playlist/aB1cD2eF3gH4iJ5kL6mN7o');
+    expect(aPlaylist()->webUrl())->toBe('https://open.spotify.com/playlist/aB1cD2eF3gH4iJ5kL6mN7o');
 });
 
 it('builds the spotify uri from the stored spotify id', function (): void {
-    expect(playlist()->spotifyUri())->toBe('spotify:playlist:aB1cD2eF3gH4iJ5kL6mN7o');
+    expect(aPlaylist()->spotifyUri())->toBe('spotify:playlist:aB1cD2eF3gH4iJ5kL6mN7o');
 });
 
 it('cannot be changed after it is built', function (): void {
-    $playlist = playlist();
+    $playlist = aPlaylist();
 
     expect(fn (): string => $playlist->title = 'Something else')->toThrow(Error::class);
 });
