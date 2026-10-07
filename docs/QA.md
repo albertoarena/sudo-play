@@ -9,8 +9,11 @@ Run the player checks at the end of M4 against `native:serve`. Run the whole lis
 - [ ] Autoplay mode plays a real public playlist in the Spotify app
 - [ ] The first autoplay attempt shows the macOS Automation permission prompt, and the app explains it in one line before or alongside the prompt
 - [ ] Denying that permission falls back to the web player and shows a short message
+- [ ] With the permission denied, the message says where to allow it (System Settings, Privacy & Security, Automation)
+- [ ] Autoplay with Spotify not installed falls back to the web player and shows a short message
 - [ ] Autoplay with Spotify closed either launches it and plays, or times out and falls back. It never hangs the window
 - [ ] Open only mode opens the playlist in the Spotify app without starting playback
+- [ ] Open only mode with Spotify not installed: write down what macOS does. The app cannot detect it, see `docs/DECISIONS.md`
 - [ ] Web player mode opens the playlist in the default browser
 
 ## Catalog and offline
