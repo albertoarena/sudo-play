@@ -1,0 +1,24 @@
+version: 1
+
+genres:
+  - id: rock
+    label: Rock
+  - id: rock
+    label: Rock again
+  - id: Classical
+    label: Not a lowercase slug
+  - label: No id at all
+
+moods:
+  - id: flow-state
+    label: Flow State
+  - id: flow-state
+    label: Flow State again
+  - id: debugging
+
+playlists:
+  - id: rock-flow-state-01
+    title: Still loads, the good genre and mood survived
+    url: https://open.spotify.com/playlist/aB1cD2eF3gH4iJ5kL6mN7o
+    genre: rock
+    moods: [flow-state]

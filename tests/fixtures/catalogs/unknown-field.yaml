@@ -1,0 +1,20 @@
+version: 1
+
+genres:
+  - id: rock
+    label: Rock
+
+moods:
+  - id: flow-state
+    label: Flow State
+
+# A playlist written by a newer version of the format. The extra fields are
+# ignored and reported, never a reason to drop the playlist.
+playlists:
+  - id: rock-flow-state-01
+    title: From a newer catalog format
+    url: https://open.spotify.com/playlist/aB1cD2eF3gH4iJ5kL6mN7o
+    genre: rock
+    moods: [flow-state]
+    tier: premium
+    source: partner

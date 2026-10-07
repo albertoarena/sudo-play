@@ -1,0 +1,70 @@
+version: 1
+
+genres:
+  - id: rock
+    label: Rock
+
+moods:
+  - id: flow-state
+    label: Flow State
+
+# One good playlist and one of every way a playlist can be wrong.
+# Only the first one should survive.
+playlists:
+  - id: rock-flow-state-01
+    title: The only good one
+    url: https://open.spotify.com/playlist/aB1cD2eF3gH4iJ5kL6mN7o
+    genre: rock
+    moods: [flow-state]
+
+  - id: pop-flow-state-01
+    title: Unknown genre
+    url: https://open.spotify.com/playlist/bB1cD2eF3gH4iJ5kL6mN7o
+    genre: pop
+    moods: [flow-state]
+
+  - id: rock-shipped-it-01
+    title: Unknown mood
+    url: https://open.spotify.com/playlist/cB1cD2eF3gH4iJ5kL6mN7o
+    genre: rock
+    moods: [shipped-it]
+
+  - id: rock-no-moods-01
+    title: Empty moods
+    url: https://open.spotify.com/playlist/dB1cD2eF3gH4iJ5kL6mN7o
+    genre: rock
+    moods: []
+
+  - id: rock-bad-url-01
+    title: Not a Spotify link
+    url: https://example.com/playlist/eB1cD2eF3gH4iJ5kL6mN7o
+    genre: rock
+    moods: [flow-state]
+
+  - id: rock-short-id-01
+    title: Spotify id is not 22 characters
+    url: https://open.spotify.com/playlist/tooshort
+    genre: rock
+    moods: [flow-state]
+
+  - id: rock-flow-state-01
+    title: Duplicate of the first id
+    url: https://open.spotify.com/playlist/fB1cD2eF3gH4iJ5kL6mN7o
+    genre: rock
+    moods: [flow-state]
+
+  - id: Rock_Flow_State
+    title: Id is not a lowercase slug
+    url: https://open.spotify.com/playlist/gB1cD2eF3gH4iJ5kL6mN7o
+    genre: rock
+    moods: [flow-state]
+
+  - title: No id at all
+    url: https://open.spotify.com/playlist/hB1cD2eF3gH4iJ5kL6mN7o
+    genre: rock
+    moods: [flow-state]
+
+  - id: rock-no-title-01
+    url: https://open.spotify.com/playlist/iB1cD2eF3gH4iJ5kL6mN7o
+    genre: rock
+    moods: [flow-state]

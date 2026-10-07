@@ -1,0 +1,9 @@
+version: 1
+
+genres:
+  - id: rock
+    label: Rock
+
+moods: [
+  - id: flow-state
+ label: "Flow State
