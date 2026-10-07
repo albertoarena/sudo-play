@@ -94,7 +94,8 @@ Add these scripts to `composer.json` and `package.json` in milestone 0 if they d
 - So a pull request opened from a cloud session needs its description checked, and the footer stripped afterwards from a machine outside that proxy. Either edit it in the GitHub web interface, or `gh api -X PATCH repos/<owner>/<repo>/pulls/<number>` with the corrected body
 - Every commit goes through a pull request, never straight to `main`
 - Only exception: a commit that touches markdown files only can go straight to `main`
-- `main` is protected and `ci.yml` is a required check, so nothing merges red
+- `main` gets branch protection in M7, with `ci.yml` as the required check. It is not protected yet: the repository is private, and protection on a private repository needs a paid plan, so it waits for the milestone that makes it public
+- Until then nothing enforces any of this. Never push to `main` and never merge your own pull request because these rules say so, not because GitHub would stop you. It would not
 - Releases are tags on `main` (`vMAJOR.MINOR.PATCH`). There is no release branch. See `docs/REQUIREMENTS.md` section 12 and `docs/RELEASE.md`
 - Never commit a version bump. The version comes from the tag at build time
 
