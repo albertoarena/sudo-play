@@ -17,7 +17,7 @@ Every choice the plan leaves open goes in `docs/DECISIONS.md` as one short entry
 
 - [x] M0 Scaffold
 - [x] M1 Catalog parsing and validation
-- [ ] M2 Daily rotation
+- [x] M2 Daily rotation
 - [ ] M3 Storage, settings and sync
 - [ ] M4 Player
 - [ ] M5 Menu bar UI
@@ -68,15 +68,15 @@ Requirements: section 5. Pure PHP, no framework.
 
 - `DailyPicker` with methods for: today's pick, next candidate, fallback, surprise
 - Inject the date and the random source so tests are deterministic. The date is the local calendar date, passed in, never read from `now()` inside the picker
-- The yesterday tiebreak is part of the pure function, nothing is stored
+- The no-repeat rule is part of the pure function, nothing is stored
 
 Tests:
 
 - same date + genre + mood returns the same playlist
 - different date can return a different playlist
 - today differs from yesterday when there are 2+ candidates
-- a date pair that collides on the raw crc32 index still returns different picks (pick the fixture dates so the collision is real, do not mock crc32)
-- the tiebreak wraps, so a collision on the last index returns the first
+- consecutive days never land on the same index, for every candidate count from 2 up
+- the step is coprime with the candidate count, and is 1 when there are 2 candidates
 - one candidate returns that candidate every day
 - next cycles through all candidates and wraps
 - fallback order: same mood any genre, then same genre any mood, then null

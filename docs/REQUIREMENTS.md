@@ -91,11 +91,16 @@ Genres and moods are defined in the catalog, so new ones need no code change.
 - Candidates: playlists with that genre that include that mood
 - "Date" always means the local calendar date on the user's Mac, format `YYYY-MM-DD`
 - The pick is **deterministic per day**: same date + genre + mood + candidate list always gives the same playlist (so users can share "today's pick")
-- Algorithm: sort candidates by id (byte order), then
-  - `index = crc32("{date}|{genre}|{mood}") % count`
-  - `yesterdayIndex = crc32("{yesterday}|{genre}|{mood}") % count`, computed over the **same** candidate list
-  - if `count > 1` and `index === yesterdayIndex`, use `(index + 1) % count`
-- The rule stays a pure function. Nothing about yesterday is stored, so two users with the same catalog always see the same pick
+- The pick also always differs from yesterday's, as long as there are 2 or more candidates
+- Algorithm: sort candidates by id (byte order). The list is then walked, one step per day:
+  - `dayNumber` is the whole days from 1970-01-01 to the date, counted in UTC so that a clock change at home never makes two calendar days share a number
+  - `seed = crc32("{genre}|{mood}") % count`, where the walk starts
+  - `step = 1 + crc32("{genre}|{mood}|step") % (count - 1)`, then moved on by one, wrapping inside 1 to `count - 1`, until `gcd(step, count) === 1`
+  - `index = (seed + dayNumber * step) % count`
+  - with one candidate the index is always 0
+- The step shares no factor with the number of candidates, so it is never a multiple of it. That is what makes the no-repeat rule hold: two days running cannot land on the same index. It also means the walk visits every candidate before coming round again, so nothing is skipped. With 2 candidates the only coprime step is 1, so they alternate
+- The seed and the step both come from the genre and the mood, so each pair walks its own list in its own order
+- The rule stays a pure function of the date, the genre, the mood and the candidate list. Nothing is stored, so two users with the same catalog always see the same pick
 - **Next** button: cycles through the other candidates for today, in the same sorted order, wrapping around. The position is in memory only: it resets when the app restarts and when the local date changes
 - **Fallback** when no candidate: same mood any genre, then same genre any mood. The same deterministic rule runs over the fallback candidate list. The UI shows a short note ("No rock playlist for Debugging yet, here is a jazz one. Add one on GitHub!")
 - If both fallbacks are empty the pick is null. The UI shows an empty state with a link to the contributing page, and Play is disabled

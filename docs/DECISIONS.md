@@ -157,3 +157,31 @@ The daily pick must be deterministic and must differ from yesterday. crc32 colli
 **Why no logging:** `app/Catalog/` must not depend on the framework. The caller decides, so the command prints and the M3 sync logs.
 
 **Would change if:** the settings window ever shows catalog problems in the UI. Then the messages need a code and a row reference, not a sentence.
+
+## 2026-10-07: The daily pick walks the list with a coprime step
+
+The rule in requirements 5 compared today's raw crc32 index with yesterday's raw index and shifted by one on a collision. The shift then changed the pick, so the number it compared against was not what the user saw yesterday. Over 400 days and twelve genre and mood pairs the same playlist came back two days running on 23 per cent of days with three candidates, and on 42 per cent with two.
+
+**Choice:** sort the candidates, then walk the list one step per day: `index = (seed + dayNumber * step) % count`, with the seed and the step taken from the genre and the mood, and the step adjusted until it shares no factor with the number of candidates. This supersedes the entry of 2026-10-05.
+
+**Why:** a step that is coprime with the count is never a multiple of it, so two days running cannot land on the same place and the promise holds by construction rather than by a tiebreak that cannot see its own effect. The walk also visits every candidate before coming round again. The pick stays a pure function of the day, the genre, the mood and the candidate list, so it is still shareable.
+
+**Accepted cost:** the order is a rotation, so with three playlists a user sees a three day cycle rather than something that looks random.
+
+**Would change if:** we want an order that looks random and still never repeats. That needs stored state, and gives up two users seeing the same pick.
+
+## 2026-10-07: The picker takes a calendar date, not a moment
+
+**Choice:** a readonly `CalendarDate` carries the day as `YYYY-MM-DD`. `CalendarDate::fromDateTime()` is the only place where a clock becomes a date, and `dayNumber()` counts whole days in UTC.
+
+**Why:** requirements 5 says the date is the local calendar date on the user's Mac. A `DateTimeImmutable` carries a time and a zone as well, so a caller could hand the picker a moment in the wrong zone and get yesterday's pick. Counting the day number in UTC keeps every day 24 hours long, so a clock change at home cannot make two calendar days share a number or skip one.
+
+**Would change if:** nothing foreseen. The type has no dependencies and M5 and M6 only need to call `fromDateTime()`.
+
+## 2026-10-07: A pick carries the genre and the mood it was made for
+
+**Choice:** `Pick` holds the playlist, the genre, the mood and a `PickSource`. The source is one of exact, same mood any genre, or same genre any mood.
+
+**Why:** the caller does not always know the pair. "Surprise me" chooses it, so without carrying it the window could not show what was chosen. The source is what the fallback note in requirements 5 is built from, and keeping it an enum rather than a sentence leaves the wording to the UI, where it can be translated later.
+
+**Would change if:** a third fallback is added. Then the order belongs in the enum itself rather than in the picker.
