@@ -19,6 +19,10 @@ use App\Catalog\Playlist;
  */
 final readonly class DailyPicker
 {
+    public function __construct(
+        private RandomSource $random,
+    ) {}
+
     /**
      * @param  list<Playlist>  $playlists  the whole catalog, in any order
      */
@@ -33,6 +37,52 @@ final readonly class DailyPicker
         $index = DailyRotation::indexFor($date, $genre, $mood, count($candidates));
 
         return new Pick($candidates[$index], $genre, $mood, PickSource::Exact);
+    }
+
+    /**
+     * A pick for a genre and mood chosen at random, from the pairs the catalog
+     * actually covers. Requirements 5.
+     *
+     * The pairs come from the playlists themselves, so every pair offered has
+     * at least one playlist behind it and the result never needs a fallback.
+     * Only the pair is random: once it is chosen, the playlist is the one the
+     * day gives, the same as if the user had picked that pair by hand.
+     *
+     * @param  list<Playlist>  $playlists
+     */
+    public function surprise(CalendarDate $date, array $playlists): ?Pick
+    {
+        $pairs = $this->pairs($playlists);
+
+        if ($pairs === []) {
+            return null;
+        }
+
+        [$genre, $mood] = $pairs[$this->random->indexBelow(count($pairs))];
+
+        return $this->pick($date, $genre, $mood, $playlists);
+    }
+
+    /**
+     * Every genre and mood pair the catalog has a playlist for, sorted, so the
+     * same catalog always offers the same choices in the same order.
+     *
+     * @param  list<Playlist>  $playlists
+     * @return list<array{string, string}>
+     */
+    private function pairs(array $playlists): array
+    {
+        $pairs = [];
+
+        foreach ($playlists as $playlist) {
+            foreach ($playlist->moods as $mood) {
+                $pairs[$playlist->genre.'|'.$mood] = [$playlist->genre, $mood];
+            }
+        }
+
+        ksort($pairs);
+
+        return array_values($pairs);
     }
 
     /**

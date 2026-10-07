@@ -7,6 +7,7 @@ use App\Rotation\CalendarDate;
 use App\Rotation\DailyPicker;
 use App\Rotation\PickSource;
 use Tests\Support\CalendarDays;
+use Tests\Support\FixedRandomSource;
 
 /**
  * @param  list<string>  $moods
@@ -37,9 +38,28 @@ function rotationCandidates(): array
     ];
 }
 
-function rotationPicker(): DailyPicker
+/**
+ * A catalog that spreads over several genres and moods, where two playlists
+ * fit more than one mood.
+ *
+ * The pairs it offers, in the order the picker sorts them: jazz|debugging,
+ * lofi|coffee-needed, lofi|flow-state, rock|debugging, rock|flow-state.
+ *
+ * @return list<Playlist>
+ */
+function rotationMixedCatalog(): array
 {
-    return new DailyPicker;
+    return [
+        rotationPlaylist('rock-flow-01', 'rock', ['flow-state']),
+        rotationPlaylist('rock-flow-02', 'rock', ['flow-state', 'debugging']),
+        rotationPlaylist('jazz-debug-01', 'jazz', ['debugging']),
+        rotationPlaylist('lofi-coffee-01', 'lofi', ['coffee-needed', 'flow-state']),
+    ];
+}
+
+function rotationPicker(int $randomIndex = 0): DailyPicker
+{
+    return new DailyPicker(new FixedRandomSource($randomIndex));
 }
 
 it('returns the same playlist for the same date, genre and mood', function (): void {
@@ -132,4 +152,63 @@ it('returns the only candidate every day', function (): void {
 
         expect($pick?->playlist->id)->toBe('rock-flow-01');
     }
+});
+
+it('surprises with a pair that has at least one playlist', function (int $choice): void {
+    $playlists = rotationMixedCatalog();
+
+    $pick = rotationPicker($choice)->surprise(CalendarDate::fromString('2026-01-05'), $playlists);
+
+    expect($pick)->not->toBeNull()
+        ->and($pick?->playlist->genre)->toBe($pick?->genre)
+        ->and($pick?->mood)->toBeIn($pick?->playlist->moods ?? [])
+        ->and($pick?->source)->toBe(PickSource::Exact);
+})->with([0, 1, 2, 3, 4]);
+
+it('offers every pair the catalog covers, and nothing else', function (): void {
+    $playlists = rotationMixedCatalog();
+    $random = new FixedRandomSource;
+    $picker = new DailyPicker($random);
+
+    $picker->surprise(CalendarDate::fromString('2026-01-05'), $playlists);
+
+    expect($random->lastCount)->toBe(5);
+
+    $offered = [];
+
+    for ($choice = 0; $choice < 5; $choice++) {
+        $pick = rotationPicker($choice)->surprise(CalendarDate::fromString('2026-01-05'), $playlists);
+
+        $offered[] = $pick?->genre.'|'.$pick?->mood;
+    }
+
+    expect($offered)->toBe([
+        'jazz|debugging',
+        'lofi|coffee-needed',
+        'lofi|flow-state',
+        'rock|debugging',
+        'rock|flow-state',
+    ]);
+});
+
+it('surprises with today pick for the pair it chose, not with any playlist', function (): void {
+    $date = CalendarDate::fromString('2026-01-05');
+    $playlists = rotationMixedCatalog();
+
+    $surprise = rotationPicker(4)->surprise($date, $playlists);
+    $asked = rotationPicker()->pick($date, 'rock', 'flow-state', $playlists);
+
+    expect($surprise?->genre)->toBe('rock')
+        ->and($surprise?->mood)->toBe('flow-state')
+        ->and($surprise?->playlist->id)->toBe($asked?->playlist->id);
+});
+
+it('has nothing to surprise with when the catalog is empty', function (): void {
+    $random = new FixedRandomSource;
+    $picker = new DailyPicker($random);
+
+    $pick = $picker->surprise(CalendarDate::fromString('2026-01-05'), []);
+
+    expect($pick)->toBeNull()
+        ->and($random->lastCount)->toBeNull();
 });
