@@ -10,6 +10,8 @@ use App\Catalog\CatalogSource;
 use App\Catalog\CatalogStore;
 use App\Catalog\DatabaseCatalogStore;
 use App\Catalog\HttpCatalogDownloader;
+use App\Catalog\SyncLauncher;
+use App\Native\ChildProcessSyncLauncher;
 use App\Settings\DatabaseSettingsStore;
 use App\Settings\SettingsStore;
 use Illuminate\Support\ServiceProvider;
@@ -25,6 +27,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(CatalogStore::class, DatabaseCatalogStore::class);
         $this->app->singleton(CatalogSource::class, static fn (): CatalogSource => BundledCatalogSource::bundled());
         $this->app->singleton(CatalogDownloader::class, HttpCatalogDownloader::class);
+        $this->app->singleton(SyncLauncher::class, ChildProcessSyncLauncher::class);
     }
 
     /**
