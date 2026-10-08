@@ -4,10 +4,17 @@ Checks that tests cannot cover, because they need a real Mac, a real Spotify ins
 
 Run the player checks at the end of M5, not M4, against `native:serve`. M4 builds the players but gives no way to trigger one: the menu bar arrives in M5, and there is no command that plays. The two permission checks need M5 as well, because macOS grants Automation permission per application, so it has to be the app asking and not a terminal. Run the whole list at the end of M7 against the installed DMG, on a Mac that has never run the app.
 
+Tick checks as they pass, with the date, so a milestone is verified while it
+is fresh rather than months later. A tick means "verified in development".
+It does not carry over to the installed app, which has different paths, a
+sandbox, its own Automation permission identity and no dev server. So M7
+clears every box before the DMG run, and the ticks it then makes are the ones
+that count for the release.
+
 ## Player
 
-- [ ] Autoplay mode plays a real public playlist in the Spotify app
-- [ ] The first autoplay attempt shows the macOS Automation permission prompt, and the app explains it in one line before or alongside the prompt
+- [x] Autoplay mode plays a real public playlist in the Spotify app _(dev, 2026-10-08)_
+- [x] The first autoplay attempt shows the macOS Automation permission prompt, and the app explains it in one line before or alongside the prompt _(dev, 2026-10-08)_
 - [ ] Denying that permission falls back to the web player and shows a short message
 - [ ] With the permission denied, the message says where to allow it (System Settings, Privacy & Security, Automation)
 - [ ] Autoplay with Spotify not installed falls back to the web player and shows a short message
@@ -27,8 +34,11 @@ Run the player checks at the end of M5, not M4, against `native:serve`. M4 build
 
 ## Window and system
 
-- [ ] The menu bar icon is readable in light mode and dark mode
+- [x] The menu bar icon is readable in light mode and dark mode _(dev, 2026-10-08)_
 - [ ] Clicking the icon opens a window of 360 by 520 under the icon, and there is no Dock icon
+- [x] The footer stays visible without scrolling at the default window size, with a fallback note and the autoplay hint both showing _(dev, 2026-10-08)_
+- [x] No unthemed band appears below the content in dark mode, at any scroll position _(dev, 2026-10-08)_
+- [x] The buttons and the footer stay put while the chips and the pick card scroll _(dev, 2026-10-08)_
 - [ ] "Add a playlist" opens the contributing page in the default browser, not inside the window
 - [ ] The pick follows the local date: just after local midnight it changes, even when UTC is still on the previous day
 - [ ] Next, then quit and start again: the window is back on today's pick
