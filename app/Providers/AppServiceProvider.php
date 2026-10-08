@@ -15,6 +15,7 @@ use App\MenuBar\Quitter;
 use App\MenuBar\Today;
 use App\Native\ChildProcessSyncLauncher;
 use App\Native\LocalToday;
+use App\Native\NativeLoginItem;
 use App\Native\NativeNotifier;
 use App\Native\NativeQuitter;
 use App\Native\OpenMenuBarOnReminderClick;
@@ -27,6 +28,7 @@ use App\Rotation\RandomSource;
 use App\Rotation\SystemRandomSource;
 use App\Settings\DatabaseSettingsStore;
 use App\Settings\SettingsStore;
+use App\SettingsWindow\LoginItem;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Native\Laravel\Events\Notifications\NotificationClicked;
@@ -49,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(Quitter::class, NativeQuitter::class);
         $this->app->singleton(Today::class, static fn (): Today => LocalToday::system());
         $this->app->singleton(Notifier::class, NativeNotifier::class);
+        $this->app->singleton(LoginItem::class, NativeLoginItem::class);
     }
 
     /**
