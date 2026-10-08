@@ -21,6 +21,8 @@ function menuBarCreated(): ?Request
     return $sent->first()[0] ?? null;
 }
 
+// Requirements 7.1 says about 360 by 480. The window is 520 tall so a fallback
+// note and the autoplay hint fit together without scrolling.
 it('creates the menu bar with the window size from requirements 7.1', function (): void {
     Http::fake();
     $this->app->instance(SyncLauncher::class, new FakeSyncLauncher);
@@ -31,7 +33,7 @@ it('creates the menu bar with the window size from requirements 7.1', function (
 
     expect($request)->not->toBeNull()
         ->and($request['width'])->toBe(360)
-        ->and($request['height'])->toBe(480)
+        ->and($request['height'])->toBe(520)
         ->and($request['url'])->toBe(url('/'))
         ->and($request['showDockIcon'])->toBeFalse()
         ->and($request['resizable'])->toBeFalse();
