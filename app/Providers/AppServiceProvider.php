@@ -11,11 +11,17 @@ use App\Catalog\CatalogStore;
 use App\Catalog\DatabaseCatalogStore;
 use App\Catalog\HttpCatalogDownloader;
 use App\Catalog\SyncLauncher;
+use App\MenuBar\Quitter;
+use App\MenuBar\Today;
 use App\Native\ChildProcessSyncLauncher;
+use App\Native\LocalToday;
+use App\Native\NativeQuitter;
 use App\Native\ShellUrlOpener;
 use App\Player\PlayerInterface;
 use App\Player\PlayerResolver;
 use App\Player\UrlOpener;
+use App\Rotation\RandomSource;
+use App\Rotation\SystemRandomSource;
 use App\Settings\DatabaseSettingsStore;
 use App\Settings\SettingsStore;
 use Illuminate\Support\ServiceProvider;
@@ -34,6 +40,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(SyncLauncher::class, ChildProcessSyncLauncher::class);
         $this->app->singleton(UrlOpener::class, ShellUrlOpener::class);
         $this->app->singleton(PlayerInterface::class, PlayerResolver::class);
+        $this->app->singleton(RandomSource::class, SystemRandomSource::class);
+        $this->app->singleton(Quitter::class, NativeQuitter::class);
+        $this->app->singleton(Today::class, static fn (): Today => LocalToday::system());
     }
 
     /**
