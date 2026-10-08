@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\MenuBar;
 
 use App\Rotation\CalendarDate;
+use DateTimeImmutable;
 
 /**
  * Which day it is on the user's Mac. Requirements 5.
@@ -16,4 +17,10 @@ use App\Rotation\CalendarDate;
 interface Today
 {
     public function today(): CalendarDate;
+
+    /**
+     * The moment, in the Mac's own zone. The daily reminder needs the time and
+     * the day of the week as well as the date. Requirements 7.3.
+     */
+    public function now(): DateTimeImmutable;
 }

@@ -6,6 +6,7 @@ namespace App\Native;
 
 use App\MenuBar\Today;
 use App\Rotation\CalendarDate;
+use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Support\Carbon;
 use Throwable;
@@ -37,7 +38,12 @@ final readonly class LocalToday implements Today
 
     public function today(): CalendarDate
     {
-        return CalendarDate::fromDateTime(Carbon::now($this->zone()));
+        return CalendarDate::fromDateTime($this->now());
+    }
+
+    public function now(): DateTimeImmutable
+    {
+        return Carbon::now($this->zone())->toDateTimeImmutable();
     }
 
     public function zone(): DateTimeZone

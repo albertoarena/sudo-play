@@ -56,6 +56,15 @@ it('gives the local calendar date, not the UTC one', function (): void {
     expect($today->today()->value)->toBe('2026-10-08');
 });
 
+it('gives the local time, for the daily reminder', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-10-09 02:30:00', 'UTC'));
+
+    $now = (new LocalToday(tz: 'America/New_York', localtime: '/nowhere/localtime'))->now();
+
+    expect($now->format('Y-m-d H:i'))->toBe('2026-10-08 22:30')
+        ->and($now->getTimezone()->getName())->toBe('America/New_York');
+});
+
 it('is what the app uses for today', function (): void {
     expect(app(Today::class))->toBeInstanceOf(LocalToday::class);
 });
