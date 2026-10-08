@@ -13,7 +13,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <section class="rounded-lg border border-zinc-200 p-3 dark:border-zinc-800">
+    <section class="rounded-lg border border-zinc-200 p-2.5 dark:border-zinc-800">
         <template v-if="pick !== null">
             <p class="font-mono text-xs text-zinc-500">today's pick</p>
             <h2 class="mt-1 text-base font-semibold">{{ pick.title }}</h2>
@@ -21,7 +21,7 @@ const emit = defineEmits<{
                 {{ pick.genre.label }} · {{ pick.mood.emoji }} {{ pick.mood.label }}
                 <span v-if="pick.curator !== null"> · @{{ pick.curator }}</span>
             </p>
-            <p v-if="note !== null" class="mt-2 text-xs text-amber-700 dark:text-amber-400">{{ note }}</p>
+            <p v-if="note !== null" class="mt-1.5 text-xs text-amber-700 dark:text-amber-400">{{ note }}</p>
         </template>
 
         <template v-else>

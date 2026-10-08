@@ -108,59 +108,68 @@ onBeforeUnmount(() => window.removeEventListener('focus', refresh));
 </script>
 
 <template>
-    <main class="flex h-full flex-col gap-4 bg-white p-4 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
-        <header class="rounded-md bg-zinc-100 px-3 py-2 dark:bg-zinc-900">
-            <CommandLine :genre="current.selection.genre" :mood="current.selection.mood" />
-        </header>
+    <!--
+        The window has a fixed size. Only the top part scrolls when the content is
+        taller, so Play and the footer always stay in the window. The line above
+        the buttons shows where the scrolling part ends.
+    -->
+    <main class="flex h-full flex-col bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+        <div class="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3 pb-2.5">
+            <header class="rounded-md bg-zinc-100 px-3 py-2 dark:bg-zinc-900">
+                <CommandLine :genre="current.selection.genre" :mood="current.selection.mood" />
+            </header>
 
-        <ChipGroup label="Genre" :options="current.genres" :selected="current.selection.genre" @select="selectGenre" />
-        <ChipGroup label="Mood" :options="current.moods" :selected="current.selection.mood" @select="selectMood" />
+            <ChipGroup label="Genre" :options="current.genres" :selected="current.selection.genre" @select="selectGenre" />
+            <ChipGroup label="Mood" :options="current.moods" :selected="current.selection.mood" @select="selectMood" />
 
-        <PickCard
-            :pick="current.pick"
-            :note="current.note"
-            :empty="current.empty"
-            @add-playlist="openContributing"
-        />
-
-        <div class="flex gap-2">
-            <button
-                type="button"
-                class="flex-1 rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-40"
-                :disabled="!current.actions.play || busy"
-                @click="play"
-            >
-                Play
-            </button>
-            <button
-                type="button"
-                class="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:border-zinc-500 disabled:opacity-40 dark:border-zinc-700"
-                :disabled="!current.actions.next || busy"
-                @click="next"
-            >
-                Next
-            </button>
-            <button
-                type="button"
-                class="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:border-zinc-500 disabled:opacity-40 dark:border-zinc-700"
-                :disabled="!current.actions.surprise || busy"
-                @click="surprise"
-            >
-                Surprise me
-            </button>
+            <PickCard
+                :pick="current.pick"
+                :note="current.note"
+                :empty="current.empty"
+                @add-playlist="openContributing"
+            />
         </div>
 
-        <p v-if="message !== null" role="status" class="text-xs text-amber-700 dark:text-amber-400">{{ message }}</p>
-        <p v-else-if="current.hint !== null" class="text-xs text-zinc-500">{{ current.hint }}</p>
+        <div class="flex flex-col gap-2.5 border-t border-zinc-200 px-3 pt-2.5 pb-3 dark:border-zinc-800">
+            <div class="flex gap-2">
+                <button
+                    type="button"
+                    class="flex-1 rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-40"
+                    :disabled="!current.actions.play || busy"
+                    @click="play"
+                >
+                    Play
+                </button>
+                <button
+                    type="button"
+                    class="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:border-zinc-500 disabled:opacity-40 dark:border-zinc-700"
+                    :disabled="!current.actions.next || busy"
+                    @click="next"
+                >
+                    Next
+                </button>
+                <button
+                    type="button"
+                    class="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:border-zinc-500 disabled:opacity-40 dark:border-zinc-700"
+                    :disabled="!current.actions.surprise || busy"
+                    @click="surprise"
+                >
+                    Surprise me
+                </button>
+            </div>
 
-        <footer class="mt-auto flex items-center gap-3 border-t border-zinc-200 pt-3 text-xs text-zinc-500 dark:border-zinc-800">
-            <span class="mr-auto">{{ footerDate }}</span>
-            <button type="button" class="hover:text-zinc-900 dark:hover:text-zinc-100" @click="openContributing">
-                Add a playlist
-            </button>
-            <button type="button" class="hover:text-zinc-900 dark:hover:text-zinc-100" @click="quit">
-                Quit
-            </button>
-        </footer>
+            <p v-if="message !== null" role="status" class="text-xs text-amber-700 dark:text-amber-400">{{ message }}</p>
+            <p v-else-if="current.hint !== null" class="text-xs text-zinc-500">{{ current.hint }}</p>
+
+            <footer class="flex items-center gap-3 text-xs text-zinc-500">
+                <span class="mr-auto">{{ footerDate }}</span>
+                <button type="button" class="hover:text-zinc-900 dark:hover:text-zinc-100" @click="openContributing">
+                    Add a playlist
+                </button>
+                <button type="button" class="hover:text-zinc-900 dark:hover:text-zinc-100" @click="quit">
+                    Quit
+                </button>
+            </footer>
+        </div>
     </main>
 </template>
