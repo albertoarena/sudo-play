@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\MenuBar\MenuBarService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -33,6 +34,28 @@ final class MenuBarController extends Controller
         [$presses, $date] = $this->counted($request);
 
         return response()->json($this->menuBar->state($presses, $date)->toArray());
+    }
+
+    public function select(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'genre' => ['required', 'string', Rule::in($this->menuBar->genreIds())],
+            'mood' => ['required', 'string', Rule::in($this->menuBar->moodIds())],
+        ]);
+
+        return response()->json($this->menuBar->select($validated['genre'], $validated['mood'])->toArray());
+    }
+
+    public function next(Request $request): JsonResponse
+    {
+        [$presses, $date] = $this->counted($request);
+
+        return response()->json($this->menuBar->next($presses, $date)->toArray());
+    }
+
+    public function surprise(): JsonResponse
+    {
+        return response()->json($this->menuBar->surprise()->toArray());
     }
 
     /**

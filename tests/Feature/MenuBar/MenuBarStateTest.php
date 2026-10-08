@@ -2,55 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Catalog\Catalog;
-use App\Catalog\CatalogStore;
-use App\Catalog\StoredCatalog;
-use App\MenuBar\Today;
-use App\Rotation\CalendarDate;
-use App\Rotation\DailyPicker;
 use App\Settings\SettingKey;
-use App\Settings\SettingsStore;
 use Inertia\Testing\AssertableInertia;
-use Tests\Support\FixedRandomSource;
-use Tests\Support\FixedToday;
-use Tests\Support\InMemoryCatalogStore;
-use Tests\Support\InMemorySettingsStore;
 use Tests\Support\MenuBarCatalog;
-
-const MENU_BAR_TODAY = '2026-10-08';
-
-/**
- * @param  array<string, mixed>  $settings
- */
-function menuBarWith(?Catalog $catalog, array $settings = [], ?DateTimeImmutable $syncedAt = null): InMemorySettingsStore
-{
-    $store = new InMemorySettingsStore($settings);
-
-    app()->instance(SettingsStore::class, $store);
-    app()->instance(CatalogStore::class, new InMemoryCatalogStore(
-        $catalog === null ? null : new StoredCatalog($catalog, $syncedAt),
-    ));
-    app()->instance(Today::class, new FixedToday(MENU_BAR_TODAY));
-
-    return $store;
-}
-
-/** The title the rotation gives for a pair today, after a number of Next presses. */
-function expectedTitle(string $genre, string $mood, int $presses = 0): string
-{
-    $pick = (new DailyPicker(new FixedRandomSource))->next(
-        CalendarDate::fromString(MENU_BAR_TODAY),
-        $genre,
-        $mood,
-        MenuBarCatalog::full()->playlists,
-        $presses,
-    );
-
-    return (string) $pick?->playlist->title;
-}
+use Tests\Support\MenuBarSetup;
 
 it('returns the genres, the moods, today\'s pick and the catalog date', function (): void {
-    menuBarWith(
+    MenuBarSetup::with(
         MenuBarCatalog::full(),
         [SettingKey::LastGenre->value => 'rock', SettingKey::LastMood->value => 'friday-deploy'],
         new DateTimeImmutable('2026-10-07 21:15:00'),
@@ -58,7 +16,7 @@ it('returns the genres, the moods, today\'s pick and the catalog date', function
 
     $this->getJson('/menu-bar/state')
         ->assertOk()
-        ->assertJsonPath('date', MENU_BAR_TODAY)
+        ->assertJsonPath('date', MenuBarSetup::TODAY)
         ->assertJsonPath('genres', [
             ['id' => 'rock', 'label' => 'Rock'],
             ['id' => 'jazz', 'label' => 'Jazz'],
@@ -72,7 +30,7 @@ it('returns the genres, the moods, today\'s pick and the catalog date', function
         ])
         ->assertJsonCount(3, 'moods')
         ->assertJsonPath('selection', ['genre' => 'rock', 'mood' => 'friday-deploy'])
-        ->assertJsonPath('pick.title', expectedTitle('rock', 'friday-deploy'))
+        ->assertJsonPath('pick.title', MenuBarSetup::expectedTitle('rock', 'friday-deploy'))
         ->assertJsonPath('pick.genre', ['id' => 'rock', 'label' => 'Rock'])
         ->assertJsonPath('pick.mood', ['id' => 'friday-deploy', 'label' => 'Friday Deploy', 'emoji' => '🚀'])
         ->assertJsonPath('presses', 0)
@@ -83,7 +41,7 @@ it('returns the genres, the moods, today\'s pick and the catalog date', function
 });
 
 it('gives the pick its id and curator, so the card and Play can use them', function (): void {
-    menuBarWith(MenuBarCatalog::full(), [SettingKey::LastGenre->value => 'jazz', SettingKey::LastMood->value => 'debugging']);
+    MenuBarSetup::with(MenuBarCatalog::full(), [SettingKey::LastGenre->value => 'jazz', SettingKey::LastMood->value => 'debugging']);
 
     $this->getJson('/menu-bar/state')
         ->assertJsonPath('pick.id', 'jazz-debugging-01')
@@ -91,25 +49,25 @@ it('gives the pick its id and curator, so the card and Play can use them', funct
 });
 
 it('has no catalog date when the catalog was never downloaded', function (): void {
-    menuBarWith(MenuBarCatalog::full());
+    MenuBarSetup::with(MenuBarCatalog::full());
 
     $this->getJson('/menu-bar/state')->assertJsonPath('catalogDate', null);
 });
 
 it('opens on the default genre and mood when nothing was used yet', function (): void {
-    menuBarWith(MenuBarCatalog::full(), [SettingKey::DefaultGenre->value => 'jazz', SettingKey::DefaultMood->value => 'debugging']);
+    MenuBarSetup::with(MenuBarCatalog::full(), [SettingKey::DefaultGenre->value => 'jazz', SettingKey::DefaultMood->value => 'debugging']);
 
     $this->getJson('/menu-bar/state')->assertJsonPath('selection', ['genre' => 'jazz', 'mood' => 'debugging']);
 });
 
 it('opens on the first genre and mood when there is no default either', function (): void {
-    menuBarWith(MenuBarCatalog::full());
+    MenuBarSetup::with(MenuBarCatalog::full());
 
     $this->getJson('/menu-bar/state')->assertJsonPath('selection', ['genre' => 'rock', 'mood' => 'friday-deploy']);
 });
 
 it('ignores a remembered genre or mood that the catalog no longer has', function (): void {
-    menuBarWith(MenuBarCatalog::full(), [
+    MenuBarSetup::with(MenuBarCatalog::full(), [
         SettingKey::LastGenre->value => 'polka',
         SettingKey::LastMood->value => 'debugging',
         SettingKey::DefaultGenre->value => 'jazz',
@@ -119,7 +77,7 @@ it('ignores a remembered genre or mood that the catalog no longer has', function
 });
 
 it('explains a pick from the same mood in another genre', function (): void {
-    menuBarWith(MenuBarCatalog::full(), [SettingKey::LastGenre->value => 'lofi', SettingKey::LastMood->value => 'debugging']);
+    MenuBarSetup::with(MenuBarCatalog::full(), [SettingKey::LastGenre->value => 'lofi', SettingKey::LastMood->value => 'debugging']);
 
     $this->getJson('/menu-bar/state')
         ->assertJsonPath('pick.id', 'jazz-debugging-01')
@@ -128,16 +86,16 @@ it('explains a pick from the same mood in another genre', function (): void {
 });
 
 it('explains a pick from the same genre in another mood', function (): void {
-    menuBarWith(MenuBarCatalog::full(), [SettingKey::LastGenre->value => 'rock', SettingKey::LastMood->value => 'flow-state']);
+    MenuBarSetup::with(MenuBarCatalog::full(), [SettingKey::LastGenre->value => 'rock', SettingKey::LastMood->value => 'flow-state']);
 
     $this->getJson('/menu-bar/state')
-        ->assertJsonPath('pick.title', expectedTitle('rock', 'flow-state'))
+        ->assertJsonPath('pick.title', MenuBarSetup::expectedTitle('rock', 'flow-state'))
         ->assertJsonPath('pick.mood', ['id' => 'friday-deploy', 'label' => 'Friday Deploy', 'emoji' => '🚀'])
         ->assertJsonPath('note', 'No rock playlist for Flow State yet, here is a rock one for Friday Deploy. Add one on GitHub!');
 });
 
 it('shows the empty state and disables every action when the catalog has no playlists', function (): void {
-    menuBarWith(MenuBarCatalog::empty());
+    MenuBarSetup::with(MenuBarCatalog::empty());
 
     $this->getJson('/menu-bar/state')
         ->assertOk()
@@ -148,7 +106,7 @@ it('shows the empty state and disables every action when the catalog has no play
 });
 
 it('keeps Surprise me when only the chosen pair has nothing at all', function (): void {
-    menuBarWith(MenuBarCatalog::full(), [SettingKey::LastGenre->value => 'lofi', SettingKey::LastMood->value => 'flow-state']);
+    MenuBarSetup::with(MenuBarCatalog::full(), [SettingKey::LastGenre->value => 'lofi', SettingKey::LastMood->value => 'flow-state']);
 
     $this->getJson('/menu-bar/state')
         ->assertJsonPath('pick', null)
@@ -157,7 +115,7 @@ it('keeps Surprise me when only the chosen pair has nothing at all', function ()
 });
 
 it('loads the bundled catalog when nothing is stored yet', function (): void {
-    menuBarWith(null);
+    MenuBarSetup::with(null);
 
     $this->getJson('/menu-bar/state')
         ->assertOk()
@@ -166,7 +124,7 @@ it('loads the bundled catalog when nothing is stored yet', function (): void {
 });
 
 it('explains the macOS permission prompt only in autoplay mode', function (string $mode, ?string $hint): void {
-    menuBarWith(MenuBarCatalog::full(), [SettingKey::PlayerMode->value => $mode]);
+    MenuBarSetup::with(MenuBarCatalog::full(), [SettingKey::PlayerMode->value => $mode]);
 
     $this->getJson('/menu-bar/state')->assertJsonPath('hint', $hint);
 })->with([
@@ -176,7 +134,7 @@ it('explains the macOS permission prompt only in autoplay mode', function (strin
 ]);
 
 it('renders the menu bar page with the same state', function (): void {
-    menuBarWith(MenuBarCatalog::full(), [SettingKey::LastGenre->value => 'jazz', SettingKey::LastMood->value => 'debugging']);
+    MenuBarSetup::with(MenuBarCatalog::full(), [SettingKey::LastGenre->value => 'jazz', SettingKey::LastMood->value => 'debugging']);
 
     $this->get('/')
         ->assertOk()
