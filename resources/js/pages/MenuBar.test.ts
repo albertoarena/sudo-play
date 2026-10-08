@@ -163,6 +163,24 @@ describe('MenuBar', () => {
         expect(api.quit).toHaveBeenCalledOnce();
     });
 
+    // The window has a fixed size. When the content is taller, only the top part
+    // scrolls, so the buttons and the footer never go below the window edge.
+    it('keeps the buttons and the footer outside the part that scrolls', () => {
+        const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+        const scroller = wrapper.find('.overflow-y-auto');
+
+        expect(scroller.exists()).toBe(true);
+
+        const labels = scroller.findAll('button').map((candidate) => candidate.text());
+
+        expect(scroller.text()).toContain('$ sudo play');
+        expect(scroller.text()).toContain('Riffs for risky releases');
+        for (const label of ['Play', 'Next', 'Surprise me', 'Add a playlist', 'Quit']) {
+            expect(labels).not.toContain(label);
+        }
+        expect(scroller.find('footer').exists()).toBe(false);
+    });
+
     it('asks for the state again when the window gets focus, keeping the count', async () => {
         const api = fakeApi(state({ catalogDate: '2026-10-08' }));
         const wrapper = mount(MenuBar, { props: { state: state({ presses: 1 }), api }, attachTo: document.body });

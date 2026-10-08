@@ -27,7 +27,7 @@ function text(option: ChipOption): string {
 </script>
 
 <template>
-    <div role="group" :aria-label="label" class="flex flex-wrap gap-1.5">
+    <div role="group" :aria-label="label" class="flex flex-wrap gap-1">
         <button
             v-for="option in options"
             :key="option.id"

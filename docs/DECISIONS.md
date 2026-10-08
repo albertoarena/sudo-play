@@ -333,3 +333,17 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Choice:** a new `app/MenuBar/` folder holds the state, the service behind the controller, the fallback note and the `Today` and `Quitter` interfaces.
 
 **Why:** the controller has to stay thin and the logic does not belong in `Catalog/` or `Rotation/`, which must stay free of the framework and the settings. It is the same shape as `Player/`.
+
+## 2026-10-08: Only the top of the menu bar window scrolls
+
+**Choice:** the window has two parts. The command line, the chips and the pick card scroll when they do not fit. Play, Next, Surprise me, the status line and the footer stay fixed at the bottom, under one divider. The spacing is a little tighter than in M5.
+
+**Why:** the window is 360 by 480 and not resizable. With a fallback note and the autoplay hint both shown, the content was about 550 pixels tall, so the footer and Quit went below the window edge. The catalog decides how many genres and moods there are, and a sync can add more, so no fixed spacing fits every case. Tighter spacing makes the note alone or the hint alone fit without scrolling.
+
+**Would change if:** the catalog grows enough genres or moods to need more rows. The scrolling part is the safety net for that.
+
+## 2026-10-08: The menu bar window is 520 tall
+
+**Choice:** the window is 360 by 520, not 360 by 480.
+
+**Why:** at 480, a fallback note and the autoplay hint together still pushed part of the note out of view, and macOS hides the scrollbar until you scroll. At 520 the worst case with the current catalog fits with a little room left. Requirements 7.1 says "about 360 x 480", and the maintainer chose 520.
