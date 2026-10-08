@@ -7,20 +7,44 @@ namespace App\Providers;
 use App\Catalog\SyncLauncher;
 use Illuminate\Support\Facades\Log;
 use Native\Laravel\Contracts\ProvidesPhpIni;
-use Native\Laravel\Facades\Window;
+use Native\Laravel\Facades\MenuBar;
 use Throwable;
 
 final class NativeAppServiceProvider implements ProvidesPhpIni
 {
+    /** Requirements 7.1: a small window, about 360 by 480. */
+    public const int WIDTH = 360;
+
+    public const int HEIGHT = 480;
+
     /**
      * Executed once the native application has been booted.
      * Use this method to open windows, register global shortcuts, etc.
      */
     public function boot(): void
     {
-        Window::open();
+        $this->createMenuBar();
 
         $this->startCatalogSync();
+    }
+
+    /**
+     * The app lives in the menu bar only: no Dock icon and no other window.
+     *
+     * The icon is a template image. macOS reads the name ending in "Template"
+     * and recolours the black shape for light and dark mode, and picks the
+     * `@2x` file on a Retina screen by itself.
+     */
+    private function createMenuBar(): void
+    {
+        MenuBar::create()
+            ->route('menubar')
+            ->icon(public_path('menuBarIconTemplate.png'))
+            ->tooltip('Sudo Play')
+            ->width(self::WIDTH)
+            ->height(self::HEIGHT)
+            ->resizable(false)
+            ->showDockIcon(false);
     }
 
     /**

@@ -4,32 +4,74 @@ declare(strict_types=1);
 
 use App\Catalog\SyncLauncher;
 use App\Providers\NativeAppServiceProvider;
-use Native\Laravel\Facades\Window;
-use Native\Laravel\Fakes\WindowManagerFake;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Tests\Support\FakeSyncLauncher;
 
-/**
- * The provider itself is UI glue, and the menu bar it will configure belongs to
- * M5. What M3 has to prove is that the startup sync is asked for, and that
- * failing to ask does not stop the app from opening.
+/*
+ * The provider is UI glue. NativePHP ships no fake for the menu bar, but its
+ * client talks to Electron through the Laravel HTTP client, so faking HTTP
+ * shows what would have reached Electron.
  */
-function fakeWindows(): WindowManagerFake
+
+function menuBarCreated(): ?Request
 {
-    // The fake refuses to open a window unless it has one to hand back.
-    return Window::fake()->alwaysReturnWindows([new Native\Laravel\Windows\Window('main')]);
+    $sent = Http::recorded(fn (Request $request): bool => str_ends_with($request->url(), 'menu-bar/create'));
+
+    return $sent->first()[0] ?? null;
 }
 
+it('creates the menu bar with the window size from requirements 7.1', function (): void {
+    Http::fake();
+    $this->app->instance(SyncLauncher::class, new FakeSyncLauncher);
+
+    (new NativeAppServiceProvider)->boot();
+
+    $request = menuBarCreated();
+
+    expect($request)->not->toBeNull()
+        ->and($request['width'])->toBe(360)
+        ->and($request['height'])->toBe(480)
+        ->and($request['url'])->toBe(url('/'))
+        ->and($request['showDockIcon'])->toBeFalse()
+        ->and($request['resizable'])->toBeFalse();
+});
+
+it('uses a template image, so the icon follows light and dark mode', function (): void {
+    Http::fake();
+    $this->app->instance(SyncLauncher::class, new FakeSyncLauncher);
+
+    (new NativeAppServiceProvider)->boot();
+
+    $icon = menuBarCreated()['icon'] ?? '';
+
+    // macOS treats a file whose name ends in "Template" as a template image.
+    expect($icon)->toEndWith('Template.png')
+        ->and(is_file($icon))->toBeTrue()
+        ->and(is_file(str_replace('.png', '@2x.png', $icon)))->toBeTrue();
+});
+
+it('opens no other window', function (): void {
+    Http::fake();
+    $this->app->instance(SyncLauncher::class, new FakeSyncLauncher);
+
+    (new NativeAppServiceProvider)->boot();
+
+    Http::assertNotSent(fn (Request $request): bool => str_ends_with($request->url(), 'window/open'));
+});
+
 it('asks for a sync when the app boots', function (): void {
+    Http::fake();
     $launcher = new FakeSyncLauncher;
     $this->app->instance(SyncLauncher::class, $launcher);
-    fakeWindows();
 
     (new NativeAppServiceProvider)->boot();
 
     expect($launcher->launches)->toBe(1);
 });
 
-it('still opens the window when the sync cannot be started', function (): void {
+it('still creates the menu bar when the sync cannot be started', function (): void {
+    Http::fake();
     $this->app->instance(SyncLauncher::class, new class implements SyncLauncher
     {
         public function launch(): void
@@ -37,9 +79,8 @@ it('still opens the window when the sync cannot be started', function (): void {
             throw new RuntimeException('Electron is not listening');
         }
     });
-    $window = fakeWindows();
 
     (new NativeAppServiceProvider)->boot();
 
-    $window->assertOpenedCount(1);
+    expect(menuBarCreated())->not->toBeNull();
 });
