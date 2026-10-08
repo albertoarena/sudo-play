@@ -17,6 +17,7 @@ export interface MenuBarApi {
     surprise(): Promise<MenuBarState>;
     play(playlist: string): Promise<PlayResponse>;
     addPlaylist(): Promise<void>;
+    openSettings(): Promise<void>;
     quit(): Promise<void>;
 }
 
@@ -96,6 +97,7 @@ export function createMenuBarApi(
         surprise: () => send('POST', '/menu-bar/surprise'),
         play: (playlist) => send('POST', '/menu-bar/play', { playlist }),
         addPlaylist: () => send('POST', '/menu-bar/add-playlist'),
+        openSettings: () => send('POST', '/menu-bar/settings'),
         quit: () => send('POST', '/menu-bar/quit'),
     };
 }

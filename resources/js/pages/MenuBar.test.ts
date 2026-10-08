@@ -41,6 +41,7 @@ function fakeApi(next: MenuBarState = state()): MenuBarApi {
         surprise: vi.fn(async () => next),
         play: vi.fn(async () => ({ outcome: 'played' as const, message: null })),
         addPlaylist: vi.fn(async () => undefined),
+        openSettings: vi.fn(async () => undefined),
         quit: vi.fn(async () => undefined),
     };
 }
@@ -154,6 +155,28 @@ describe('MenuBar', () => {
         expect(api.addPlaylist).toHaveBeenCalledOnce();
     });
 
+    it('opens the settings window from the footer', async () => {
+        const api = fakeApi();
+        const wrapper = mount(MenuBar, { props: { state: state(), api } });
+
+        await button(wrapper, 'Settings').trigger('click');
+
+        expect(api.openSettings).toHaveBeenCalledOnce();
+    });
+
+    it('says so when the settings window cannot be opened', async () => {
+        const api = fakeApi();
+        api.openSettings = vi.fn(async () => {
+            throw new Error('The app answered 500');
+        });
+        const wrapper = mount(MenuBar, { props: { state: state(), api } });
+
+        await button(wrapper, 'Settings').trigger('click');
+        await flushPromises();
+
+        expect(wrapper.get('[role="status"]').text()).toBe('Could not open the settings. Please try again.');
+    });
+
     it('quits from the footer', async () => {
         const api = fakeApi();
         const wrapper = mount(MenuBar, { props: { state: state(), api } });
@@ -175,7 +198,7 @@ describe('MenuBar', () => {
 
         expect(scroller.text()).toContain('$ sudo play');
         expect(scroller.text()).toContain('Riffs for risky releases');
-        for (const label of ['Play', 'Next', 'Surprise me', 'Add a playlist', 'Quit']) {
+        for (const label of ['Play', 'Next', 'Surprise me', 'Add a playlist', 'Settings', 'Quit']) {
             expect(labels).not.toContain(label);
         }
         expect(scroller.find('footer').exists()).toBe(false);

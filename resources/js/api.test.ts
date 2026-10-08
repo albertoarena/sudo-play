@@ -62,6 +62,16 @@ describe('menu bar api', () => {
         await expect(api.play('jazz-debugging-01')).resolves.toEqual({ outcome: 'played', message: null });
     });
 
+    it('asks the server to open the settings window', async () => {
+        const fetcher = fakeFetch(null, 204);
+        const api = createMenuBarApi(fetcher, () => '');
+
+        await api.openSettings();
+
+        expect(sent(fetcher).url).toBe('/menu-bar/settings');
+        expect(sent(fetcher).init.method).toBe('POST');
+    });
+
     it('accepts an empty answer', async () => {
         const api = createMenuBarApi(fakeFetch(null, 204), () => '');
 

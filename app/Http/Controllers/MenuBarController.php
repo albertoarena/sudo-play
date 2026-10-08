@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\MenuBar\MenuBarService;
 use App\MenuBar\Quitter;
+use App\MenuBar\SettingsWindow;
 use App\Player\PlayerInterface;
 use App\Player\UrlOpener;
 use Illuminate\Http\JsonResponse;
@@ -95,6 +96,13 @@ final class MenuBarController extends Controller
     public function addPlaylist(UrlOpener $opener): HttpResponse
     {
         $opener->open(self::CONTRIBUTING_URL);
+
+        return response()->noContent();
+    }
+
+    public function settings(SettingsWindow $window): HttpResponse
+    {
+        $window->open();
 
         return response()->noContent();
     }

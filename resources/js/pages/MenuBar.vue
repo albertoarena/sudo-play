@@ -89,6 +89,14 @@ async function openContributing(): Promise<void> {
     }
 }
 
+async function openSettings(): Promise<void> {
+    try {
+        await props.api.openSettings();
+    } catch {
+        message.value = 'Could not open the settings. Please try again.';
+    }
+}
+
 async function quit(): Promise<void> {
     try {
         await props.api.quit();
@@ -165,6 +173,9 @@ onBeforeUnmount(() => window.removeEventListener('focus', refresh));
                 <span class="mr-auto">{{ footerDate }}</span>
                 <button type="button" class="hover:text-zinc-900 dark:hover:text-zinc-100" @click="openContributing">
                     Add a playlist
+                </button>
+                <button type="button" class="hover:text-zinc-900 dark:hover:text-zinc-100" @click="openSettings">
+                    Settings
                 </button>
                 <button type="button" class="hover:text-zinc-900 dark:hover:text-zinc-100" @click="quit">
                     Quit

@@ -15,6 +15,7 @@ Route::prefix('menu-bar')->name('menubar.')->controller(MenuBarController::class
     Route::post('surprise', 'surprise')->name('surprise');
     Route::post('play', 'play')->name('play');
     Route::post('add-playlist', 'addPlaylist')->name('add-playlist');
+    Route::post('settings', 'settings')->name('settings');
     Route::post('quit', 'quit')->name('quit');
 });
 
