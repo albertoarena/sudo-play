@@ -15,8 +15,10 @@ use App\MenuBar\Quitter;
 use App\MenuBar\Today;
 use App\Native\ChildProcessSyncLauncher;
 use App\Native\LocalToday;
+use App\Native\NativeNotifier;
 use App\Native\NativeQuitter;
 use App\Native\ShellUrlOpener;
+use App\Notifications\Notifier;
 use App\Player\PlayerInterface;
 use App\Player\PlayerResolver;
 use App\Player\UrlOpener;
@@ -43,6 +45,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(RandomSource::class, SystemRandomSource::class);
         $this->app->singleton(Quitter::class, NativeQuitter::class);
         $this->app->singleton(Today::class, static fn (): Today => LocalToday::system());
+        $this->app->singleton(Notifier::class, NativeNotifier::class);
     }
 
     /**
