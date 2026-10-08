@@ -12,4 +12,7 @@ Route::prefix('menu-bar')->name('menubar.')->controller(MenuBarController::class
     Route::post('select', 'select')->name('select');
     Route::post('next', 'next')->name('next');
     Route::post('surprise', 'surprise')->name('surprise');
+    Route::post('play', 'play')->name('play');
+    Route::post('add-playlist', 'addPlaylist')->name('add-playlist');
+    Route::post('quit', 'quit')->name('quit');
 });
