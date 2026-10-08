@@ -28,6 +28,12 @@ Run the player checks at the end of M5, not M4, against `native:serve`. M4 build
 ## Window and system
 
 - [ ] The menu bar icon is readable in light mode and dark mode
+- [ ] Clicking the icon opens a window of about 360 by 480 under the icon, and there is no Dock icon
+- [ ] "Add a playlist" opens the contributing page in the default browser, not inside the window
+- [ ] The pick follows the local date: just after local midnight it changes, even when UTC is still on the previous day
+- [ ] Next, then quit and start again: the window is back on today's pick
+- [ ] With the window open across midnight, the next time it gets focus it shows the new day's pick
+- [ ] After the startup sync replaces the catalog, closing and opening the window shows the new footer date
 - [ ] The icon appears in under 3 seconds from a cold start
 - [ ] The window renders immediately, before the startup sync finishes
 - [ ] Launch at login works after a reboot

@@ -285,3 +285,51 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Why:** NativePHP's `Shell::openExternal` returns nothing, so when macOS has no app for a `spotify:` link the app is never told. Checking for Spotify on disk would be a second, macOS specific code path for a mode the user chose on purpose. The default mode, autoplay, does detect it and falls back.
 
 **Would change if:** NativePHP starts returning the result of `shell.openExternal`.
+
+## 2026-10-08: Today is read from the Mac's time zone
+
+**Choice:** a `Today` interface gives the menu bar its date. `LocalToday` reads the zone from `TZ`, then from the `/etc/localtime` link that macOS keeps, then falls back to the app zone.
+
+**Why:** Laravel runs in UTC and Electron does not pass the zone to PHP. Without this, a user in New York would see tomorrow's pick every evening from 20:00. Requirements 5 says the date is the local calendar date.
+
+**Would change if:** NativePHP starts passing the system zone to PHP.
+
+## 2026-10-08: The window keeps the Next count, the server checks its day
+
+**Choice:** the state carries `presses` and `date`. The window sends both back with Next and with a refresh. If the day is not today, the server starts again at zero. Choosing a genre or mood also starts again at zero.
+
+**Why:** NativePHP serves every request from a fresh PHP process, so the server has no memory between clicks. The window does, and it is gone on a restart. Sending the day with the count makes the reset on a date change a rule on the server, not a timer in the window.
+
+## 2026-10-08: The selection opens on last, then default, then first
+
+**Choice:** the window opens on the last genre and mood, if the catalog still has them. Otherwise the default from settings, otherwise the first in the catalog. Surprise me is remembered like a choice made by hand.
+
+**Why:** a remembered id that a sync removed must not leave the window with no selection. Remembering a surprise means the window opens on what the user last saw.
+
+## 2026-10-08: Surprise me stays on when only the chosen pair is empty
+
+**Choice:** Play and Next are off when there is no pick. Surprise me is off only when the catalog has no playlists at all. The empty state line says which case it is: "No playlists in the catalog yet" or "No playlists for this genre or mood yet".
+
+**Why:** requirements 7.1 describes the empty state of an empty catalog. A pair with no playlist and no fallback is a different case, and Surprise me is the quickest way out of it.
+
+**Would change if:** the maintainer reads 7.1 as "all three off whenever there is no pick". That is a one line change in `MenuBarState`.
+
+## 2026-10-08: The fallback note is written on the server
+
+**Choice:** `FallbackNote` builds the sentence from the `PickSource`, in PHP. For the same genre in another mood it names the mood too: "No rock playlist for Flow State yet, here is a rock one for Friday Deploy. Add one on GitHub!" The card then shows the playlist's own mood, not the one the user asked for.
+
+**Why:** the M5 tests ask for the note in the endpoint answer. The entry of 2026-10-07 left the wording to the UI layer, and the server is that layer here, as the window only draws. The pick itself still carries an enum, so translation later stays possible.
+
+## 2026-10-08: The menu bar replaces the window, links go through the server
+
+**Choice:** `NativeAppServiceProvider` creates a 360 by 480 menu bar window, not resizable, with no Dock icon, and opens no other window. "Add a playlist" and Quit call the server, which uses `UrlOpener` and a small `Quitter` interface. The window asks for the state again each time it gets focus.
+
+**Why:** a plain link in the menu bar window would open GitHub inside that window. Asking again on focus is how a catalog replaced by the background sync, or a new day, shows up, per requirements 4.4, without polling.
+
+**Gap:** the Settings link in the footer arrives with the settings window in M6. A link that does nothing would be worse than no link.
+
+## 2026-10-08: Menu bar code lives in app/MenuBar
+
+**Choice:** a new `app/MenuBar/` folder holds the state, the service behind the controller, the fallback note and the `Today` and `Quitter` interfaces.
+
+**Why:** the controller has to stay thin and the logic does not belong in `Catalog/` or `Rotation/`, which must stay free of the framework and the settings. It is the same shape as `Player/`.
