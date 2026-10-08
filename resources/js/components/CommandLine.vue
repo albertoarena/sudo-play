@@ -22,5 +22,5 @@ const command = computed((): string => {
 </script>
 
 <template>
-    <p class="truncate font-mono text-sm text-emerald-600 dark:text-emerald-400" :title="command">{{ command }}</p>
+    <p class="font-mono text-sm break-words text-emerald-600 dark:text-emerald-400">{{ command }}</p>
 </template>
