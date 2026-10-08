@@ -17,6 +17,7 @@ use App\Native\ChildProcessSyncLauncher;
 use App\Native\LocalToday;
 use App\Native\NativeNotifier;
 use App\Native\NativeQuitter;
+use App\Native\OpenMenuBarOnReminderClick;
 use App\Native\ShellUrlOpener;
 use App\Notifications\Notifier;
 use App\Player\PlayerInterface;
@@ -26,7 +27,9 @@ use App\Rotation\RandomSource;
 use App\Rotation\SystemRandomSource;
 use App\Settings\DatabaseSettingsStore;
 use App\Settings\SettingsStore;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Native\Laravel\Events\Notifications\NotificationClicked;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -53,6 +56,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Event::listen(NotificationClicked::class, OpenMenuBarOnReminderClick::class);
     }
 }
