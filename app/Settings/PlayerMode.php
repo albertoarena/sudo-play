@@ -21,4 +21,14 @@ enum PlayerMode: string
 
     /** Open the playlist in the default browser. */
     case Web = 'web';
+
+    /** How the settings window names the mode. */
+    public function label(): string
+    {
+        return match ($this) {
+            self::Autoplay => 'Spotify app, autoplay',
+            self::OpenApp => 'Spotify app, open only',
+            self::Web => 'Web player',
+        };
+    }
 }

@@ -82,7 +82,7 @@ final readonly class DailyReminder
     {
         $stored = $this->settings->get(SettingKey::ReminderTime->value);
 
-        return is_string($stored) && preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $stored) === 1
+        return is_string($stored) && preg_match(SettingKey::REMINDER_TIME_PATTERN, $stored) === 1
             ? $stored
             : SettingKey::DEFAULT_REMINDER_TIME;
     }
