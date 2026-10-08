@@ -12,10 +12,13 @@ use Throwable;
 
 final class NativeAppServiceProvider implements ProvidesPhpIni
 {
-    /** Requirements 7.1: a small window, about 360 by 480. */
+    /**
+     * Requirements 7.1: a small window, about 360 by 480. It is 520 tall so a
+     * fallback note and the autoplay hint fit together without scrolling.
+     */
     public const int WIDTH = 360;
 
-    public const int HEIGHT = 480;
+    public const int HEIGHT = 520;
 
     /**
      * Executed once the native application has been booted.
