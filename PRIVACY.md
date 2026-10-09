@@ -21,6 +21,7 @@ Everything stays on your Mac:
 - The catalog you last downloaded, in a local SQLite database
 - Your settings: genre, mood, player mode, reminder time, catalog URL
 - The date of the last successful catalog download
+- The date the daily reminder was last shown, so it is shown once a day at most
 
 Nothing is synced anywhere. Deleting the app and its application support folder removes all of it.
 
