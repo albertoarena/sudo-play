@@ -25,6 +25,8 @@ export interface SettingsApi {
     save(values: SettingsValues): Promise<SaveResponse>;
     updateCatalog(): Promise<UpdateCatalogResponse>;
     openRepository(): Promise<void>;
+    openPrivacy(): Promise<void>;
+    openContributors(): Promise<void>;
 }
 
 /** The server refused the input. One message per field, the first it gave. */
@@ -112,5 +114,7 @@ export function createSettingsApi(
         save: (values) => send('POST', '/settings', values),
         updateCatalog: () => send('POST', '/settings/update-catalog'),
         openRepository: () => send('POST', '/settings/open-repository'),
+        openPrivacy: () => send('POST', '/settings/open-privacy'),
+        openContributors: () => send('POST', '/settings/open-contributors'),
     };
 }

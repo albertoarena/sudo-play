@@ -29,6 +29,10 @@ export interface About {
     version: string;
     repository: string;
     notice: string;
+    /** One line on what the app sends and stores. PRIVACY.md has the rest. */
+    privacy: string;
+    /** GitHub handles of the people who curated the current catalog. */
+    curators: string[];
 }
 
 export interface SettingsPageProps {

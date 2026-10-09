@@ -42,6 +42,8 @@ function props(overrides: Partial<SettingsPageProps> = {}): SettingsPageProps {
             version: '1.2.3',
             repository: 'https://github.com/albertoarena/sudo-play',
             notice: 'Not affiliated with Spotify.',
+            privacy: 'No accounts, no analytics. The app only downloads the catalog.',
+            curators: ['alice', 'octocat'],
         },
         ...overrides,
     };
@@ -52,6 +54,8 @@ function fakeApi(overrides: Partial<SettingsApi> = {}): SettingsApi {
         save: vi.fn(async (saved: SettingsValues) => ({ settings: saved, message: 'Settings saved.' })),
         updateCatalog: vi.fn(async () => ({ updated: true, message: 'Catalog updated.', catalogDate: '2026-10-08' })),
         openRepository: vi.fn(async () => undefined),
+        openPrivacy: vi.fn(async () => undefined),
+        openContributors: vi.fn(async () => undefined),
         ...overrides,
     };
 }
@@ -208,5 +212,46 @@ describe('Settings', () => {
         await button(wrapper, 'GitHub').trigger('click');
 
         expect(api.openRepository).toHaveBeenCalledOnce();
+    });
+
+    it('shows the privacy summary in About and opens the privacy page', async () => {
+        const api = fakeApi();
+        const wrapper = mountSettings(props(), api);
+
+        expect(wrapper.text()).toContain('No accounts, no analytics. The app only downloads the catalog.');
+
+        await button(wrapper, 'Privacy').trigger('click');
+
+        expect(api.openPrivacy).toHaveBeenCalledOnce();
+    });
+
+    it('lists the curators of the catalog in Credits and opens the contributors page', async () => {
+        const api = fakeApi();
+        const wrapper = mountSettings(props(), api);
+
+        expect(wrapper.findAll('#curators li').map((item) => item.text())).toEqual(['@alice', '@octocat']);
+
+        await button(wrapper, 'Contributors on GitHub').trigger('click');
+
+        expect(api.openContributors).toHaveBeenCalledOnce();
+    });
+
+    it('shows no curator list when the catalog has no curators', () => {
+        const wrapper = mountSettings(props({ about: { ...props().about, curators: [] } }));
+
+        expect(wrapper.find('#curators').exists()).toBe(false);
+        expect(button(wrapper, 'Contributors on GitHub').exists()).toBe(true);
+    });
+
+    it('says when the browser could not open a link', async () => {
+        const wrapper = mountSettings(
+            props(),
+            fakeApi({ openPrivacy: vi.fn(async () => Promise.reject(new Error('no browser'))) }),
+        );
+
+        await button(wrapper, 'Privacy').trigger('click');
+        await flushPromises();
+
+        expect(wrapper.get('[role="status"]').text()).toBe('Could not open the browser.');
     });
 });

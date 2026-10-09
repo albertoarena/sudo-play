@@ -144,4 +144,24 @@ describe('settings api', () => {
         expect(sent(fetcher).url).toBe('/settings/open-repository');
         expect(sent(fetcher).init.method).toBe('POST');
     });
+
+    it('asks the server to open the privacy page', async () => {
+        const fetcher = fakeFetch(null, 204);
+        const api = createSettingsApi(fetcher, () => '');
+
+        await api.openPrivacy();
+
+        expect(sent(fetcher).url).toBe('/settings/open-privacy');
+        expect(sent(fetcher).init.method).toBe('POST');
+    });
+
+    it('asks the server to open the contributors page', async () => {
+        const fetcher = fakeFetch(null, 204);
+        const api = createSettingsApi(fetcher, () => '');
+
+        await api.openContributors();
+
+        expect(sent(fetcher).url).toBe('/settings/open-contributors');
+        expect(sent(fetcher).init.method).toBe('POST');
+    });
 });

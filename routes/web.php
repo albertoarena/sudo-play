@@ -25,4 +25,6 @@ Route::prefix('settings')->name('settings.')->controller(SettingsController::cla
     Route::post('/', 'save')->name('save');
     Route::post('update-catalog', 'updateCatalog')->name('update-catalog');
     Route::post('open-repository', 'openRepository')->name('open-repository');
+    Route::post('open-privacy', 'openPrivacy')->name('open-privacy');
+    Route::post('open-contributors', 'openContributors')->name('open-contributors');
 });

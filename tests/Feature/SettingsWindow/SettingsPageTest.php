@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Catalog\Catalog;
+use App\Catalog\Playlist;
 use App\Settings\SettingKey;
 use Inertia\Testing\AssertableInertia;
 use Tests\Support\MenuBarCatalog;
@@ -99,4 +101,41 @@ it('shows the about panel and the catalog date', function (): void {
         ->where('about.repository', 'https://github.com/albertoarena/sudo-play')
         ->where('about.notice', 'Not affiliated with Spotify.')
         ->where('catalogDate', '2026-10-07'));
+});
+
+it('sums up privacy in one line in the about panel', function (): void {
+    MenuBarSetup::with(MenuBarCatalog::full());
+
+    $this->get('/settings')->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('about.privacy', 'No accounts, no analytics. The app only downloads the catalog.'));
+});
+
+it('credits each curator of the current catalog once, in alphabetical order', function (): void {
+    $playlist = fn (string $id, ?string $curator): Playlist => new Playlist(
+        id: $id,
+        title: $id,
+        spotifyId: 'aB1cD2eF3gH4iJ5kL6mN7o',
+        genre: 'rock',
+        moods: ['friday-deploy'],
+        curator: $curator,
+    );
+    $catalog = MenuBarCatalog::full();
+
+    MenuBarSetup::with(new Catalog(1, $catalog->genres, $catalog->moods, [
+        $playlist('rock-01', 'zoe'),
+        $playlist('rock-02', 'Bob'),
+        $playlist('rock-03', null),
+        $playlist('rock-04', 'zoe'),
+        $playlist('rock-05', 'alice'),
+    ]));
+
+    $this->get('/settings')->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('about.curators', ['alice', 'Bob', 'zoe']));
+});
+
+it('credits nobody when the catalog has no playlists', function (): void {
+    MenuBarSetup::with(MenuBarCatalog::empty());
+
+    $this->get('/settings')->assertInertia(fn (AssertableInertia $page) => $page
+        ->where('about.curators', []));
 });
