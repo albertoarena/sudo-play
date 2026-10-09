@@ -12,10 +12,11 @@ Tagline: `$ sudo play --mood friday-deploy`
 
 Read both before starting any work. If they conflict with this file, ask.
 
-Two supporting files, neither is a source of truth:
+Three supporting files, none of them a source of truth:
 
 - `docs/DECISIONS.md` (log of choices the plan left open, append one entry when you make one)
-- `docs/QA.md` (manual checks that tests cannot cover)
+- `docs/QA.md` (manual checks that tests cannot cover, ticked as they pass, cleared and re-run against the signed build in M7)
+- `docs/IMPROVEMENTS.md` (polish noticed while using the app: not a backlog, not a bug list, and nothing is committed to. Anything broken belongs in a milestone or a fix branch)
 
 ## Stack
 
