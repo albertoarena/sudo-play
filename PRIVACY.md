@@ -6,22 +6,26 @@ Sudo Play is a desktop app that runs on your Mac. It has no accounts, no servers
 
 One request, to one place: it downloads the playlist catalog file.
 
-By default that file is `catalog/playlists.yaml` from this repository, served by GitHub. The request is a plain file download. It carries no identifier for you, no device id and no usage data. GitHub, like any web server, can see the IP address the request comes from. We never see it, because we run no server of our own.
+By default that file is `catalog/playlists.yaml` from the `catalog-live` branch of this repository, served by GitHub. The request is a plain file download. It carries no identifier for you, no device id and no usage data. GitHub, like any web server, can see the IP address the request comes from. We never see it, because we run no server of our own.
 
 The app downloads the catalog when it starts and once a day after that.
 
 You can change the catalog URL in Settings, which forks and private catalogs need. If you point the app somewhere else, that server sees the request instead, and its own privacy terms apply.
 
-There are no other network calls. No telemetry, no crash reporting, no update ping.
+There are no other network calls. No telemetry, no crash reporting, no update ping. New versions are published on GitHub, and the app does not check for them.
+
+Some buttons, like "Add a playlist", Privacy and GitHub, open a web page. They open it in your default browser. That is your browser visiting a page, and the app sends nothing with it.
 
 ## What the app stores
 
 Everything stays on your Mac:
 
 - The catalog you last downloaded, in a local SQLite database
-- Your settings: genre, mood, player mode, reminder time, catalog URL
+- Your settings: default genre and mood, player mode, reminder, launch at login, catalog URL
+- The genre and mood you picked last, so the window opens on them
 - The date of the last successful catalog download
 - The date the daily reminder was last shown, so it is shown once a day at most
+- A log file with warnings and errors, for example a catalog row that was skipped or a playlist that could not play
 
 Nothing is synced anywhere. Deleting the app and its application support folder removes all of it.
 
