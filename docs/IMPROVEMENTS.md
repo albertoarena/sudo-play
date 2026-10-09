@@ -41,3 +41,29 @@ signed DMG.
 
 **Where:** the app name in the NativePHP configuration and the build
 configuration, and the M7 release checks.
+
+## Database
+
+### The sessions table still has a user_id column
+
+Noticed 2026-10-09, while removing the authentication scaffolding.
+
+The app has no accounts, so nothing ever writes a user id, yet the `sessions`
+table still carries a nullable `user_id`. In a project whose README says no
+accounts, that column invites a question it cannot answer.
+
+**Why it is still there:** removing it would break sessions at runtime rather
+than in the tests. Laravel's `DatabaseSessionHandler::addUserInformation()`
+sets `$payload['user_id']` whenever `Guard` is bound in the container, which it
+still is even with no authentication configured. The write would then fail
+against a table with no such column, and no test would catch it because the
+session driver is not exercised the same way there.
+
+**What it would take:** either stop `Guard` being bound at all, which means
+understanding what else in the framework assumes it, or move sessions off the
+database driver, which M7 should not be tempted into because the writability of
+a session path inside a signed and notarized app is its own question.
+
+**Verdict for now:** leave it. One nullable column nobody writes to costs
+nothing, and the alternative risks a failure that only appears in a packaged
+build.
