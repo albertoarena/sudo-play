@@ -102,6 +102,29 @@ Add these scripts to `composer.json` and `package.json` in milestone 0 if they d
 - Releases are tags on `main` (`vMAJOR.MINOR.PATCH`). There is no release branch. See `docs/REQUIREMENTS.md` section 12 and `docs/RELEASE.md`
 - Never commit a version bump. The version comes from the tag at build time
 
+## Documentation
+
+- **Docs stay in sync.** Any change to a command, a configuration value or
+  user facing behaviour is reflected in `README.md` and in `docs/` as part of
+  the same change, not afterwards. A pull request that changes what a user
+  types or sees and leaves the documentation behind is incomplete
+- **The public documentation site is a separate repository**,
+  `albertoarena/sudo-play-docs`, published at `https://sudoplay.dev`. Same
+  separation as `laravel-truss` and `laravel-truss-docs`. This repository is
+  authoritative: if the site and the app disagree, the app is right and the
+  site is the bug to fix
+- **The site documents the shipped release, not `main`.** This app ships as a
+  signed build rather than a package, so work that is merged but not yet
+  released does not belong on the site. A change here and its page there are
+  one unit of work spanning two repositories, but the second half lands with
+  the release
+- **While the site is still being built**, the documentation in this repository
+  is the documentation. Do not skip writing it on the grounds that a site is
+  coming: the site will be assembled from this, and what is missing here is
+  what will be missing there
+- **This repository does not go public until the site serves something real.**
+  Alberto decided that on 2026-10-09, accepting that it may delay the release
+
 ## Working as an agent
 
 These rules keep the human in the loop. Follow them even when you have the access to do otherwise.
