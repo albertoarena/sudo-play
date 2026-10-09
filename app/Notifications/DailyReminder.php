@@ -16,10 +16,10 @@ use DateTimeImmutable;
 /**
  * Whether it is time for the daily reminder, and what it says. Requirements 7.3.
  *
- * The scheduler asks once a minute. The answer is yes only in the chosen
- * minute, so a day gets one reminder and nothing is stored to remember that it
- * was sent. A Mac that sleeps through that minute gets no reminder that day,
- * which is better than a "today's pick" banner at four in the afternoon.
+ * The scheduler asks once a minute. The answer is yes from the chosen minute
+ * until CATCH_UP_HOURS later, on the same local day, and only while no
+ * reminder was sent that day. So a Mac asleep at the chosen time still gets
+ * the reminder when it wakes, a little late, and a day still gets one at most.
  *
  * The text names the plain daily pick for the default genre and mood. It never
  * follows Next, and it does not follow the last pair used in the window: the
@@ -30,6 +30,13 @@ use DateTimeImmutable;
 final readonly class DailyReminder
 {
     public const string TITLE = 'Sudo Play';
+
+    /**
+     * How late a missed reminder can still arrive. Long enough for a slow
+     * start to the day, short enough that a morning habit is not announced
+     * in the evening.
+     */
+    public const int CATCH_UP_HOURS = 4;
 
     public function __construct(
         private SettingsStore $settings,
@@ -63,6 +70,16 @@ final readonly class DailyReminder
         return new Reminder(self::TITLE, sprintf("%s? Today's pick is ready: %s", $asked, $pick->playlist->title));
     }
 
+    /**
+     * Records that today's reminder was shown, so no other one is sent today.
+     *
+     * @param  DateTimeImmutable  $now  the moment in the Mac's own zone
+     */
+    public function sent(DateTimeImmutable $now): void
+    {
+        $this->settings->set(SettingKey::ReminderSentOn->value, CalendarDate::fromDateTime($now)->value);
+    }
+
     private function isTime(DateTimeImmutable $now): bool
     {
         if ($this->settings->get(SettingKey::ReminderEnabled->value) !== true) {
@@ -74,7 +91,19 @@ final readonly class DailyReminder
             return false;
         }
 
-        return $now->format('H:i') === $this->time();
+        if ($this->settings->get(SettingKey::ReminderSentOn->value) === CalendarDate::fromDateTime($now)->value) {
+            return false;
+        }
+
+        // Whole minutes, so all of the last minute in the window still counts.
+        $minute = $now->setTime((int) $now->format('H'), (int) $now->format('i'));
+
+        // The chosen time on the same day as $now. A late time cannot reach
+        // past midnight: after midnight the chosen time is the new day's.
+        [$hour, $minutes] = array_map(intval(...), explode(':', $this->time()));
+        $chosen = $now->setTime($hour, $minutes);
+
+        return $minute >= $chosen && $minute <= $chosen->modify(sprintf('+%d hours', self::CATCH_UP_HOURS));
     }
 
     /** The chosen time, or the default when what is stored is not `HH:MM`. */
