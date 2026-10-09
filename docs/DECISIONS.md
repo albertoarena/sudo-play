@@ -423,3 +423,45 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Why:** the app has no accounts (`AGENTS.md` rule 3). The scaffolding came with the Laravel skeleton in M0 and nothing used it. Code that is never used still has to be read, analysed and kept up to date.
 
 **Existing databases:** the renamed migration creates the table only when it is missing. A database made before this change already has it, from the old users migration, so migrating does not fail. The old `users` and `password_reset_tokens` tables stay in such a database. They are empty and nothing reads them. No release has shipped, so no user has one.
+
+## 2026-10-09: The NativePHP updater is off
+
+**Choice:** `nativephp.updater.enabled` is `false`, and no longer read from `NATIVEPHP_UPDATER_ENABLED`, so a build environment cannot turn it on by accident. A test keeps it there.
+
+**Why:** with the updater on, `nativephp/electron` 1.3.0 calls `autoUpdater.checkForUpdatesAndNotify()` every time the packaged app starts. Checked in the package source (`electron-plugin/src/index.ts`, `startAutoUpdater`), not from memory. That is a second network call, and `AGENTS.md` rule 3 and `PRIVACY.md` both say the catalog download is the only one. The config came with the skeleton set to `true`, and nothing used it.
+
+**Note:** this cannot be seen in development. `docs/QA.md` has a check for the installed DMG.
+
+**Would change if:** the project wants automatic updates. That changes the product rules first, then `PRIVACY.md`.
+
+## 2026-10-09: Credits list each curator once, in alphabetical order
+
+**Choice:** About shows the curators of the current catalog, each handle once, sorted without regard to case, with `@` in front. Playlists without a curator add nothing. With no curators the list is not drawn at all. The "Contributors on GitHub" link is always there.
+
+**Why:** a curator with ten playlists is not ten times a curator. Alphabetical order needs no rule about who came first. Requirements 7.2.
+
+**Note:** the list is read when the settings window opens. After "Update catalog now", it shows the new curators the next time the window opens.
+
+## 2026-10-09: About links open on GitHub, through the server
+
+**Choice:** Privacy opens `PRIVACY.md` on `main`. "Contributors on GitHub" opens the contributors graph. Both go through the server and `UrlOpener`, like the GitHub link from M6.
+
+**Why:** a plain link would open inside the settings window. `PRIVACY.md` is read from `main` because it is a document for people, not data the app reads, so it does not belong to `catalog-live`.
+
+## 2026-10-09: catalog-live moves to the tip of main, with a plain push
+
+**Choice:** `catalog-publish.yml` checks out `main` itself, not the commit that started the run, and runs `git push origin HEAD:refs/heads/catalog-live`. No force. Runs do not overlap and are never cancelled. If the branch does not exist, the first run creates it.
+
+**Why:** a run that waited in the queue would otherwise try to move the branch back to an older commit. A plain push fails when `catalog-live` has commits `main` does not have, so a failed run is loud and loses nothing. There is no extra validation step: `main` only takes changes through a pull request with `ci.yml` green, and an app that meets a bad file keeps the catalog it has.
+
+## 2026-10-09: envaudit runs as its GitHub Action
+
+**Choice:** `ci.yml` runs `albertoarena/envaudit@v1` with `ignore-empty: true`, on a copy of `.env.example`, before the app key is generated.
+
+**Why:** an example file is supposed to have empty values, so they are not worth a warning. Running it before `key:generate` audits the example exactly as committed. The Action runs the tool from its own checkout, so there is nothing to install.
+
+## 2026-10-09: M7 lands in two pull requests
+
+**Choice:** the first pull request has what a Linux container can do: the About panel, `CONTRIBUTING.md`, the `PRIVACY.md` review, the README, `catalog.yml`, `catalog-publish.yml` and envaudit. The second, after the signed build is done by hand, has `docs/RELEASE.md` with the real commands, `release.yml` and the `docs/QA.md` run. The Status box is ticked in the second.
+
+**Why:** the build plan says to write `release.yml` only after a signed DMG was built by hand. That needs the maintainer's Mac and an Apple Developer account, and it should not hold back work that is ready for review.

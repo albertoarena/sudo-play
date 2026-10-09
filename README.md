@@ -12,7 +12,7 @@ Pick a genre. Pick a developer mood. Press play.
 
 ## Status
 
-Early development. There is no release yet, and no code either. The repository currently holds the plan.
+The app is built and works in development. There is no release yet: the first one waits for a signed and notarized build.
 
 Follow the Status list in [docs/INSTRUCTIONS.md](docs/INSTRUCTIONS.md) to see how far along it is.
 
@@ -66,8 +66,14 @@ The app makes one network call, to download the catalog file. No accounts, no an
 
 See [PRIVACY.md](PRIVACY.md).
 
+## Contributing
+
+Playlists, fixes and ideas are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md). It explains how to add a playlist and how to run the checks.
+
 ## Documentation
 
+- [CONTRIBUTING.md](CONTRIBUTING.md), how to add a playlist or change the code
+- [PRIVACY.md](PRIVACY.md), what the app sends and stores
 - [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md), what the app does
 - [docs/INSTRUCTIONS.md](docs/INSTRUCTIONS.md), the build plan
 - [docs/DECISIONS.md](docs/DECISIONS.md), why things are the way they are
@@ -81,4 +87,4 @@ Spotify is a trademark of Spotify AB.
 
 ## Licence
 
-MIT.
+[MIT](LICENSE). Contributions are made under MIT too, see [CONTRIBUTING.md](CONTRIBUTING.md#licence-of-contributions).

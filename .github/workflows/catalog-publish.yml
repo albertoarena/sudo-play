@@ -1,0 +1,40 @@
+name: Publish catalog
+
+# Shipped apps read the catalog from the catalog-live branch, never from main.
+# This moves catalog-live forward to main whenever the catalog changes, so a
+# merged playlist reaches users within a day. Requirements 12.2 and 12.3.
+#
+# To add a review step later, turn this workflow off. No release is needed.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'catalog/**'
+
+# One run at a time, and never cancelled, so catalog-live only moves forward.
+concurrency:
+  group: catalog-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Fast forward catalog-live
+    runs-on: ubuntu-latest
+
+    steps:
+      # The tip of main, not the commit that started the run, so a run that
+      # waited in the queue does not try to move the branch backwards.
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # A plain push, never a force push. Git refuses it when catalog-live has
+      # commits main does not have, and the run fails instead of losing them.
+      - name: Push main to catalog-live
+        run: git push origin HEAD:refs/heads/catalog-live

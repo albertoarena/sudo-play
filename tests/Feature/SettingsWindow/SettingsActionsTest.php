@@ -13,8 +13,8 @@ use Tests\Support\MenuBarSetup;
 use Tests\Support\RecordingUrlOpener;
 
 /*
- * The two buttons in the settings window that do something other than save:
- * "Update catalog now" and the GitHub link in About. Requirements 7.2.
+ * The buttons in the settings window that do something other than save:
+ * "Update catalog now" and the links in About and Credits. Requirements 7.2.
  */
 
 afterEach(function (): void {
@@ -53,4 +53,22 @@ it('opens the GitHub page in the browser, not in the window', function (): void 
     $this->postJson('/settings/open-repository')->assertNoContent();
 
     expect($opener->opened)->toBe([SettingsController::REPOSITORY_URL]);
+});
+
+it('opens PRIVACY.md on GitHub in the browser', function (): void {
+    $opener = RecordingUrlOpener::working();
+    app()->instance(UrlOpener::class, $opener);
+
+    $this->postJson('/settings/open-privacy')->assertNoContent();
+
+    expect($opener->opened)->toBe(['https://github.com/albertoarena/sudo-play/blob/main/PRIVACY.md']);
+});
+
+it('opens the contributors page on GitHub in the browser', function (): void {
+    $opener = RecordingUrlOpener::working();
+    app()->instance(UrlOpener::class, $opener);
+
+    $this->postJson('/settings/open-contributors')->assertNoContent();
+
+    expect($opener->opened)->toBe(['https://github.com/albertoarena/sudo-play/graphs/contributors']);
 });

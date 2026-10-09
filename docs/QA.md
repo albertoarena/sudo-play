@@ -71,5 +71,7 @@ that count for the release.
 - [ ] The About panel shows the version, the GitHub link and "Not affiliated with Spotify"
 - [ ] The About panel links to `PRIVACY.md` and the link opens
 - [ ] The Credits section lists the curators in the current catalog, and an empty catalog shows no broken list
+- [ ] "Contributors on GitHub" in Credits opens the contributors page in the default browser
 - [ ] `PRIVACY.md` still matches what the app does, in particular the list of network calls
+- [ ] With a network monitor such as LuLu or Little Snitch, the installed app makes no request other than the catalog download, from start to quit. In particular no update check: the NativePHP updater is off
 - [ ] No Spotify logo anywhere in the app or the README

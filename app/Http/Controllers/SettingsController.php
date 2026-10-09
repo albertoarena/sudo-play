@@ -20,7 +20,16 @@ final class SettingsController extends Controller
     /** Where the GitHub link in About goes. */
     public const string REPOSITORY_URL = 'https://github.com/albertoarena/sudo-play';
 
+    /** Where the Privacy link in About goes. */
+    public const string PRIVACY_URL = self::REPOSITORY_URL.'/blob/main/PRIVACY.md';
+
+    /** Where the contributors link in Credits goes. */
+    public const string CONTRIBUTORS_URL = self::REPOSITORY_URL.'/graphs/contributors';
+
     public const string NOTICE = 'Not affiliated with Spotify.';
+
+    /** PRIVACY.md in one line. The two have to stay true together. */
+    public const string PRIVACY = 'No accounts, no analytics. The app only downloads the catalog.';
 
     public function __construct(
         private readonly SettingsService $settings,
@@ -36,6 +45,9 @@ final class SettingsController extends Controller
                 'version' => config()->string('nativephp.version'),
                 'repository' => self::REPOSITORY_URL,
                 'notice' => self::NOTICE,
+                'privacy' => self::PRIVACY,
+                // From the catalog, so the list follows a sync and needs no release
+                'curators' => $this->settings->curators(),
             ],
         ]);
     }
@@ -57,6 +69,20 @@ final class SettingsController extends Controller
     public function openRepository(UrlOpener $opener): HttpResponse
     {
         $opener->open(self::REPOSITORY_URL);
+
+        return response()->noContent();
+    }
+
+    public function openPrivacy(UrlOpener $opener): HttpResponse
+    {
+        $opener->open(self::PRIVACY_URL);
+
+        return response()->noContent();
+    }
+
+    public function openContributors(UrlOpener $opener): HttpResponse
+    {
+        $opener->open(self::CONTRIBUTORS_URL);
 
         return response()->noContent();
     }

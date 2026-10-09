@@ -88,9 +88,11 @@ async function updateCatalog(): Promise<void> {
     }
 }
 
-async function openRepository(): Promise<void> {
+// Links go through the server, which hands them to the browser. A plain link
+// would open inside the settings window itself.
+async function openLink(open: () => Promise<void>): Promise<void> {
     try {
-        await props.api.openRepository();
+        await open();
     } catch {
         message.value = 'Could not open the browser.';
     }
@@ -100,6 +102,7 @@ const field = 'w-full rounded-md border border-zinc-300 bg-white px-2 py-1.5 tex
 const fieldError = 'border-amber-600 dark:border-amber-400';
 const heading = 'mb-2 text-xs font-semibold tracking-wide text-zinc-500 uppercase';
 const errorText = 'mt-1 text-xs text-amber-700 dark:text-amber-400';
+const link = 'text-sm text-emerald-700 hover:underline dark:text-emerald-400';
 </script>
 
 <template>
@@ -233,12 +236,23 @@ const errorText = 'mt-1 text-xs text-amber-700 dark:text-amber-400';
                 <h2 :class="heading">About</h2>
                 <p class="text-sm">Sudo Play {{ about.version }}</p>
                 <p class="text-xs text-zinc-500">{{ about.notice }}</p>
-                <button
-                    type="button"
-                    class="mt-1 text-sm text-emerald-700 hover:underline dark:text-emerald-400"
-                    @click="openRepository"
-                >
-                    GitHub
+                <p class="mt-1 text-xs text-zinc-500">{{ about.privacy }}</p>
+                <div class="mt-1 flex gap-4">
+                    <button type="button" :class="link" @click="openLink(api.openRepository)">GitHub</button>
+                    <button type="button" :class="link" @click="openLink(api.openPrivacy)">Privacy</button>
+                </div>
+            </section>
+
+            <section>
+                <h2 :class="heading">Credits</h2>
+                <template v-if="about.curators.length > 0">
+                    <p class="text-xs text-zinc-500">Playlists in this catalog were picked by:</p>
+                    <ul id="curators" class="mt-1 flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs">
+                        <li v-for="curator in about.curators" :key="curator">@{{ curator }}</li>
+                    </ul>
+                </template>
+                <button type="button" :class="[link, 'mt-1']" @click="openLink(api.openContributors)">
+                    Contributors on GitHub
                 </button>
             </section>
         </form>

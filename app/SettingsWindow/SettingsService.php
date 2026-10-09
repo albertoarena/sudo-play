@@ -98,6 +98,28 @@ final readonly class SettingsService
         ];
     }
 
+    /**
+     * The people who curated the current catalog, for Credits in About. Each
+     * handle once, in alphabetical order. Requirements 7.2.
+     *
+     * @return list<string>
+     */
+    public function curators(): array
+    {
+        $curators = [];
+
+        foreach ($this->catalog()->catalog->playlists ?? [] as $playlist) {
+            if ($playlist->curator !== null) {
+                $curators[$playlist->curator] = true;
+            }
+        }
+
+        $curators = array_keys($curators);
+        usort($curators, strcasecmp(...));
+
+        return $curators;
+    }
+
     /** @return list<string> */
     public function genreIds(): array
     {
