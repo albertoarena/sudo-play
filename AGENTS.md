@@ -114,6 +114,44 @@ These rules keep the human in the loop. Follow them even when you have the acces
 - If a step cannot be run in your environment, stop and say so in the summary. Anything needing macOS, a visible window, real AppleScript, a signed build or the checks in `docs/QA.md` falls in this group. Never skip a check silently, and never report one as passed that you did not run
 - If the requirements and the build plan disagree, or NativePHP does not support something, stop and ask. Do not invent a workaround
 
+## Working in a cloud container
+
+Milestones run as Claude Cloud sessions in a Linux container. It is a different
+machine and almost nothing about it matches the Mac. What follows is
+established, not guessed: every line cost a session time before it was written
+down. Treat it as fact and do not spend a milestone rediscovering it.
+
+- **There is no macOS.** No menu bar, no notification centre, no login items, no
+  `native:serve`, no AppleScript, no Automation prompt. Anything needing those
+  is written into `docs/QA.md` for a human to run, and is never reported as
+  verified here
+- **PHP is 8.3, the project needs 8.4.** Install with
+  `--ignore-platform-req=php`. The ondrej PPA, php.net, Docker and static builds
+  are all blocked. One session installed 8.4 through nix and one found nix
+  blocked too, so try nix once if you wish and drop it the moment it resists.
+  Try nothing else. CI runs 8.4 and is the real check
+- **GitHub downloads are permitted only for this repository.** The refusal reads
+  "GitHub access to this repository is not enabled for this session", and it is
+  the session's repository authorization, not a network rule, so no token
+  changes it. Composer therefore cannot fetch package zips and falls back to
+  cloning from git, which is slow. `nativephp/php-bin` is a very long clone, and
+  `phpstan/phpstan` has no git source at all and needs a zip built from its tag.
+  Start the install in the background and read the codebase while it runs
+- **Attach the repository with `add_repo` before the first commit**, not before
+  the push. The tool is often absent at startup and appears part way through, so
+  if it is not there yet, check again before pushing
+- **`gh pr create` fails**, because GitHub GraphQL is blocked here. Open pull
+  requests with `gh api ... /pulls`
+- **The egress proxy appends an attribution footer** to a pull request
+  description, and nothing inside the session removes it: a raw `curl` sending a
+  clean body gets it back with the footer attached. Say in your summary that it
+  is there. It is stripped from outside the session
+- **Check authorship before the first commit** with
+  `git log -1 --format='%an <%ae>'`. Not `git config user.name`, which reads
+  `.gitconfig` and shows the container default even when the commits are correct
+- **Two setup gotchas**: `php artisan key:generate` must run after `vendor`
+  exists, and PHP's default 128M memory limit is too low for PHPStan here
+
 ## Definition of done (every milestone)
 
 - All tests green, no skipped tests
