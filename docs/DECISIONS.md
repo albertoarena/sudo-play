@@ -415,3 +415,11 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Side effect:** turning the reminder on, or moving the time earlier, inside the window sends the reminder at once. For example, turn it on at 10:00 with 09:00 chosen, and it arrives in the next minute. That is accepted, as it is the same banner the user just asked for.
 
 **Replaces:** the "chosen minute only" rule of the 2026-10-08 entry.
+
+## 2026-10-09: The Laravel auth scaffolding is removed
+
+**Choice:** the `User` model, its factory, the seeder that used it, `config/auth.php`, and the `users` and `password_reset_tokens` tables are gone. The `sessions` table stays, in a migration renamed to `create_sessions_table`, because the session driver is the database. A test checks that the account tables stay out.
+
+**Why:** the app has no accounts (`AGENTS.md` rule 3). The scaffolding came with the Laravel skeleton in M0 and nothing used it. Code that is never used still has to be read, analysed and kept up to date.
+
+**Existing databases:** the renamed migration creates the table only when it is missing. A database made before this change already has it, from the old users migration, so migrating does not fail. The old `users` and `password_reset_tokens` tables stay in such a database. They are empty and nothing reads them. No release has shipped, so no user has one.
