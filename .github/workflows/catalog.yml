@@ -1,0 +1,42 @@
+name: Catalog
+
+# Fast feedback for contributors who add a playlist. It adds to ci.yml, it
+# does not replace it. Requirements 12.3.
+
+on:
+  pull_request:
+    paths:
+      - 'catalog/**'
+
+concurrency:
+  group: catalog-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate the catalog
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install PHP dependencies
+        uses: ramsey/composer-install@v3
+
+      - name: Prepare the environment
+        run: cp .env.example .env
+
+      # Without --release: an empty playlist list is fine on main during
+      # development. Only release.yml applies the release gate.
+      - name: Validate catalog/playlists.yaml
+        run: php artisan catalog:validate

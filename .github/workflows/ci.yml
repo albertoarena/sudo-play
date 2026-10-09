@@ -27,10 +27,18 @@ jobs:
       - name: Install PHP dependencies
         uses: ramsey/composer-install@v3
 
-      - name: Prepare the environment
-        run: |
-          cp .env.example .env
-          php artisan key:generate
+      - name: Copy the example environment
+        run: cp .env.example .env
+
+      # Checks .env.example itself: no secrets, no unquoted values with spaces,
+      # no duplicate keys. Empty values are expected in an example file.
+      - name: Audit .env.example
+        uses: albertoarena/envaudit@v1
+        with:
+          ignore-empty: true
+
+      - name: Generate the app key
+        run: php artisan key:generate
 
       - name: Set up Node
         uses: actions/setup-node@v4
