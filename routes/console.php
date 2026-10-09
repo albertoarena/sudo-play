@@ -29,6 +29,7 @@ Schedule::command('catalog:sync')
  * The daily reminder. Requirements 7.3.
  *
  * Asked every minute, because the time is a setting the user can change at
- * any moment. DailyReminder answers yes in the chosen minute only.
+ * any moment. DailyReminder answers yes from the chosen minute, for a few
+ * hours, until the day's reminder is sent.
  */
 Schedule::command('reminder:send')->everyMinute();

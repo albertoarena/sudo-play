@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\MenuBar\Today;
 use App\Notifications\Notifier;
 use App\Settings\SettingKey;
+use App\Settings\SettingsStore;
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Tests\Support\FixedToday;
@@ -42,6 +43,51 @@ it('sends the reminder at the chosen time', function (): void {
 
     expect($notifier->shown)->toHaveCount(1)
         ->and($notifier->shown[0]->body)->toBe("🐛 Debugging? Today's pick is ready: Slow jazz for long stack traces");
+});
+
+it('sends a missed reminder when the Mac wakes late', function (): void {
+    $notifier = reminderAt('10:30');
+
+    $this->artisan('reminder:send')->assertSuccessful();
+
+    expect($notifier->shown)->toHaveCount(1);
+});
+
+it('sends one reminder a day, however often it is asked', function (): void {
+    $notifier = reminderAt('09:00');
+
+    $this->artisan('reminder:send')->assertSuccessful();
+    app(Today::class)->moveTo(MenuBarSetup::TODAY, '09:01');
+    $this->artisan('reminder:send')->assertSuccessful();
+
+    expect($notifier->shown)->toHaveCount(1);
+});
+
+it('records the local day once the reminder is shown', function (): void {
+    reminderAt('09:00');
+
+    $this->artisan('reminder:send')->assertSuccessful();
+
+    expect(app(SettingsStore::class)->get(SettingKey::ReminderSentOn->value))->toBe(MenuBarSetup::TODAY);
+});
+
+// A reminder that could not be shown was not sent, so the next minute in the
+// window tries again.
+it('tries again the next minute when the notification could not be shown', function (): void {
+    reminderAt('09:00');
+    app()->instance(Notifier::class, RecordingNotifier::failing());
+
+    $this->artisan('reminder:send')->assertSuccessful();
+
+    expect(app(SettingsStore::class)->get(SettingKey::ReminderSentOn->value))->toBeNull();
+
+    $notifier = RecordingNotifier::working();
+    app()->instance(Notifier::class, $notifier);
+    app(Today::class)->moveTo(MenuBarSetup::TODAY, '09:01');
+
+    $this->artisan('reminder:send')->assertSuccessful();
+
+    expect($notifier->shown)->toHaveCount(1);
 });
 
 it('sends nothing at any other time', function (): void {
