@@ -350,13 +350,15 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 
 ## 2026-10-08: The reminder fires in the chosen minute, and nothing is stored
 
+**Superseded** by the entry of 2026-10-09, "A missed reminder is sent up to 4 hours late". The every minute schedule below still holds. The "chosen minute only" rule and the accepted cost do not.
+
 **Choice:** the scheduler runs `reminder:send` every minute. `DailyReminder` answers yes only when the local clock shows the chosen `HH:MM`. Nothing records that a reminder was sent.
 
 **Why:** one minute a day means one reminder a day, with no "sent today" flag to keep in the settings store or anywhere else. Every minute, rather than `dailyAt()`, because the time is a setting that can change at any moment.
 
 **Accepted cost:** a Mac asleep in that minute gets no reminder that day. A "today's pick" banner at four in the afternoon would be worse.
 
-**Would change if:** users ask for a missed reminder on wake. That needs a stored date and a cut-off time.
+**Would change if:** users ask for a missed reminder on wake. That needs a stored date and a cut-off time. That is what the 2026-10-09 entry does.
 
 ## 2026-10-08: The reminder speaks for the default pair, or the first in the catalog
 
@@ -397,3 +399,19 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Choice:** the service behind the settings controller, the values it shows and saves, and the `LoginItem` interface sit in `app/SettingsWindow/`. `SettingsStore` and `SettingKey` stay in `app/Settings/`.
 
 **Why:** the same shape as `app/MenuBar/`. `app/Settings/` is the store that every part of the app uses. The window is one user of it.
+
+## 2026-10-09: A missed reminder is sent up to 4 hours late
+
+**Choice:** `reminder:send` still runs every minute. `DailyReminder` answers yes when all of these hold: the chosen time has passed, it is no more than `DailyReminder::CATCH_UP_HOURS` (4) hours ago, it is still the same local day, and no reminder was sent today. The last minute counts in full, so with 09:00 the window ends at 13:00:59. The reminder names the pick of the day it is sent. Disabled, weekdays only and "no pick, no reminder" work as before.
+
+**Why 4 hours, not 2:** this fixes a reminder that silently did not arrive, so the error to avoid is no reminder, not a late one. One banner at 12:30 saying today's pick is ready costs almost nothing. Silence costs the feature. With 2 hours, a slow start at 11:30 still gets nothing, which is the complaint this fix answers.
+
+**Why not until the end of the day:** the user chose the time on purpose. A banner at 22:00 about a 09:00 habit is the same failure from the other side.
+
+**Same day:** the window never passes midnight. With 22:00 chosen, 23:59 still gets the reminder, 01:00 the next day does not. Yesterday's reminder never arrives in the night. "Day" is the local calendar date from `Today` (`LocalToday` in the app), never UTC.
+
+**Sent today:** the local date of the last reminder is stored as `SettingKey::ReminderSentOn`, through `SettingsStore` like every other stored value. It is not a choice the user makes, so the settings window does not show it. The command stores it only after the notification was shown. If showing it fails, the next minute in the window tries again. The cost is at most one log line a minute for 4 hours, on a Mac where notifications do not work at all.
+
+**Side effect:** turning the reminder on, or moving the time earlier, inside the window sends the reminder at once. For example, turn it on at 10:00 with 09:00 chosen, and it arrives in the next minute. That is accepted, as it is the same banner the user just asked for.
+
+**Replaces:** the "chosen minute only" rule of the 2026-10-08 entry.

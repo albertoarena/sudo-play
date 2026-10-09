@@ -49,6 +49,8 @@ that count for the release.
 - [ ] Launch at login works after a reboot
 - [ ] The daily reminder fires at the configured time, and not on a weekend when weekdays only is on
 - [ ] Clicking the daily reminder opens the menu bar window
+- [ ] With the Mac asleep at the reminder time, the reminder arrives once on wake, if that is no more than 4 hours later. It does not arrive a second time that day
+- [ ] With the Mac asleep at the reminder time and woken more than 4 hours later, no reminder arrives that day
 
 ## Settings window
 
