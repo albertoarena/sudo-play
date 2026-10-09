@@ -78,8 +78,9 @@ it('ships the moods from the requirements, each with an emoji and a description'
     }
 });
 
-it('ships no playlists, because the maintainer fills them in before a release', function (): void {
-    $catalog = (new CatalogParser)->parse((string) BundledCatalogSource::bundled()->contents())->catalog;
+it('ships a catalog where every row validates', function (): void {
+    $result = (new CatalogParser)->parse((string) BundledCatalogSource::bundled()->contents());
 
-    expect($catalog?->playlists)->toBe([]);
+    expect($result->catalog)->not->toBeNull()
+        ->and($result->errors)->toBe([]);
 });

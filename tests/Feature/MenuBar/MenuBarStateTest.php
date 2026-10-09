@@ -120,7 +120,7 @@ it('loads the bundled catalog when nothing is stored yet', function (): void {
     $this->getJson('/menu-bar/state')
         ->assertOk()
         ->assertJsonCount(7, 'genres')
-        ->assertJsonPath('empty', 'No playlists in the catalog yet');
+        ->assertJsonCount(6, 'moods');
 });
 
 it('explains the macOS permission prompt only in autoplay mode', function (string $mode, ?string $hint): void {

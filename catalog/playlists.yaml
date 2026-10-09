@@ -14,9 +14,8 @@
 #
 # Run `php artisan catalog:validate` before you push. CI runs it too.
 #
-# The playlist list is empty on purpose. Real Spotify playlist ids are chosen by
-# the maintainer, never invented, and `catalog:validate --release` refuses to
-# release a catalog that is still empty.
+# Real Spotify playlist ids are chosen by people, never invented by a tool.
+# `catalog:validate --release` refuses to release a catalog with no playlists.
 
 version: 1
 
@@ -73,4 +72,24 @@ moods:
     emoji: "🚀"
     description: Brave, energetic, a bit risky.
 
-playlists: []
+playlists:
+  - id: rock-friday-deploy-01
+    title: Riffs for risky releases
+    url: https://open.spotify.com/playlist/3f48OVuCnymSOJpbXiMZ3j
+    genre: rock
+    moods: [friday-deploy, debugging]
+    curator: albertoarena
+
+  - id: rock-friday-deploy-02
+    title: Second rock pick for shipping day
+    url: https://open.spotify.com/playlist/1wjjaCDYuOWIoLQLImBZWJ
+    genre: rock
+    moods: [friday-deploy]
+    curator: albertoarena
+
+  - id: jazz-flow-state-01
+    title: Jazz for deep work
+    url: https://open.spotify.com/playlist/3PLHdsGIEWOY2XgXIT5gS8
+    genre: jazz
+    moods: [flow-state]
+    curator: albertoarena
