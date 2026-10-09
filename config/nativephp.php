@@ -97,11 +97,12 @@ return [
      */
     'updater' => [
         /**
-         * Whether or not the updater is enabled. Please note that the
-         * updater will only work when your application is bundled
-         * for production.
+         * Off, and not read from the environment. When on, the bundled app
+         * asks an update server for a new version at every start, and the
+         * catalog download must stay the only network call (AGENTS.md rule
+         * 3, PRIVACY.md). See docs/DECISIONS.md.
          */
-        'enabled' => env('NATIVEPHP_UPDATER_ENABLED', true),
+        'enabled' => false,
 
         /**
          * The updater provider to use.
