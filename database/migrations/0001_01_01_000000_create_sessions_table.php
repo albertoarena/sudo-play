@@ -10,24 +10,18 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * The session driver is the database. The app has no accounts, so the
+     * users and password reset tables from the Laravel skeleton are gone.
+     *
+     * A database made before this file was renamed already has the table,
+     * from the old users migration, so it is only created when missing.
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
-            $table->timestamps();
-        });
-
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
-        });
+        if (Schema::hasTable('sessions')) {
+            return;
+        }
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
@@ -44,8 +38,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }
 };
