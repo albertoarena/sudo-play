@@ -19,7 +19,12 @@ it('covers every setting the app needs', function (): void {
         'weekdays_only',
         'launch_at_login',
         'catalog_url',
+        'reminder_sent_on',
     ]);
+});
+
+it('has no reminder sent before the first one', function (): void {
+    expect(SettingKey::ReminderSentOn->default())->toBeNull();
 });
 
 it('defaults the player mode to autoplay', function (): void {

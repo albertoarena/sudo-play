@@ -50,6 +50,13 @@ enum SettingKey: string
     case CatalogUrl = 'catalog_url';
 
     /**
+     * The local day, `YYYY-MM-DD`, the daily reminder was last shown. Not a
+     * choice the user makes, so the settings window never shows it. It is what
+     * lets a missed reminder be sent late, once. Requirements 7.3.
+     */
+    case ReminderSentOn = 'reminder_sent_on';
+
+    /**
      * A genre or mood default of null means "not chosen yet". The window then
      * opens on the first genre and mood the catalog offers, so a fork with its
      * own catalog needs no code change and no id can be a default that the
@@ -58,7 +65,7 @@ enum SettingKey: string
     public function default(): string|bool|null
     {
         return match ($this) {
-            self::DefaultGenre, self::DefaultMood, self::LastGenre, self::LastMood => null,
+            self::DefaultGenre, self::DefaultMood, self::LastGenre, self::LastMood, self::ReminderSentOn => null,
             self::PlayerMode => PlayerMode::Autoplay->value,
             self::ReminderEnabled, self::LaunchAtLogin => false,
             self::ReminderTime => self::DEFAULT_REMINDER_TIME,
