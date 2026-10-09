@@ -21,7 +21,7 @@ Every choice the plan leaves open goes in `docs/DECISIONS.md` as one short entry
 - [x] M3 Storage, settings and sync
 - [x] M4 Player
 - [x] M5 Menu bar UI
-- [ ] M6 Settings window and daily reminder
+- [x] M6 Settings window and daily reminder
 - [ ] M7 Repository, CI and release
 
 ---

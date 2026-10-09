@@ -23,6 +23,9 @@ enum SettingKey: string
 
     public const string DEFAULT_REMINDER_TIME = '09:00';
 
+    /** A reminder time: 24 hour `HH:MM`, from 00:00 to 23:59. */
+    public const string REMINDER_TIME_PATTERN = '/^([01]\d|2[0-3]):[0-5]\d$/';
+
     /** The genre the window opens on when nothing has been used yet. */
     case DefaultGenre = 'default_genre';
 

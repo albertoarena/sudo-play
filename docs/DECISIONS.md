@@ -347,3 +347,53 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Choice:** the window is 360 by 520, not 360 by 480.
 
 **Why:** at 480, a fallback note and the autoplay hint together still pushed part of the note out of view, and macOS hides the scrollbar until you scroll. At 520 the worst case with the current catalog fits with a little room left. Requirements 7.1 says "about 360 x 480", and the maintainer chose 520.
+
+## 2026-10-08: The reminder fires in the chosen minute, and nothing is stored
+
+**Choice:** the scheduler runs `reminder:send` every minute. `DailyReminder` answers yes only when the local clock shows the chosen `HH:MM`. Nothing records that a reminder was sent.
+
+**Why:** one minute a day means one reminder a day, with no "sent today" flag to keep in the settings store or anywhere else. Every minute, rather than `dailyAt()`, because the time is a setting that can change at any moment.
+
+**Accepted cost:** a Mac asleep in that minute gets no reminder that day. A "today's pick" banner at four in the afternoon would be worse.
+
+**Would change if:** users ask for a missed reminder on wake. That needs a stored date and a cut-off time.
+
+## 2026-10-08: The reminder speaks for the default pair, or the first in the catalog
+
+**Choice:** the reminder uses the default genre and mood. When one is not chosen, or a sync removed it, it uses the first one in the catalog, the same as the window. The text is "{emoji} {mood}? Today's pick is ready: {title}", with the emoji left out when the mood has none. When there is no pick at all, there is no reminder.
+
+**Why:** requirements 7.3 says default, not last used. The defaults start as not chosen (entry of 2026-10-07), so a fallback is needed, and the window already has one. A banner saying a pick is ready when there is none would be a lie.
+
+## 2026-10-08: A click on the reminder opens the menu bar window
+
+**Choice:** NativePHP sends a `NotificationClicked` event with the reference the notification was sent with. The reminder always uses the reference `sudo-play-daily-reminder`, and a listener shows the menu bar when it sees it.
+
+**Why:** requirements 7.3 asks for this when NativePHP supports it, and the installed version does. Checked in the package source, not from memory.
+
+## 2026-10-08: Launch at login is saved only once macOS accepts it
+
+**Choice:** `NativeLoginItem` calls `App::openAtLogin()` when the setting changes. The setting is stored only after that call worked. If it fails, the other settings are still saved and the window says launch at login could not be changed.
+
+**Why:** a setting that says on while macOS has it off is worse than a short message. The call is made only on a change, so saving the window does not touch the login items every time.
+
+**Note:** under `native:serve` this registers the development Electron binary, so the real check belongs to the signed DMG in M7.
+
+## 2026-10-08: The settings window has a Save button
+
+**Choice:** the settings window is its own 440 by 680 window, not resizable, with a Save button at the bottom. "Update catalog now" downloads from the saved URL while the user waits, which takes 5 seconds at most.
+
+**Why:** the values depend on each other, for example a catalog URL and the update button. One save with one validation answer is easier to follow than a save per field. A synchronous update lets the window show the new date at once.
+
+## 2026-10-08: Privacy and credits in About wait for M7
+
+**Choice:** About in M6 shows the version, the GitHub link and "Not affiliated with Spotify". The privacy line, the `PRIVACY.md` link and the Credits section are left to M7.
+
+**Why:** requirements 7.2 lists all of them, but the build plan gives the privacy link and the curators to M7 by name, and the build plan decides the order. M7 also reviews `PRIVACY.md` against what the app does, so the link and the review land together.
+
+**Version:** About reads `nativephp.version`, which the release build sets from the tag. Nothing commits a version.
+
+## 2026-10-08: Settings window code lives in app/SettingsWindow
+
+**Choice:** the service behind the settings controller, the values it shows and saves, and the `LoginItem` interface sit in `app/SettingsWindow/`. `SettingsStore` and `SettingKey` stay in `app/Settings/`.
+
+**Why:** the same shape as `app/MenuBar/`. `app/Settings/` is the store that every part of the app uses. The window is one user of it.

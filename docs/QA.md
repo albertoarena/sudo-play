@@ -48,6 +48,18 @@ that count for the release.
 - [ ] The window renders immediately, before the startup sync finishes
 - [ ] Launch at login works after a reboot
 - [ ] The daily reminder fires at the configured time, and not on a weekend when weekdays only is on
+- [ ] Clicking the daily reminder opens the menu bar window
+
+## Settings window
+
+- [ ] Settings in the menu bar footer opens the settings window, with a title bar and no Dock icon
+- [ ] A second click on Settings brings the open window to the front, it does not open a second one
+- [ ] The window shows every section without the Save button going below the window edge
+- [ ] A saved player mode is used by the next Play, without a restart
+- [ ] Turning on launch at login adds Sudo Play to System Settings, General, Login Items, and turning it off removes it
+- [ ] A saved default genre and mood is what the window opens on when nothing was used yet
+- [ ] The time field takes a 24 hour time on a Mac set to a 12 hour clock
+- [ ] The GitHub link opens in the default browser, not inside the window
 - [ ] Quit from the footer actually quits
 
 ## Release

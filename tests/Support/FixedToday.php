@@ -6,26 +6,38 @@ namespace Tests\Support;
 
 use App\MenuBar\Today;
 use App\Rotation\CalendarDate;
+use DateTimeImmutable;
+use DateTimeZone;
 
 /**
- * A day that only changes when the test says so.
+ * A day and a time that only change when the test says so.
+ *
+ * The time is noon unless the test gives one, so a test about the date never
+ * sits near midnight by accident.
  */
 final class FixedToday implements Today
 {
-    private CalendarDate $date;
+    private DateTimeImmutable $now;
 
-    public function __construct(string $date)
+    public function __construct(string $date, string $time = '12:00')
     {
-        $this->date = CalendarDate::fromString($date);
+        $this->moveTo($date, $time);
     }
 
-    public function moveTo(string $date): void
+    public function moveTo(string $date, string $time = '12:00'): void
     {
-        $this->date = CalendarDate::fromString($date);
+        $day = CalendarDate::fromString($date);
+
+        $this->now = new DateTimeImmutable($day->value.' '.$time, new DateTimeZone('Europe/Rome'));
     }
 
     public function today(): CalendarDate
     {
-        return $this->date;
+        return CalendarDate::fromDateTime($this->now);
+    }
+
+    public function now(): DateTimeImmutable
+    {
+        return $this->now;
     }
 }

@@ -24,3 +24,11 @@ Artisan::command('inspire', function () {
 Schedule::command('catalog:sync')
     ->daily()
     ->withoutOverlapping();
+
+/*
+ * The daily reminder. Requirements 7.3.
+ *
+ * Asked every minute, because the time is a setting the user can change at
+ * any moment. DailyReminder answers yes in the chosen minute only.
+ */
+Schedule::command('reminder:send')->everyMinute();
