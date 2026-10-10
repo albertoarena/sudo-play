@@ -7,7 +7,7 @@ const props = defineProps<{
 }>();
 
 const command = computed((): string => {
-    const parts = ['$ sudo play'];
+    const parts = ['sudo play'];
 
     if (props.genre !== null) {
         parts.push(`--genre ${props.genre}`);
@@ -22,5 +22,6 @@ const command = computed((): string => {
 </script>
 
 <template>
-    <p class="font-mono text-sm break-words text-emerald-600 dark:text-emerald-400">{{ command }}</p>
+    <!-- The prompt sign is dim and the command is bright, as in a terminal. -->
+    <p class="font-mono text-sm break-words text-term-command"><span class="text-term-dim">$</span> {{ command }}</p>
 </template>

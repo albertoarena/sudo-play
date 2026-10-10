@@ -113,6 +113,12 @@ function refresh(): void {
 
 onMounted(() => window.addEventListener('focus', refresh));
 onBeforeUnmount(() => window.removeEventListener('focus', refresh));
+
+// An outline button shows its edge and nothing else, so the edge has to carry
+// enough contrast on its own. A disabled one is dimmed and takes the plain
+// cursor, because there is nothing to click.
+const outline = 'rounded-md border border-edge px-3 py-2 text-sm hover:border-ink';
+const disabled = 'disabled:cursor-default disabled:opacity-40';
 </script>
 
 <template>
@@ -121,9 +127,9 @@ onBeforeUnmount(() => window.removeEventListener('focus', refresh));
         taller, so Play and the footer always stay in the window. The line above
         the buttons shows where the scrolling part ends.
     -->
-    <main class="flex h-full flex-col bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+    <main class="flex h-full flex-col bg-page text-ink">
         <div class="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3 pb-2.5">
-            <header class="rounded-md bg-zinc-100 px-3 py-2 dark:bg-zinc-900">
+            <header class="rounded-md border border-term-edge bg-term-bg px-3 py-2">
                 <CommandLine :genre="current.selection.genre" :mood="current.selection.mood" />
             </header>
 
@@ -138,11 +144,14 @@ onBeforeUnmount(() => window.removeEventListener('focus', refresh));
             />
         </div>
 
-        <div class="flex flex-col gap-2.5 border-t border-zinc-200 px-3 pt-2.5 pb-3 dark:border-zinc-800">
+        <div class="flex flex-col gap-2.5 border-t border-divider px-3 pt-2.5 pb-3">
             <div class="flex gap-2">
                 <button
                     type="button"
-                    class="flex-1 rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-40"
+                    :class="[
+                        'flex-1 rounded-md bg-accent px-3 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover',
+                        disabled,
+                    ]"
                     :disabled="!current.actions.play || busy"
                     @click="play"
                 >
@@ -150,7 +159,7 @@ onBeforeUnmount(() => window.removeEventListener('focus', refresh));
                 </button>
                 <button
                     type="button"
-                    class="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:border-zinc-500 disabled:opacity-40 dark:border-zinc-700"
+                    :class="[outline, disabled]"
                     :disabled="!current.actions.next || busy"
                     @click="next"
                 >
@@ -158,7 +167,7 @@ onBeforeUnmount(() => window.removeEventListener('focus', refresh));
                 </button>
                 <button
                     type="button"
-                    class="rounded-md border border-zinc-300 px-3 py-2 text-sm hover:border-zinc-500 disabled:opacity-40 dark:border-zinc-700"
+                    :class="[outline, disabled]"
                     :disabled="!current.actions.surprise || busy"
                     @click="surprise"
                 >
@@ -166,20 +175,14 @@ onBeforeUnmount(() => window.removeEventListener('focus', refresh));
                 </button>
             </div>
 
-            <p v-if="message !== null" role="status" class="text-xs text-amber-700 dark:text-amber-400">{{ message }}</p>
-            <p v-else-if="current.hint !== null" class="text-xs text-zinc-500">{{ current.hint }}</p>
+            <p v-if="message !== null" role="status" class="text-xs text-warning">{{ message }}</p>
+            <p v-else-if="current.hint !== null" class="text-xs text-muted">{{ current.hint }}</p>
 
-            <footer class="flex items-center gap-3 text-xs text-zinc-500">
+            <footer class="flex items-center gap-3 text-xs text-muted">
                 <span class="mr-auto">{{ footerDate }}</span>
-                <button type="button" class="hover:text-zinc-900 dark:hover:text-zinc-100" @click="openContributing">
-                    Add a playlist
-                </button>
-                <button type="button" class="hover:text-zinc-900 dark:hover:text-zinc-100" @click="openSettings">
-                    Settings
-                </button>
-                <button type="button" class="hover:text-zinc-900 dark:hover:text-zinc-100" @click="quit">
-                    Quit
-                </button>
+                <button type="button" class="hover:text-ink" @click="openContributing">Add a playlist</button>
+                <button type="button" class="hover:text-ink" @click="openSettings">Settings</button>
+                <button type="button" class="hover:text-ink" @click="quit">Quit</button>
             </footer>
         </div>
     </main>

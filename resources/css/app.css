@@ -5,9 +5,66 @@
 @source '../**/*.blade.php';
 @source '../**/*.js';
 
+/*
+    The colour scheme: a terminal on a quiet page. Light values here, dark
+    values in the media query below. Components use these names and never a
+    palette value, so every colour pair can be measured in one place.
+    `resources/js/theme.test.ts` checks them against WCAG AA, 4.5 on text and
+    3 on the edge of a control that carries meaning. Change a value there
+    first and let the test say whether it is readable.
+
+    The dividers and the border of the terminal panel are decorative, so they
+    are exempt. They separate two blocks that each carry their own meaning.
+*/
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-page: #ffffff;
+    --color-surface: #ffffff;
+    --color-ink: #18181b;
+
+    --color-accent: #007a55;
+    --color-accent-hover: #006045;
+    --color-on-accent: #ffffff;
+
+    --color-muted: #52525c;
+    --color-edge: #71717b;
+    --color-divider: #e4e4e7;
+    --color-warning: #bb4d00;
+    --color-focus: #007a55;
+
+    /* The header panel is dark in both modes. It is the terminal. */
+    --color-term-bg: #09090b;
+    --color-term-command: #00d492;
+    --color-term-dim: #9f9fa9;
+    --color-term-edge: #27272a;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-page: #09090b;
+        --color-surface: #18181b;
+        --color-ink: #f4f4f5;
+
+        --color-accent: #00d492;
+        --color-accent-hover: #5ee9b5;
+        --color-on-accent: #09090b;
+
+        --color-muted: #9f9fa9;
+        --color-edge: #71717b;
+        --color-divider: #27272a;
+        --color-warning: #ffb900;
+        --color-focus: #00d492;
+    }
+}
+
+/*
+    One focus style for the whole app. Without it the browser draws its own,
+    which on macOS follows the system accent colour and can put orange on a
+    green chip. `:where` keeps the specificity at zero, so a component can
+    still override it.
+*/
+:where(button, a, input, select, textarea):focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
 }
 
 /* The Inertia root fills the menu bar window, so the footer sits at the bottom. */

@@ -36,8 +36,8 @@ function text(option: ChipOption): string {
             class="rounded-full border px-2.5 py-1 text-xs transition-colors"
             :class="
                 option.id === selected
-                    ? 'border-emerald-600 bg-emerald-600 text-white dark:border-emerald-400 dark:bg-emerald-400 dark:text-zinc-950'
-                    : 'border-zinc-300 text-zinc-700 hover:border-zinc-500 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-zinc-500'
+                    ? 'border-accent bg-accent text-on-accent'
+                    : 'border-edge text-ink hover:border-ink'
             "
             @click="choose(option.id)"
         >

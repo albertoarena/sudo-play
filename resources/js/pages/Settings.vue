@@ -98,15 +98,20 @@ async function openLink(open: () => Promise<void>): Promise<void> {
     }
 }
 
-const field = 'w-full rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-sm dark:border-zinc-700 dark:bg-zinc-900';
-const fieldError = 'border-amber-600 dark:border-amber-400';
-const heading = 'mb-2 text-xs font-semibold tracking-wide text-zinc-500 uppercase';
-const errorText = 'mt-1 text-xs text-amber-700 dark:text-amber-400';
-const link = 'text-sm text-emerald-700 hover:underline dark:text-emerald-400';
+const field = 'w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm';
+const fieldError = 'border-warning';
+const heading = 'mb-2 text-xs font-semibold tracking-wide text-muted uppercase';
+const errorText = 'mt-1 text-xs text-warning';
+const link = 'text-sm text-accent hover:underline';
+const help = 'text-xs text-muted';
+// A disabled control is dimmed and takes the plain cursor, because there is
+// nothing to click. The weekdays checkbox only takes the cursor: its label is
+// already dimmed, and two layers of 40 per cent leave it almost invisible.
+const disabled = 'disabled:cursor-default disabled:opacity-40';
 </script>
 
 <template>
-    <main class="flex h-full flex-col bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+    <main class="flex h-full flex-col bg-page text-ink">
         <form class="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4" @submit.prevent="save">
             <section>
                 <h2 :class="heading">Defaults</h2>
@@ -142,7 +147,7 @@ const link = 'text-sm text-emerald-700 hover:underline dark:text-emerald-400';
                         <p v-if="errors.defaultMood" :class="errorText">{{ errors.defaultMood }}</p>
                     </label>
                 </div>
-                <p class="mt-1 text-xs text-zinc-500">The window opens on these, and the daily reminder uses them.</p>
+                <p :class="[help, 'mt-1']">The window opens on these, and the daily reminder uses them.</p>
             </section>
 
             <section>
@@ -176,7 +181,7 @@ const link = 'text-sm text-emerald-700 hover:underline dark:text-emerald-400';
                             v-model="form.reminderTime"
                             type="time"
                             :disabled="!form.reminderEnabled"
-                            :class="[field, 'w-28 disabled:opacity-40', errors.reminderTime ? fieldError : '']"
+                            :class="[field, 'w-28', disabled, errors.reminderTime ? fieldError : '']"
                             :aria-invalid="errors.reminderTime ? 'true' : undefined"
                         />
                     </label>
@@ -186,6 +191,7 @@ const link = 'text-sm text-emerald-700 hover:underline dark:text-emerald-400';
                             id="weekdays-only"
                             v-model="form.weekdaysOnly"
                             type="checkbox"
+                            class="disabled:cursor-default"
                             :disabled="!form.reminderEnabled"
                         />
                         Weekdays only
@@ -215,19 +221,19 @@ const link = 'text-sm text-emerald-700 hover:underline dark:text-emerald-400';
                     />
                 </label>
                 <p v-if="errors.catalogUrl" id="catalog-url-error" :class="errorText">{{ errors.catalogUrl }}</p>
-                <p class="mt-1 text-xs text-zinc-500">Only change this if you run a fork. Save before you update.</p>
+                <p :class="[help, 'mt-1']">Only change this if you run a fork. Save before you update.</p>
                 <div class="mt-2 flex items-center gap-3">
                     <button
                         type="button"
-                        class="rounded-md border border-zinc-300 px-3 py-1.5 text-sm hover:border-zinc-500 disabled:opacity-40 dark:border-zinc-700"
+                        :class="['rounded-md border border-edge px-3 py-1.5 text-sm hover:border-ink', disabled]"
                         :disabled="updating"
                         @click="updateCatalog"
                     >
                         Update catalog now
                     </button>
-                    <span class="text-xs text-zinc-500">{{ catalogLine }}</span>
+                    <span :class="help">{{ catalogLine }}</span>
                 </div>
-                <p v-if="catalogMessage !== null" id="catalog-status" class="mt-1 text-xs text-zinc-500">
+                <p v-if="catalogMessage !== null" id="catalog-status" :class="[help, 'mt-1']">
                     {{ catalogMessage }}
                 </p>
             </section>
@@ -235,8 +241,8 @@ const link = 'text-sm text-emerald-700 hover:underline dark:text-emerald-400';
             <section>
                 <h2 :class="heading">About</h2>
                 <p class="text-sm">Sudo Play {{ about.version }}</p>
-                <p class="text-xs text-zinc-500">{{ about.notice }}</p>
-                <p class="mt-1 text-xs text-zinc-500">{{ about.privacy }}</p>
+                <p :class="help">{{ about.notice }}</p>
+                <p :class="[help, 'mt-1']">{{ about.privacy }}</p>
                 <div class="mt-1 flex gap-4">
                     <button type="button" :class="link" @click="openLink(api.openRepository)">GitHub</button>
                     <button type="button" :class="link" @click="openLink(api.openPrivacy)">Privacy</button>
@@ -246,7 +252,7 @@ const link = 'text-sm text-emerald-700 hover:underline dark:text-emerald-400';
             <section>
                 <h2 :class="heading">Credits</h2>
                 <template v-if="about.curators.length > 0">
-                    <p class="text-xs text-zinc-500">Playlists in this catalog were picked by:</p>
+                    <p :class="help">Playlists in this catalog were picked by:</p>
                     <ul id="curators" class="mt-1 flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs">
                         <li v-for="curator in about.curators" :key="curator">@{{ curator }}</li>
                     </ul>
@@ -257,16 +263,16 @@ const link = 'text-sm text-emerald-700 hover:underline dark:text-emerald-400';
             </section>
         </form>
 
-        <div class="flex items-center gap-3 border-t border-zinc-200 px-4 py-3 dark:border-zinc-800">
+        <div class="flex items-center gap-3 border-t border-divider px-4 py-3">
             <button
                 type="button"
-                class="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-40"
+                :class="['rounded-md bg-accent px-4 py-2 text-sm font-semibold text-on-accent hover:bg-accent-hover', disabled]"
                 :disabled="saving"
                 @click="save"
             >
                 Save
             </button>
-            <p v-if="message !== null" role="status" class="text-xs text-zinc-600 dark:text-zinc-400">{{ message }}</p>
+            <p v-if="message !== null" role="status" :class="help">{{ message }}</p>
         </div>
     </main>
 </template>
