@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent, h } from 'vue';
 import MenuBar from './MenuBar.vue';
@@ -135,6 +135,76 @@ describe('MenuBar', () => {
 
         expect(api.play).toHaveBeenCalledWith('rock-friday-deploy-01');
         expect(wrapper.text()).toContain('Could not start Spotify.');
+    });
+
+    describe('after Play', () => {
+        beforeEach(() => {
+            vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+        });
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        it('says what is playing in the command line style, for three seconds', async () => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+
+            await button(wrapper, 'Play').trigger('click');
+            await flushPromises();
+
+            const line = wrapper.get('[role="status"]');
+            expect(line.text()).toBe('▶ playing "Riffs for risky releases"');
+            expect(line.classes()).toEqual(expect.arrayContaining(['font-mono', 'text-muted']));
+            expect(line.classes()).not.toContain('text-warning');
+
+            vi.advanceTimersByTime(2900);
+            await flushPromises();
+            expect(wrapper.text()).toContain('playing "Riffs for risky releases"');
+
+            vi.advanceTimersByTime(100);
+            await flushPromises();
+            expect(wrapper.text()).not.toContain('playing "Riffs for risky releases"');
+        });
+
+        it('keeps the line for three seconds from the last Play', async () => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+
+            await button(wrapper, 'Play').trigger('click');
+            await flushPromises();
+            vi.advanceTimersByTime(2000);
+            await button(wrapper, 'Play').trigger('click');
+            await flushPromises();
+            vi.advanceTimersByTime(2000);
+            await flushPromises();
+
+            expect(wrapper.text()).toContain('playing "Riffs for risky releases"');
+        });
+
+        it.each([
+            ['fell-back', 'Could not start Spotify. Opened the playlist in your browser instead.'],
+            ['failed', 'Could not open Spotify.'],
+        ] as const)('shows what the player said instead when it %s', async (outcome, said) => {
+            const api = fakeApi();
+            api.play = vi.fn(async () => ({ outcome, message: said }));
+            const wrapper = mount(MenuBar, { props: { state: state(), api } });
+
+            await button(wrapper, 'Play').trigger('click');
+            await flushPromises();
+
+            expect(wrapper.get('[role="status"]').text()).toBe(said);
+            expect(wrapper.text()).not.toContain('▶ playing');
+        });
+
+        it('takes the line away when another action starts', async () => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+
+            await button(wrapper, 'Play').trigger('click');
+            await flushPromises();
+            await button(wrapper, 'Next').trigger('click');
+            await flushPromises();
+
+            expect(wrapper.text()).not.toContain('▶ playing');
+        });
     });
 
     it('shows the permission hint when there is one', () => {
