@@ -78,10 +78,11 @@ describe('MenuBar', () => {
         expect(wrapper.text()).toContain('Catalog updated 2026-10-07');
     });
 
-    it('says the catalog is the bundled one when it was never synced', () => {
+    it('says the playlists are the built-in ones when the catalog was never synced', () => {
         const wrapper = mount(MenuBar, { props: { state: state({ catalogDate: null }), api: fakeApi() } });
 
-        expect(wrapper.text()).toContain('Bundled catalog');
+        expect(wrapper.get('footer').text()).toContain('Built-in playlists');
+        expect(wrapper.text()).not.toContain('Bundled catalog');
     });
 
     it('selects a genre with the current mood, and draws the answer', async () => {
@@ -372,6 +373,37 @@ describe('MenuBar', () => {
         await flushPromises();
 
         expect(wrapper.get('[role="status"]').text()).toBe('Could not open the settings. Please try again.');
+    });
+
+    // The footer links are buttons, not captions: a hit target of at least
+    // 24px, an underline on hover and on focus, and Quit set apart from
+    // Settings so a slip does not close the app.
+    describe('footer links', () => {
+        const links = ['Add a playlist', 'Settings', 'Quit'];
+
+        it.each(links)('gives "%s" a target of at least 24px', (label) => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+
+            expect(button(wrapper, label).classes()).toEqual(expect.arrayContaining(['min-h-6', 'px-1.5']));
+        });
+
+        it.each(links)('underlines "%s" on hover and on focus', (label) => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+
+            expect(button(wrapper, label).classes()).toEqual(
+                expect.arrayContaining(['hover:underline', 'focus-visible:underline']),
+            );
+        });
+
+        it('puts a divider between Settings and Quit', () => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+            const quit = button(wrapper, 'Quit').element;
+            const divider = quit.previousElementSibling;
+
+            expect(divider?.getAttribute('aria-hidden')).toBe('true');
+            expect(divider?.classList.contains('bg-divider')).toBe(true);
+            expect(divider?.previousElementSibling?.textContent?.trim()).toBe('Settings');
+        });
     });
 
     it('quits from the footer', async () => {
