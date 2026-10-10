@@ -6,6 +6,7 @@ import PickCard from '../components/PickCard.vue';
 import { createMenuBarApi } from '../api';
 import type { MenuBarApi } from '../api';
 import type { MenuBarState } from '../types/menuBar';
+import type { PlayerMode } from '../types/settings';
 
 const props = withDefaults(
     defineProps<{
@@ -22,12 +23,15 @@ const message = ref<string | null>(null);
 const busy = ref(false);
 
 // The title that Play just started, shown for a moment as proof the press
-// worked. Each Play starts the three seconds again.
+// worked. Each Play starts the three seconds again. In Open only mode Spotify
+// waits for its own Play press, so the line says the playlist opened instead.
 const played = ref<string | null>(null);
+const openedOnly = ref(false);
 let playedTimer: ReturnType<typeof setTimeout> | undefined;
 
-function confirm(title: string): void {
+function confirm(title: string, mode: PlayerMode): void {
     played.value = title;
+    openedOnly.value = mode === 'open-app';
     clearTimeout(playedTimer);
     playedTimer = setTimeout(() => (played.value = null), 3000);
 }
@@ -126,7 +130,7 @@ async function play(): Promise<void> {
         const result = await props.api.play(pick.id);
 
         if (result.outcome === 'played') {
-            confirm(pick.title);
+            confirm(pick.title, result.mode);
         } else {
             message.value = result.message;
         }
@@ -320,7 +324,9 @@ const footerLink = 'min-h-6 rounded px-1.5 hover:text-ink hover:underline focus-
             <p role="status" :class="status">
                 <template v-if="message !== null">{{ message }}</template>
                 <template v-else-if="played !== null">
-                    <span aria-hidden="true">▶</span> playing "{{ played }}"
+                    <span aria-hidden="true">▶</span>
+                    <template v-if="openedOnly"> opened "{{ played }}" in Spotify</template>
+                    <template v-else> playing "{{ played }}"</template>
                 </template>
                 <template v-else-if="announced !== null">{{ announced }}</template>
             </p>
