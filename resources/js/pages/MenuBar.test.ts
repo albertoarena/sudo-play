@@ -40,7 +40,7 @@ function fakeApi(next: MenuBarState = state()): MenuBarApi {
         select: vi.fn(async () => next),
         next: vi.fn(async () => next),
         surprise: vi.fn(async () => next),
-        play: vi.fn(async () => ({ outcome: 'played' as const, message: null })),
+        play: vi.fn(async () => ({ outcome: 'played' as const, message: null, mode: 'autoplay' as const })),
         addPlaylist: vi.fn(async () => undefined),
         openSettings: vi.fn(async () => undefined),
         quit: vi.fn(async () => undefined),
@@ -128,6 +128,7 @@ describe('MenuBar', () => {
         api.play = vi.fn(async () => ({
             outcome: 'fell-back' as const,
             message: 'Could not start Spotify. Opened the playlist in your browser instead.',
+            mode: 'autoplay' as const,
         }));
         const wrapper = mount(MenuBar, { props: { state: state(), api } });
 
@@ -167,6 +168,26 @@ describe('MenuBar', () => {
             expect(wrapper.text()).not.toContain('playing "Riffs for risky releases"');
         });
 
+        // In Open only mode Spotify opens the playlist and waits for its own
+        // Play press, so "playing" would not be true.
+        it('says the playlist opened in Spotify in Open only mode', async () => {
+            const api = fakeApi();
+            api.play = vi.fn(async () => ({ outcome: 'played' as const, message: null, mode: 'open-app' as const }));
+            const wrapper = mount(MenuBar, { props: { state: state(), api } });
+
+            await button(wrapper, 'Play').trigger('click');
+            await flushPromises();
+
+            const line = wrapper.get('[role="status"]');
+            expect(line.text()).toBe('▶ opened "Riffs for risky releases" in Spotify');
+            expect(line.classes()).toEqual(expect.arrayContaining(['font-mono', 'text-muted']));
+            expect(wrapper.text()).not.toContain('playing');
+
+            vi.advanceTimersByTime(3000);
+            await flushPromises();
+            expect(wrapper.text()).not.toContain('opened "Riffs for risky releases"');
+        });
+
         it('keeps the line for three seconds from the last Play', async () => {
             const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
 
@@ -186,7 +207,7 @@ describe('MenuBar', () => {
             ['failed', 'Could not open Spotify.'],
         ] as const)('shows what the player said instead when it %s', async (outcome, said) => {
             const api = fakeApi();
-            api.play = vi.fn(async () => ({ outcome, message: said }));
+            api.play = vi.fn(async () => ({ outcome, message: said, mode: 'autoplay' as const }));
             const wrapper = mount(MenuBar, { props: { state: state(), api } });
 
             await button(wrapper, 'Play').trigger('click');
