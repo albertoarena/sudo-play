@@ -52,6 +52,23 @@ that count for the release.
 - [ ] With the Mac asleep at the reminder time, the reminder arrives once on wake, if that is no more than 4 hours later. It does not arrive a second time that day
 - [ ] With the Mac asleep at the reminder time and woken more than 4 hours later, no reminder arrives that day
 
+## Colours and focus
+
+Run these in light mode and again in dark mode, switching with System
+Settings, Appearance. The contrast numbers are already checked by
+`resources/js/theme.test.ts`, so what is left is what only a screen shows.
+
+- [ ] The command line header reads as a terminal in light mode: a dark panel on the white page, with its own edge visible
+- [ ] Play, Save and the selected chip are legible, and the green is the app's green and not the macOS accent colour
+- [ ] Next, Surprise me and the unselected chips show a clear edge, and the edge darkens on hover
+- [ ] Tab through the menu bar window: every button and chip takes a green focus ring, 2px with a gap, and no ring is clipped by the window edge
+- [ ] Tab through the settings window: the same ring on every field, checkbox, radio and button
+- [ ] The focus ring stays green after changing the macOS accent colour to orange in System Settings, Appearance
+- [ ] With the macOS accent colour set to orange, a ticked checkbox and a chosen radio in the settings window stay green
+- [ ] With Play disabled, it is dimmed and the pointer stays an arrow
+- [ ] A warning line, for example after denying the Automation permission, reads as a warning and not as body text
+- [ ] The window uses the system font, with no flash of a fallback on open
+
 ## Settings window
 
 - [ ] Settings in the menu bar footer opens the settings window, with a title bar and no Dock icon

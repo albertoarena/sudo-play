@@ -465,3 +465,13 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Choice:** the first pull request has what a Linux container can do: the About panel, `CONTRIBUTING.md`, the `PRIVACY.md` review, the README, `catalog.yml`, `catalog-publish.yml` and envaudit. The second, after the signed build is done by hand, has `docs/RELEASE.md` with the real commands, `release.yml` and the `docs/QA.md` run. The Status box is ticked in the second.
 
 **Why:** the build plan says to write `release.yml` only after a signed DMG was built by hand. That needs the maintainer's Mac and an Apple Developer account, and it should not hold back work that is ready for review.
+
+## 2026-10-10: Colours are semantic tokens, checked by a test
+
+**Choice:** `resources/css/app.css` defines the scheme as tokens named by job (`--color-accent`, `--color-muted`, `--color-edge`, `--color-term-bg` and the rest), with the dark values in a `prefers-color-scheme` media query. Components use those names and no palette class, which `resources/js/theme.test.ts` enforces while it measures every pair against WCAG AA. One `:focus-visible` rule in `app.css` draws the focus ring for the whole app.
+
+**Why:** a palette class cannot be measured and has to be repeated for dark mode, which is how half the pairs ended up failing. A token is measured once and follows the scheme everywhere. The focus ring is one rule because a component that forgets it falls back to the macOS accent colour, which can put orange on a green chip.
+
+**Note:** the dividers and the border of the terminal panel are decorative, so they are exempt from the 3 to 1 rule, as WCAG 1.4.11 allows. They separate blocks that carry their own meaning. The hover state of an outline control darkens its edge to `--color-ink`, which the critique left open.
+
+**Would change if:** the app ever needs a theme the user picks rather than the system one. The tokens stay, the media query becomes a class on the root element.

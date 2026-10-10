@@ -90,6 +90,21 @@ describe('Settings', () => {
         );
     });
 
+    // A checkbox and a radio are drawn by the system, and the system paints
+    // them in the macOS accent colour. Left alone, a ticked box goes orange on
+    // a Mac set to orange, next to the app's green everywhere else.
+    it('tints every checkbox and radio with the accent colour', () => {
+        const wrapper = mountSettings();
+
+        const controls = wrapper.findAll('input[type="checkbox"], input[type="radio"]');
+
+        expect(controls.length).toBeGreaterThan(0);
+
+        for (const control of controls) {
+            expect(control.classes()).toContain('accent-accent');
+        }
+    });
+
     it('offers the moods with their emoji, and a choice for not chosen', () => {
         const wrapper = mountSettings(props({ settings: values({ defaultGenre: null }) }));
 

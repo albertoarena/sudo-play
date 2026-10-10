@@ -33,6 +33,16 @@ describe('ChipGroup', () => {
         expect(pressed).toEqual(['false', 'true']);
     });
 
+    it('fills the selected chip and shows only an edge on the rest', () => {
+        const wrapper = mount(ChipGroup, { props: { label: 'Mood', options: moods, selected: 'debugging' } });
+
+        const chips = wrapper.findAll('button');
+
+        expect(chips[1]?.classes()).toEqual(expect.arrayContaining(['bg-accent', 'text-on-accent']));
+        expect(chips[0]?.classes()).toContain('border-edge');
+        expect(chips[0]?.classes()).not.toContain('bg-accent');
+    });
+
     it('does not emit again for the chip already selected', async () => {
         const wrapper = mount(ChipGroup, { props: { label: 'Mood', options: moods, selected: 'debugging' } });
 
