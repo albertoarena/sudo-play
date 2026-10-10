@@ -43,6 +43,7 @@ function fakeApi(next: MenuBarState = state()): MenuBarApi {
         addPlaylist: vi.fn(async () => undefined),
         openSettings: vi.fn(async () => undefined),
         quit: vi.fn(async () => undefined),
+        hide: vi.fn(async () => undefined),
     };
 }
 
@@ -371,6 +372,58 @@ describe('MenuBar', () => {
             await flushPromises();
 
             expect(api.next).not.toHaveBeenCalled();
+        });
+
+        it('hides the window with Esc, wherever the focus is', async () => {
+            const api = fakeApi();
+            const wrapper = attached(state(), api);
+
+            press('Escape');
+            press('Escape', button(wrapper, 'Next').element);
+            await flushPromises();
+
+            expect(api.hide).toHaveBeenCalledTimes(2);
+            wrapper.unmount();
+        });
+
+        it('hides the window with Esc even in the empty state', async () => {
+            const api = fakeApi();
+            const wrapper = attached(state({ pick: null, actions: { play: false, next: false, surprise: false } }), api);
+
+            press('Escape');
+            await flushPromises();
+
+            expect(api.hide).toHaveBeenCalledOnce();
+            wrapper.unmount();
+        });
+
+        it('leaves Esc to a control that takes text', async () => {
+            const api = fakeApi();
+            const wrapper = attached(state(), api);
+            const field = document.createElement('input');
+            document.body.appendChild(field);
+
+            press('Escape', field);
+            press('Escape', document.body, { metaKey: true });
+            await flushPromises();
+
+            expect(api.hide).not.toHaveBeenCalled();
+            field.remove();
+            wrapper.unmount();
+        });
+
+        it('says so when the window cannot be hidden', async () => {
+            const api = fakeApi();
+            api.hide = vi.fn(async () => {
+                throw new Error('The app answered 500');
+            });
+            const wrapper = attached(state(), api);
+
+            press('Escape');
+            await flushPromises();
+
+            expect(wrapper.get('[role="status"]').text()).toBe('Could not hide the window. Please try again.');
+            wrapper.unmount();
         });
 
         it('names the shortcut on each button, quietly', () => {

@@ -72,6 +72,16 @@ describe('menu bar api', () => {
         expect(sent(fetcher).init.method).toBe('POST');
     });
 
+    it('asks the server to hide the window', async () => {
+        const fetcher = fakeFetch(null, 204);
+        const api = createMenuBarApi(fetcher, () => '');
+
+        await api.hide();
+
+        expect(sent(fetcher).url).toBe('/menu-bar/hide');
+        expect(sent(fetcher).init.method).toBe('POST');
+    });
+
     it('accepts an empty answer', async () => {
         const api = createMenuBarApi(fakeFetch(null, 204), () => '');
 
