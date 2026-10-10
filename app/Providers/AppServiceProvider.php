@@ -11,12 +11,14 @@ use App\Catalog\CatalogStore;
 use App\Catalog\DatabaseCatalogStore;
 use App\Catalog\HttpCatalogDownloader;
 use App\Catalog\SyncLauncher;
+use App\MenuBar\MenuBarWindow;
 use App\MenuBar\Quitter;
 use App\MenuBar\SettingsWindow;
 use App\MenuBar\Today;
 use App\Native\ChildProcessSyncLauncher;
 use App\Native\LocalToday;
 use App\Native\NativeLoginItem;
+use App\Native\NativeMenuBarWindow;
 use App\Native\NativeNotifier;
 use App\Native\NativeQuitter;
 use App\Native\NativeSettingsWindow;
@@ -55,6 +57,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(Notifier::class, NativeNotifier::class);
         $this->app->singleton(LoginItem::class, NativeLoginItem::class);
         $this->app->singleton(SettingsWindow::class, NativeSettingsWindow::class);
+        $this->app->singleton(MenuBarWindow::class, NativeMenuBarWindow::class);
     }
 
     /**

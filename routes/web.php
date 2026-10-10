@@ -17,6 +17,7 @@ Route::prefix('menu-bar')->name('menubar.')->controller(MenuBarController::class
     Route::post('add-playlist', 'addPlaylist')->name('add-playlist');
     Route::post('settings', 'settings')->name('settings');
     Route::post('quit', 'quit')->name('quit');
+    Route::post('hide', 'hide')->name('hide');
 });
 
 Route::get('settings', [SettingsController::class, 'show'])->name('settings');

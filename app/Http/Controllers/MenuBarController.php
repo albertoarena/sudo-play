@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\MenuBar\MenuBarService;
+use App\MenuBar\MenuBarWindow;
 use App\MenuBar\Quitter;
 use App\MenuBar\SettingsWindow;
 use App\Player\PlayerInterface;
@@ -110,6 +111,14 @@ final class MenuBarController extends Controller
     public function quit(Quitter $quitter): HttpResponse
     {
         $quitter->quit();
+
+        return response()->noContent();
+    }
+
+    /** Hides the window, for Esc. A click on the menu bar icon shows it again. */
+    public function hide(MenuBarWindow $window): HttpResponse
+    {
+        $window->hide();
 
         return response()->noContent();
     }
