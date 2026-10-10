@@ -22,7 +22,7 @@ You choose a genre, like `rock` or `lofi`, and a mood, like Friday Deploy or Deb
 
 The pick is the same all day, and the same for everyone who chooses the same genre and mood. So if a playlist fits your afternoon, you can tell someone else how to find it. Tomorrow it changes.
 
-Press Play and it opens in Spotify. A short line under the buttons says what is playing. You can cycle to another playlist with Next, or hit Surprise me and let it choose both for you.
+Press Play and it opens in Spotify. A short line under the buttons says what is playing. If you chose "open only" in Settings, Spotify opens the playlist and you press play there, so the line says it opened. You can cycle to another playlist with Next, or hit Surprise me and let it choose both for you.
 
 It works from the keyboard too. Press Enter to play, `N` for Next, `S` for Surprise me and Esc to close the window. Tab moves between the genre chips, the mood chips and the buttons, and the arrow keys pick a chip.
 

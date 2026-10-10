@@ -40,6 +40,9 @@ that count for the release.
 - [x] No unthemed band appears below the content in dark mode, at any scroll position _(dev, 2026-10-08)_
 - [x] The buttons and the footer stay put while the chips and the pick card scroll _(dev, 2026-10-08)_
 - [ ] "Add a playlist" opens the contributing page in the default browser, not inside the window
+- [ ] Before the first sync the footer says "Built-in playlists"
+- [ ] The footer links underline on hover and on focus, are easy to hit, and a short line sets Quit apart from Settings
+- [ ] Buttons, chips and footer links show the pointer cursor. Play while it runs shows the plain one
 - [ ] The pick follows the local date: just after local midnight it changes, even when UTC is still on the previous day
 - [ ] Next, then quit and start again: the window is back on today's pick
 - [ ] With the window open across midnight, the next time it gets focus it shows the new day's pick
@@ -94,6 +97,8 @@ on for the last two checks.
 - [ ] Opening the window does not dim Play, Next and Surprise me, not even for a moment
 - [ ] After a played Play, `▶ playing "<title>"` shows under the buttons in grey, not amber, and goes after about three seconds
 - [ ] The line does not make the window jump: the footer stays where it was when the line comes and goes
+- [ ] In Open only mode, a Play shows `▶ opened "<title>" in Spotify`, and Spotify opens the playlist without playing it
+- [ ] The permission hint shows in autoplay mode until the first Play that starts music, then never again, also after a restart
 - [ ] With VoiceOver on, Next reads "Today's pick:" and the new title
 - [ ] With VoiceOver on, a message such as a failed Settings click is read out when it appears
 
@@ -101,6 +106,8 @@ on for the last two checks.
 
 - [ ] Settings in the menu bar footer opens the settings window, with a title bar and no Dock icon
 - [ ] A second click on Settings brings the open window to the front, it does not open a second one
+- [ ] In `native:serve` with `APP_DEBUG=true`, the window opens without the Chrome inspector
+- [ ] Buttons, links, the player mode radios and the checkboxes with their labels show the pointer cursor. The weekdays box, while the reminder is off, shows the plain one
 - [ ] The window shows every section without the Save button going below the window edge
 - [ ] A saved player mode is used by the next Play, without a restart
 - [ ] Turning on launch at login adds Sudo Play to System Settings, General, Login Items, and turning it off removes it

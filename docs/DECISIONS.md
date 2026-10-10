@@ -528,10 +528,27 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 - "Differs" means the JSON of the two states differs. It is a small object, so this is cheap
 - A focus answer that arrives after a click is dropped, because it is older than that click
 - The line shows only for the `played` outcome. A fallback or a failure keeps its own message
-- The line says "playing" in every player mode. In "open only" mode Spotify waits for its own Play press, but the window does not know the mode, and the line is gone in three seconds
+- The line said "playing" in every player mode, because the window did not know the mode. In "open only" mode that was not true: Spotify waits for its own Play press. Design fix D5 closed the gap: the Play answer now names the mode, and that mode says `▶ opened "<title>" in Spotify`
 - The play sign is hidden from screen readers, so they read "playing" and the title
 - The line goes when another action starts. Another Play starts the three seconds again
 - The new pick is said to screen readers only, because the card already shows it. It is not said on the first draw, and it does not replace a line on screen
 - With nothing to show, the region is `sr-only`: out of the layout, still in the page
 - A new action clears the announcement too, so an old pick is not read again when a message goes away
 
+## 2026-10-10: The popover hint, footer and cursor
+
+**Choice:** the permission hint goes after the first autoplay Play that works. The footer links look and act like buttons, "Bundled catalog" reads "Built-in playlists", the Play answer names the player mode, and Open only mode says `▶ opened "<title>" in Spotify`. The Settings window opens without the inspector, and every enabled control shows the pointer cursor. Alberto decided this on 2026-10-10 as design fix D5. Requirements 7.1 now says so.
+
+**Why:** the hint stayed on every open, long after macOS had asked. The footer links read as captions with a 16px target. "Bundled" is a word for developers. "playing" was not true in Open only mode. In development the inspector took half of the Settings window, and nothing clickable showed the pointer.
+
+**Note:** the choices the fix left open:
+
+- The setting is `autoplay_worked`, false until a Play in autoplay mode comes back `played`. A fallback or a failure does not set it, and a Play in another mode does not either. Nothing clears it, and the Settings window does not show it
+- If the permission is taken away later, the hint does not come back. The failed Play already says where to allow it
+- `mode` in the Play answer is the mode the setting chose, with the same reading as the player resolver. A fallback still names that mode, not the browser, so the meaning of each outcome stays as it was
+- The Web player mode keeps the "playing" line. Whether the web player starts on its own depends on the browser. D5 fixes Open only mode, where the line was known to be wrong
+- A footer link is 24px tall through `min-h-6` and `px-1.5`. The gap between links went from 12px to 4px, because the padding now gives the space
+- Quit is set apart by a 1px line in the divider colour. It is decorative, so like the other dividers it is exempt from the 3 to 1 rule
+- The pointer rule covers enabled buttons, links with an `href`, enabled chips, enabled checkboxes and radios, and the label around one. The `disabled:cursor-default` classes stay as they were
+
+**Would change if:** NativePHP stops turning the inspector on with `app.debug`. Then `->showDevTools(false)` can go, but it does no harm.
