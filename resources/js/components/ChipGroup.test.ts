@@ -7,6 +7,12 @@ const moods = [
     { id: 'debugging', label: 'Debugging', emoji: '🐛' },
 ];
 
+const genres = [
+    { id: 'rock', label: 'Rock' },
+    { id: 'jazz', label: 'Jazz' },
+    { id: 'lofi', label: 'Lo-fi' },
+];
+
 describe('ChipGroup', () => {
     it('renders one chip per option, with its emoji', () => {
         const wrapper = mount(ChipGroup, { props: { label: 'Mood', options: moods, selected: null } });
@@ -28,9 +34,81 @@ describe('ChipGroup', () => {
     it('marks the selected chip, and only that one', () => {
         const wrapper = mount(ChipGroup, { props: { label: 'Mood', options: moods, selected: 'debugging' } });
 
-        const pressed = wrapper.findAll('button').map((chip) => chip.attributes('aria-pressed'));
+        const checked = wrapper.findAll('button').map((chip) => chip.attributes('aria-checked'));
 
-        expect(pressed).toEqual(['false', 'true']);
+        expect(checked).toEqual(['false', 'true']);
+    });
+
+    // A screen reader then says "Debugging, radio button, 2 of 2" rather than
+    // "toggle button", and knows only one chip in the group can be on.
+    it('is a radio group of radios', () => {
+        const wrapper = mount(ChipGroup, { props: { label: 'Mood', options: moods, selected: 'debugging' } });
+
+        expect(wrapper.attributes('role')).toBe('radiogroup');
+        expect(wrapper.findAll('button').map((chip) => chip.attributes('role'))).toEqual(['radio', 'radio']);
+        expect(wrapper.find('[aria-pressed]').exists()).toBe(false);
+    });
+
+    it('is one Tab stop, on the selected chip', () => {
+        const wrapper = mount(ChipGroup, { props: { label: 'Genre', options: genres, selected: 'jazz' } });
+
+        expect(wrapper.findAll('button').map((chip) => chip.attributes('tabindex'))).toEqual(['-1', '0', '-1']);
+    });
+
+    it('puts the Tab stop on the first chip when none is selected', () => {
+        const wrapper = mount(ChipGroup, { props: { label: 'Genre', options: genres, selected: null } });
+
+        expect(wrapper.findAll('button').map((chip) => chip.attributes('tabindex'))).toEqual(['0', '-1', '-1']);
+    });
+
+    describe('arrow keys', () => {
+        it.each([
+            ['ArrowRight', 'lofi'],
+            ['ArrowDown', 'lofi'],
+            ['ArrowLeft', 'rock'],
+            ['ArrowUp', 'rock'],
+            ['Home', 'rock'],
+            ['End', 'lofi'],
+        ])('%s selects %s and moves the focus there', async (key, expected) => {
+            const wrapper = mount(ChipGroup, {
+                props: { label: 'Genre', options: genres, selected: 'jazz' },
+                attachTo: document.body,
+            });
+
+            await wrapper.findAll('button')[1]?.trigger('keydown', { key });
+
+            expect(wrapper.emitted('select')).toEqual([[expected]]);
+            expect(document.activeElement?.textContent?.trim()).toBe(genres.find((g) => g.id === expected)?.label);
+            wrapper.unmount();
+        });
+
+        it('wraps round from the last chip to the first, and back', async () => {
+            const wrapper = mount(ChipGroup, { props: { label: 'Genre', options: genres, selected: 'lofi' } });
+
+            await wrapper.findAll('button')[2]?.trigger('keydown', { key: 'ArrowRight' });
+            await wrapper.findAll('button')[0]?.trigger('keydown', { key: 'ArrowLeft' });
+
+            expect(wrapper.emitted('select')).toEqual([['rock'], ['lofi']]);
+        });
+
+        it('stops the arrow key scrolling the window', async () => {
+            const wrapper = mount(ChipGroup, { props: { label: 'Genre', options: genres, selected: 'jazz' } });
+            const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true });
+
+            wrapper.findAll('button')[1]?.element.dispatchEvent(event);
+
+            expect(event.defaultPrevented).toBe(true);
+        });
+
+        it('leaves other keys alone', async () => {
+            const wrapper = mount(ChipGroup, { props: { label: 'Genre', options: genres, selected: 'jazz' } });
+            const event = new KeyboardEvent('keydown', { key: 'n', bubbles: true, cancelable: true });
+
+            wrapper.findAll('button')[1]?.element.dispatchEvent(event);
+
+            expect(event.defaultPrevented).toBe(false);
+            expect(wrapper.emitted('select')).toBeUndefined();
+        });
     });
 
     it('fills the selected chip and shows only an edge on the rest', () => {
