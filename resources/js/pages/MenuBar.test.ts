@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
+import { defineComponent, h } from 'vue';
 import MenuBar from './MenuBar.vue';
 import type { MenuBarApi } from '../api';
 import type { MenuBarState } from '../types/menuBar';
@@ -241,6 +242,98 @@ describe('MenuBar', () => {
         expect(api.state).toHaveBeenCalledWith(1, '2026-10-08');
         expect(wrapper.text()).toContain('Catalog updated 2026-10-08');
         wrapper.unmount();
+    });
+
+    // The window asks for the state each time it gets focus, which is each time
+    // the icon is clicked. That must not show: no dimmed buttons, no message.
+    describe('focus refresh', () => {
+        function attached(menuState: MenuBarState, api: MenuBarApi, options: object = {}) {
+            return mount(MenuBar, { props: { state: menuState, api }, attachTo: document.body, ...options });
+        }
+
+        it('keeps Play, Next and Surprise me enabled while it waits', async () => {
+            const api = fakeApi();
+            api.state = vi.fn(() => new Promise<MenuBarState>(() => undefined));
+            const wrapper = attached(state(), api);
+
+            window.dispatchEvent(new Event('focus'));
+            await flushPromises();
+
+            for (const label of ['Play', 'Next', 'Surprise me']) {
+                expect(button(wrapper, label).attributes('disabled')).toBeUndefined();
+            }
+            wrapper.unmount();
+        });
+
+        it('does not redraw the card when the answer is the same', async () => {
+            let renders = 0;
+            const CountingCard = defineComponent({
+                props: ['pick', 'fallback', 'empty'],
+                setup() {
+                    return () => {
+                        renders++;
+
+                        return h('section');
+                    };
+                },
+            });
+            const wrapper = attached(state(), fakeApi(state()), { global: { stubs: { PickCard: CountingCard } } });
+            const before = renders;
+
+            window.dispatchEvent(new Event('focus'));
+            await flushPromises();
+
+            expect(renders).toBe(before);
+            wrapper.unmount();
+        });
+
+        it('says nothing and keeps the state when it fails', async () => {
+            const api = fakeApi();
+            api.state = vi.fn(async () => {
+                throw new Error('The app answered 500');
+            });
+            const wrapper = attached(state(), api);
+
+            window.dispatchEvent(new Event('focus'));
+            await flushPromises();
+
+            expect(wrapper.text()).not.toContain('Something went wrong');
+            expect(wrapper.text()).toContain('Riffs for risky releases');
+            wrapper.unmount();
+        });
+
+        it('keeps a message that is on screen', async () => {
+            const api = fakeApi();
+            api.openSettings = vi.fn(async () => {
+                throw new Error('The app answered 500');
+            });
+            const wrapper = attached(state(), api);
+
+            await button(wrapper, 'Settings').trigger('click');
+            await flushPromises();
+            window.dispatchEvent(new Event('focus'));
+            await flushPromises();
+
+            expect(wrapper.get('[role="status"]').text()).toBe('Could not open the settings. Please try again.');
+            wrapper.unmount();
+        });
+
+        // A slow answer to the focus refresh must not undo a click made after it.
+        it('drops an answer that arrives after an action started', async () => {
+            let answer: (value: MenuBarState) => void = () => undefined;
+            const api = fakeApi(state({ selection: { genre: 'jazz', mood: 'friday-deploy' } }));
+            api.state = vi.fn(() => new Promise<MenuBarState>((resolve) => (answer = resolve)));
+            const wrapper = attached(state(), api);
+
+            window.dispatchEvent(new Event('focus'));
+            await button(wrapper, 'Jazz').trigger('click');
+            await flushPromises();
+            answer(state());
+            await flushPromises();
+
+            expect(wrapper.text()).toContain('--genre jazz');
+            wrapper.unmount();
+        });
     });
 
     describe('keyboard', () => {
