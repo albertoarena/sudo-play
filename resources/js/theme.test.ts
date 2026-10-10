@@ -149,6 +149,35 @@ describe('the colour scheme in app.css', () => {
 
         expect(appCss).toMatch(rule);
     });
+
+    // Tailwind 4 gives a button the plain cursor. One base rule gives every
+    // enabled control the pointer, so no component has to remember it. It
+    // sits in the base layer with zero specificity, so `disabled:cursor-default`
+    // on a control still wins.
+    describe('the pointer cursor', () => {
+        function selector(): string | null {
+            const base = appCss.includes('@layer base') ? body(appCss, '@layer base') : '';
+
+            return /:where\(([^{]*)\)\s*\{\s*cursor:\s*pointer;\s*\}/.exec(base)?.[1] ?? null;
+        }
+
+        it('is one rule in the base layer', () => {
+            expect(selector()).not.toBeNull();
+            expect(appCss.match(/cursor:\s*pointer/g)).toHaveLength(1);
+        });
+
+        // Only enabled controls, so Play while it runs and the weekdays box
+        // keep the plain cursor even without `disabled:cursor-default`.
+        it.each([
+            ['an enabled button', 'button:enabled'],
+            ['a link', 'a[href]'],
+            ['an enabled chip', '[role="radio"]:not(:disabled)'],
+            ['an enabled checkbox or radio', 'input:is([type="checkbox"], [type="radio"]):enabled'],
+            ['the label of an enabled checkbox or radio', 'label:has(input:is([type="checkbox"], [type="radio"]):enabled)'],
+        ])('covers %s', (_, part) => {
+            expect(selector() ?? '').toContain(part);
+        });
+    });
 });
 
 describe('the components', () => {
