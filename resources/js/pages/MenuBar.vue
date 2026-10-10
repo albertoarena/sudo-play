@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import ChipGroup from '../components/ChipGroup.vue';
 import CommandLine from '../components/CommandLine.vue';
 import PickCard from '../components/PickCard.vue';
@@ -32,6 +32,40 @@ function confirm(title: string): void {
     playedTimer = setTimeout(() => (played.value = null), 3000);
 }
 
+// A new pick, said to screen readers only, because the card already shows it.
+// A line on screen wins, so the announcement waits its turn behind it.
+const announced = ref<string | null>(null);
+
+watch(
+    () => current.value.pick?.id,
+    () => {
+        const pick = current.value.pick;
+
+        if (pick !== null && message.value === null && played.value === null) {
+            announced.value = `Today's pick: ${pick.title}`;
+        }
+    },
+);
+
+// Every line goes through the one live region, which stays in the page so
+// screen readers notice when its text changes. With nothing to show, it is
+// taken out of the layout but not out of the page.
+const status = computed((): string => {
+    if (message.value !== null) {
+        return 'text-xs text-warning';
+    }
+
+    return played.value !== null ? 'font-mono text-xs text-muted' : 'sr-only';
+});
+
+// What a new action replaces. Clearing the announcement too means an old pick
+// is not read out again when a message goes away.
+function clearStatus(): void {
+    message.value = null;
+    played.value = null;
+    announced.value = null;
+}
+
 const footerDate = computed((): string =>
     current.value.catalogDate === null ? 'Bundled catalog' : `Catalog updated ${current.value.catalogDate}`,
 );
@@ -43,8 +77,7 @@ let actions = 0;
 async function run(action: () => Promise<MenuBarState>): Promise<void> {
     actions++;
     busy.value = true;
-    message.value = null;
-    played.value = null;
+    clearStatus();
 
     try {
         current.value = await action();
@@ -87,8 +120,7 @@ async function play(): Promise<void> {
     }
 
     busy.value = true;
-    message.value = null;
-    played.value = null;
+    clearStatus();
 
     try {
         const result = await props.api.play(pick.id);
@@ -281,11 +313,16 @@ const disabled = 'disabled:cursor-default disabled:opacity-40';
                 </button>
             </div>
 
-            <p v-if="message !== null" role="status" class="text-xs text-warning">{{ message }}</p>
-            <p v-else-if="played !== null" role="status" class="font-mono text-xs text-muted">
-                <span aria-hidden="true">▶</span> playing "{{ played }}"
+            <p role="status" :class="status">
+                <template v-if="message !== null">{{ message }}</template>
+                <template v-else-if="played !== null">
+                    <span aria-hidden="true">▶</span> playing "{{ played }}"
+                </template>
+                <template v-else-if="announced !== null">{{ announced }}</template>
             </p>
-            <p v-else-if="current.hint !== null" class="text-xs text-muted">{{ current.hint }}</p>
+            <p v-if="message === null && played === null && current.hint !== null" class="text-xs text-muted">
+                {{ current.hint }}
+            </p>
 
             <footer class="flex items-center gap-3 text-xs text-muted">
                 <span class="mr-auto">{{ footerDate }}</span>
