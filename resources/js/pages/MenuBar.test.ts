@@ -56,6 +56,16 @@ function button(wrapper: ReturnType<typeof mount>, text: string) {
     return found;
 }
 
+// A key pressed on the window itself, as when nothing has focus. A test that
+// passes a target sends it there instead, and it bubbles up to the window.
+function press(key: string, target: EventTarget = document.body, init: KeyboardEventInit = {}): KeyboardEvent {
+    const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init });
+
+    target.dispatchEvent(event);
+
+    return event;
+}
+
 describe('MenuBar', () => {
     it('shows the command line, the chips, the pick and the catalog date', () => {
         const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
@@ -230,5 +240,148 @@ describe('MenuBar', () => {
         expect(api.state).toHaveBeenCalledWith(1, '2026-10-08');
         expect(wrapper.text()).toContain('Catalog updated 2026-10-08');
         wrapper.unmount();
+    });
+
+    describe('keyboard', () => {
+        function attached(menuState: MenuBarState = state(), api: MenuBarApi = fakeApi()) {
+            return mount(MenuBar, { props: { state: menuState, api }, attachTo: document.body });
+        }
+
+        it.each(['Enter', ' '])('plays with %j on the window', async (key) => {
+            const api = fakeApi();
+            const wrapper = attached(state(), api);
+
+            const event = press(key);
+            await flushPromises();
+
+            expect(api.play).toHaveBeenCalledWith('rock-friday-deploy-01');
+            expect(event.defaultPrevented).toBe(true);
+            wrapper.unmount();
+        });
+
+        it('leaves Enter to the control that has focus', async () => {
+            const api = fakeApi();
+            const wrapper = attached(state(), api);
+
+            press('Enter', button(wrapper, 'Next').element);
+            press(' ', button(wrapper, '🐛 Debugging').element);
+            await flushPromises();
+
+            expect(api.play).not.toHaveBeenCalled();
+            wrapper.unmount();
+        });
+
+        it.each([
+            ['n', 'next'],
+            ['N', 'next'],
+            ['s', 'surprise'],
+            ['S', 'surprise'],
+        ] as const)('%s asks for %s', async (key, action) => {
+            const api = fakeApi();
+            const wrapper = attached(state(), api);
+
+            press(key);
+            await flushPromises();
+
+            expect(api[action]).toHaveBeenCalledOnce();
+            wrapper.unmount();
+        });
+
+        it('works while a chip has focus', async () => {
+            const api = fakeApi();
+            const wrapper = attached(state(), api);
+
+            press('n', button(wrapper, 'Jazz').element);
+            await flushPromises();
+
+            expect(api.next).toHaveBeenCalledOnce();
+            wrapper.unmount();
+        });
+
+        it('does nothing while a control that takes text has focus', async () => {
+            const api = fakeApi();
+            const wrapper = attached(state(), api);
+            const field = document.createElement('input');
+            document.body.appendChild(field);
+
+            for (const key of ['n', 's', 'Enter', ' ']) {
+                press(key, field);
+            }
+            await flushPromises();
+
+            expect(api.next).not.toHaveBeenCalled();
+            expect(api.surprise).not.toHaveBeenCalled();
+            expect(api.play).not.toHaveBeenCalled();
+            field.remove();
+            wrapper.unmount();
+        });
+
+        it('does nothing when the action is disabled', async () => {
+            const api = fakeApi();
+            const wrapper = attached(state({ pick: null, actions: { play: false, next: false, surprise: false } }), api);
+
+            for (const key of ['n', 's', 'Enter', ' ']) {
+                press(key);
+            }
+            await flushPromises();
+
+            expect(api.next).not.toHaveBeenCalled();
+            expect(api.surprise).not.toHaveBeenCalled();
+            expect(api.play).not.toHaveBeenCalled();
+            wrapper.unmount();
+        });
+
+        it('does nothing while an answer is on its way', async () => {
+            const api = fakeApi();
+            api.next = vi.fn(() => new Promise<MenuBarState>(() => undefined));
+            const wrapper = attached(state(), api);
+
+            press('n');
+            press('n');
+            press('Enter');
+            await flushPromises();
+
+            expect(api.next).toHaveBeenCalledOnce();
+            expect(api.play).not.toHaveBeenCalled();
+            wrapper.unmount();
+        });
+
+        // Command N and the like belong to the system and Electron, not to us.
+        it('leaves a key with Command, Control or Option alone', async () => {
+            const api = fakeApi();
+            const wrapper = attached(state(), api);
+
+            press('n', document.body, { metaKey: true });
+            press('s', document.body, { ctrlKey: true });
+            press('Enter', document.body, { altKey: true });
+            await flushPromises();
+
+            expect(api.next).not.toHaveBeenCalled();
+            expect(api.surprise).not.toHaveBeenCalled();
+            expect(api.play).not.toHaveBeenCalled();
+            wrapper.unmount();
+        });
+
+        it('stops listening once the window is gone', async () => {
+            const api = fakeApi();
+            const wrapper = attached(state(), api);
+            wrapper.unmount();
+
+            press('n');
+            await flushPromises();
+
+            expect(api.next).not.toHaveBeenCalled();
+        });
+
+        it('names the shortcut on each button, quietly', () => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+
+            expect(button(wrapper, 'Play').attributes('title')).toBe('Play (Enter)');
+            expect(button(wrapper, 'Next').attributes('title')).toBe('Next (N)');
+            expect(button(wrapper, 'Surprise me').attributes('title')).toBe('Surprise me (S)');
+            expect(button(wrapper, 'Play').attributes('aria-keyshortcuts')).toBe('Enter Space');
+            expect(button(wrapper, 'Next').attributes('aria-keyshortcuts')).toBe('N');
+            expect(button(wrapper, 'Surprise me').attributes('aria-keyshortcuts')).toBe('S');
+        });
     });
 });
