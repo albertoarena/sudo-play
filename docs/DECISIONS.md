@@ -486,6 +486,16 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 
 **Would change if:** the app is translated. The comment is built from ids, so only its few English words would move to the language files.
 
+## 2026-10-10: The mark is a prompt and equaliser bars
+
+**Choice:** the app icon and the menu bar icon show a `>` prompt followed by three equaliser bars. On the app icon the prompt is dim and the bars are the scheme's green, on a dark terminal panel. The art lives in `art/`, and the menu bar images in `public/` are exported from it. Alberto chose this on 2026-10-10 from two sketches.
+
+**Why:** the old `>_` said "terminal" and nothing about music, and it was optically small next to other menu bar icons. The other sketch, `$` with a play triangle, was dropped because the `$` reads as money first, which looks like "pay to play" on a free app.
+
+**Note:** the menu bar canvas is now 22 by 16 points instead of 16 by 16, so the mark can be wider than it is tall, as many menu bar icons are. The app icon is not wired into the build yet; that is a separate change.
+
+**Would change if:** the mark has to work as a single glyph, for example a favicon at 16 pixels, where the bars alone may read better than the pair.
+
 ## 2026-10-10: The popover works from the keyboard
 
 **Choice:** Enter or Space on the window plays, `N` is Next, `S` is Surprise me and Esc hides the window. Each chip group is a `radiogroup` with one Tab stop. Alberto decided this on 2026-10-10 as design fix D3. Requirements 7.1 now says so.
