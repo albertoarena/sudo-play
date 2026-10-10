@@ -475,3 +475,13 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Note:** the dividers and the border of the terminal panel are decorative, so they are exempt from the 3 to 1 rule, as WCAG 1.4.11 allows. They separate blocks that carry their own meaning. The hover state of an outline control darkens its edge to `--color-ink`, which the critique left open.
 
 **Would change if:** the app ever needs a theme the user picks rather than the system one. The tokens stay, the media query becomes a class on the root element.
+
+## 2026-10-10: A fallback reads as a terminal comment
+
+**Choice:** a pick from a wider search no longer shows an amber sentence on the card. The command line keeps the command as asked and adds a dim comment line, such as `# no electronic for flow-state, playing jazz`. The card shows a muted "Add one" link. Alberto decided this on 2026-10-10 as design fix D2, and requirements 5 now says so. It replaces the entry of 2026-10-08 on the fallback note.
+
+**Why:** the header said `--genre electronic` while the card showed jazz, and an amber line reads as "something broke". Amber now means a real error only.
+
+**Note:** `FallbackNote` returns the comment text from ids alone, so it no longer needs the catalog. The `#` sign is drawn by `CommandLine`, like the `$` sign. `PickCard` takes a `fallback` flag instead of the text, because it only needs to know whether to show the link. The window keeps its height: the card lost one line and the header gained one. The QA check on the footer at the default size is open again until it is seen on a Mac.
+
+**Would change if:** the app is translated. The comment is built from ids, so only its few English words would move to the language files.

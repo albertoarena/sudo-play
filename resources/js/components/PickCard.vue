@@ -3,7 +3,8 @@ import type { Pick } from '../types/menuBar';
 
 defineProps<{
     pick: Pick | null;
-    note: string | null;
+    /** The pick comes from a wider search. The command line says why. */
+    fallback: boolean;
     empty: string | null;
 }>();
 
@@ -21,7 +22,14 @@ const emit = defineEmits<{
                 {{ pick.genre.label }} · {{ pick.mood.emoji }} {{ pick.mood.label }}
                 <span v-if="pick.curator !== null"> · @{{ pick.curator }}</span>
             </p>
-            <p v-if="note !== null" class="mt-1.5 text-xs text-warning">{{ note }}</p>
+            <button
+                v-if="fallback"
+                type="button"
+                class="mt-1.5 text-xs text-muted underline hover:text-ink"
+                @click="emit('add-playlist')"
+            >
+                Add one
+            </button>
         </template>
 
         <template v-else>

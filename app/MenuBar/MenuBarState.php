@@ -97,11 +97,11 @@ final readonly class MenuBarState
 
     private function note(): ?string
     {
-        if ($this->pick === null || $this->catalog === null) {
+        if ($this->pick === null) {
             return null;
         }
 
-        return FallbackNote::for($this->pick, $this->catalog, $this->shownMood()->label);
+        return FallbackNote::for($this->pick, $this->shownMood()->id);
     }
 
     /**

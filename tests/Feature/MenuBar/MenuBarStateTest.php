@@ -82,7 +82,7 @@ it('explains a pick from the same mood in another genre', function (): void {
     $this->getJson('/menu-bar/state')
         ->assertJsonPath('pick.id', 'jazz-debugging-01')
         ->assertJsonPath('pick.genre', ['id' => 'jazz', 'label' => 'Jazz'])
-        ->assertJsonPath('note', 'No lo-fi playlist for Debugging yet, here is a jazz one. Add one on GitHub!');
+        ->assertJsonPath('note', 'no lofi for debugging, playing jazz');
 });
 
 it('explains a pick from the same genre in another mood', function (): void {
@@ -91,7 +91,7 @@ it('explains a pick from the same genre in another mood', function (): void {
     $this->getJson('/menu-bar/state')
         ->assertJsonPath('pick.title', MenuBarSetup::expectedTitle('rock', 'flow-state'))
         ->assertJsonPath('pick.mood', ['id' => 'friday-deploy', 'label' => 'Friday Deploy', 'emoji' => '🚀'])
-        ->assertJsonPath('note', 'No rock playlist for Flow State yet, here is a rock one for Friday Deploy. Add one on GitHub!');
+        ->assertJsonPath('note', 'no rock for flow-state, playing a rock pick for friday-deploy');
 });
 
 it('shows the empty state and disables every action when the catalog has no playlists', function (): void {

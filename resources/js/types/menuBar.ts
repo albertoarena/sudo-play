@@ -24,7 +24,11 @@ export interface MenuBarState {
     pick: Pick | null;
     /** How many times Next was pressed today. The window keeps it in memory. */
     presses: number;
-    /** Why the pick comes from another genre or mood, or null. */
+    /**
+     * Why the pick comes from another genre or mood, or null. Ids as typed,
+     * such as "no electronic for flow-state, playing jazz". The command line
+     * draws it as a comment.
+     */
     note: string | null;
     /** The empty state line, or null when there is a pick. */
     empty: string | null;

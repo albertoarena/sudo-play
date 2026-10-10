@@ -130,7 +130,11 @@ const disabled = 'disabled:cursor-default disabled:opacity-40';
     <main class="flex h-full flex-col bg-page text-ink">
         <div class="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto p-3 pb-2.5">
             <header class="rounded-md border border-term-edge bg-term-bg px-3 py-2">
-                <CommandLine :genre="current.selection.genre" :mood="current.selection.mood" />
+                <CommandLine
+                    :genre="current.selection.genre"
+                    :mood="current.selection.mood"
+                    :note="current.note"
+                />
             </header>
 
             <ChipGroup label="Genre" :options="current.genres" :selected="current.selection.genre" @select="selectGenre" />
@@ -138,7 +142,7 @@ const disabled = 'disabled:cursor-default disabled:opacity-40';
 
             <PickCard
                 :pick="current.pick"
-                :note="current.note"
+                :fallback="current.note !== null"
                 :empty="current.empty"
                 @add-playlist="openContributing"
             />
