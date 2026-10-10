@@ -29,6 +29,18 @@ it('opens the settings page in a window of its own', function (): void {
         && $request['fullscreenable'] === false);
 });
 
+// NativePHP turns the inspector on whenever app.debug is true. In the 440px
+// window it takes half the width, so development would not look like the app.
+it('opens without the inspector, even in debug mode', function (): void {
+    config(['app.debug' => true]);
+    Http::fake();
+
+    (new NativeSettingsWindow)->open();
+
+    Http::assertSent(fn (Request $request): bool => str_ends_with($request->url(), 'window/open')
+        && $request['showDevTools'] === false);
+});
+
 it('is the settings window the app uses', function (): void {
     expect(app(SettingsWindow::class))->toBeInstanceOf(NativeSettingsWindow::class);
 });
