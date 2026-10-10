@@ -485,3 +485,24 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Note:** `FallbackNote` returns the comment text from ids alone, so it no longer needs the catalog. The `#` sign is drawn by `CommandLine`, like the `$` sign. `PickCard` takes a `fallback` flag instead of the text, because it only needs to know whether to show the link. The window keeps its height: the card lost one line and the header gained one. The QA check on the footer at the default size is open again until it is seen on a Mac.
 
 **Would change if:** the app is translated. The comment is built from ids, so only its few English words would move to the language files.
+
+## 2026-10-10: The popover works from the keyboard
+
+**Choice:** Enter or Space on the window plays, `N` is Next, `S` is Surprise me and Esc hides the window. Each chip group is a `radiogroup` with one Tab stop. Alberto decided this on 2026-10-10 as design fix D3. Requirements 7.1 now says so.
+
+**Why:** there were no shortcuts, Play was the 14th Tab stop, and a screen reader read each chip as a toggle button with no "2 of 7".
+
+**Note:** the choices the fix left open:
+
+- The arrow keys wrap round at either end of a chip group, as the ARIA radio group pattern does
+- With no chip selected, the Tab stop is on the first chip
+- A key with Command, Control or Option held is left alone, so Command N and the like keep their meaning
+- A select counts as a control that takes text, because letters jump through its options
+- Enter and Space on a focused button or chip are left to that control. Esc hides the window wherever the focus is, except in a text control
+- Each button also carries `aria-keyshortcuts`, so a screen reader can say the key as well as the tooltip
+- A failed hide shows "Could not hide the window. Please try again.", like Quit does
+
+**Hiding the window:** `MenuBar::hide()` in nativephp/laravel 1.3.1 posts to `menu-bar/close`. The Electron plugin 1.3.0 serves only `menu-bar/hide`, so the facade call reaches nothing. Both are the newest tags, and the `main` branch of nativephp/laravel still has `menu-bar/close`. `Window::hide()` does not reach the menu bar window either, because Electron keeps it outside its list of windows. So `NativeMenuBarWindow` posts to `menu-bar/hide` itself, through NativePHP's own `Client`. Alberto chose this on 2026-10-10 over dropping Esc or calling the broken facade.
+
+**Would change if:** NativePHP fixes the route. Then `NativeMenuBarWindow` calls `MenuBar::hide()` and its test checks the same request.
+

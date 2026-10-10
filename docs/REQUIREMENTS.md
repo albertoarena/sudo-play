@@ -132,6 +132,8 @@ If autoplay fails (Spotify not installed, AppleScript error), fall back to the w
 - Footer: catalog last updated date, link "Add a playlist" (opens the GitHub contributing page), Settings, Quit
 - Last selected genre and mood are remembered
 - Empty state when there is no pick at all: a short line ("No playlists in the catalog yet"), the "Add a playlist" link, and Play, Next and Surprise me disabled
+- Keyboard: Enter or Space on the window plays, `N` is Next, `S` is Surprise me, Esc hides the window. A shortcut does nothing while a control that takes text has focus, or when its button is disabled. Each button names its key in a tooltip, such as "Next (N)"
+- Each chip group is one Tab stop and a radio group for screen readers. Inside it, the arrow keys move and select, Home and End jump to the first and last chip
 
 ### 7.2 Settings window
 

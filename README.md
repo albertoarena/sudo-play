@@ -24,6 +24,8 @@ The pick is the same all day, and the same for everyone who chooses the same gen
 
 Press Play and it opens in Spotify. You can cycle to another playlist with Next, or hit Surprise me and let it choose both for you.
 
+It works from the keyboard too. Press Enter to play, `N` for Next, `S` for Surprise me and Esc to close the window. Tab moves between the genre chips, the mood chips and the buttons, and the arrow keys pick a chip.
+
 There is an optional daily reminder, so a playlist is waiting when you start work.
 
 ## Moods

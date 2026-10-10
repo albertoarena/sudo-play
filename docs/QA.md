@@ -71,6 +71,21 @@ Settings, Appearance. The contrast numbers are already checked by
 - [ ] "Add one" on the card opens the contributing page in the default browser
 - [ ] The window uses the system font, with no flash of a fallback on open
 
+## Keyboard
+
+Open the window from the menu bar icon and use only the keyboard. Turn on
+VoiceOver with Command F5 for the two screen reader checks.
+
+- [ ] With nothing focused, Enter plays the pick, and so does Space
+- [ ] `N` shows the next pick and `S` a surprise pick. With the catalog empty, neither does anything
+- [ ] Esc hides the window, and a click on the icon opens it again on the same pick
+- [ ] Esc still hides the window while a button or a chip has focus
+- [ ] Command N, Command S and Command Q keep their usual meaning and do not trigger a shortcut
+- [ ] Tab goes genre chips, mood chips, then Play, with one stop for each chip group. With a fallback, "Add one" comes just before Play
+- [ ] Inside a chip group, the arrow keys move and select, Home and End jump to the ends, and the command line follows
+- [ ] VoiceOver reads a chip as a radio button with its place, such as "Jazz, radio button, 2 of 7"
+- [ ] Hovering Play, Next and Surprise me shows "Play (Enter)", "Next (N)" and "Surprise me (S)"
+
 ## Settings window
 
 - [ ] Settings in the menu bar footer opens the settings window, with a title bar and no Dock icon
