@@ -7,6 +7,7 @@ use App\MenuBar\Quitter;
 use App\Player\PlayerInterface;
 use App\Player\PlayResult;
 use App\Player\UrlOpener;
+use App\Settings\PlayerMode;
 use Tests\Support\FakeMenuBarWindow;
 use Tests\Support\FakeQuitter;
 use Tests\Support\MenuBarCatalog;
@@ -22,7 +23,7 @@ describe('play', function (): void {
 
         $this->postJson('/menu-bar/play', ['playlist' => 'jazz-debugging-01'])
             ->assertOk()
-            ->assertExactJson(['outcome' => 'played', 'message' => null]);
+            ->assertExactJson(['outcome' => 'played', 'message' => null, 'mode' => 'autoplay']);
 
         expect($player->played)->toBe(['jazz-debugging-01']);
     });
@@ -30,7 +31,8 @@ describe('play', function (): void {
     it('passes on what the player has to say', function (): void {
         MenuBarSetup::with(MenuBarCatalog::full());
         app()->instance(PlayerInterface::class, new RecordingPlayer(
-            PlayResult::fellBack('Could not start Spotify. Opened the playlist in your browser instead.', 'osascript exited 1'),
+            PlayResult::fellBack('Could not start Spotify. Opened the playlist in your browser instead.', 'osascript exited 1')
+                ->ranAs(PlayerMode::Autoplay),
         ));
 
         $this->postJson('/menu-bar/play', ['playlist' => 'jazz-debugging-01'])
@@ -38,8 +40,22 @@ describe('play', function (): void {
             ->assertExactJson([
                 'outcome' => 'fell-back',
                 'message' => 'Could not start Spotify. Opened the playlist in your browser instead.',
+                'mode' => 'autoplay',
             ]);
     });
+
+    it('says which mode ran', function (PlayerMode $mode): void {
+        MenuBarSetup::with(MenuBarCatalog::full());
+        app()->instance(PlayerInterface::class, new RecordingPlayer(PlayResult::played()->ranAs($mode)));
+
+        $this->postJson('/menu-bar/play', ['playlist' => 'jazz-debugging-01'])
+            ->assertOk()
+            ->assertExactJson(['outcome' => 'played', 'message' => null, 'mode' => $mode->value]);
+    })->with([
+        'autoplay' => [PlayerMode::Autoplay],
+        'open app' => [PlayerMode::OpenApp],
+        'web' => [PlayerMode::Web],
+    ]);
 
     it('refuses a playlist the catalog does not have', function (array $body): void {
         MenuBarSetup::with(MenuBarCatalog::full());

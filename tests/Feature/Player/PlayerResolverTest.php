@@ -101,6 +101,38 @@ it('plays through the chosen player and says nothing when it works', function ()
     Process::assertRanTimes(fn (): bool => true, 1);
 });
 
+it('says which mode ran', function (PlayerMode $mode): void {
+    Process::fake();
+
+    $result = resolver([SettingKey::PlayerMode->value => $mode->value])->play(resolverPlaylist());
+
+    expect($result->outcome)->toBe(PlayOutcome::Played)
+        ->and($result->mode)->toBe($mode);
+})->with([
+    'autoplay' => [PlayerMode::Autoplay],
+    'open app' => [PlayerMode::OpenApp],
+    'web' => [PlayerMode::Web],
+]);
+
+it('says autoplay ran when the stored setting is not a player mode', function (): void {
+    Process::fake();
+
+    expect(resolver([SettingKey::PlayerMode->value => 'cassette'])->play(resolverPlaylist())->mode)
+        ->toBe(PlayerMode::Autoplay);
+});
+
+it('names the chosen mode, not the browser, when it falls back', function (): void {
+    failingScript();
+
+    expect(resolver()->play(resolverPlaylist())->mode)->toBe(PlayerMode::Autoplay);
+});
+
+it('names the chosen mode when nothing opened', function (): void {
+    failingScript();
+
+    expect(resolver(opener: RecordingUrlOpener::failing())->play(resolverPlaylist())->mode)->toBe(PlayerMode::Autoplay);
+});
+
 it('falls back to the web player when autoplay fails, and says why', function (): void {
     failingScript();
     $opener = RecordingUrlOpener::working();
