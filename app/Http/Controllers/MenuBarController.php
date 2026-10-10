@@ -86,6 +86,7 @@ final class MenuBarController extends Controller
         }
 
         $result = $player->play($playlist);
+        $this->menuBar->played($result);
 
         return response()->json([
             'outcome' => $result->outcome->value,

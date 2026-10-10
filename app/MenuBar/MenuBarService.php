@@ -10,6 +10,8 @@ use App\Catalog\Genre;
 use App\Catalog\Mood;
 use App\Catalog\Playlist;
 use App\Catalog\StoredCatalog;
+use App\Player\PlayOutcome;
+use App\Player\PlayResult;
 use App\Rotation\DailyPicker;
 use App\Settings\PlayerMode;
 use App\Settings\SettingKey;
@@ -79,6 +81,17 @@ final readonly class MenuBarService
         }
 
         return null;
+    }
+
+    /**
+     * Notes a Play. The first autoplay that worked means macOS has asked for
+     * its permission, so the hint has done its job and goes.
+     */
+    public function played(PlayResult $result): void
+    {
+        if ($result->outcome === PlayOutcome::Played && $result->mode === PlayerMode::Autoplay) {
+            $this->settings->set(SettingKey::AutoplayWorked->value, true);
+        }
     }
 
     /** @return list<string> */
@@ -178,6 +191,10 @@ final readonly class MenuBarService
         $stored = $this->settings->get(SettingKey::PlayerMode->value);
         $mode = (is_string($stored) ? PlayerMode::tryFrom($stored) : null) ?? PlayerMode::Autoplay;
 
-        return $mode === PlayerMode::Autoplay ? self::PERMISSION_HINT : null;
+        if ($mode !== PlayerMode::Autoplay || $this->settings->get(SettingKey::AutoplayWorked->value) === true) {
+            return null;
+        }
+
+        return self::PERMISSION_HINT;
     }
 }
