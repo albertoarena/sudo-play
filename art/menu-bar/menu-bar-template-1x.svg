@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="16" viewBox="0 0 22 16">
+  <!-- Sudo Play menu bar mark at 1x, drawn on the 22 by 16 pixel grid. Black on
+       transparent: macOS tints a template image for light and dark menu bars. -->
+  <path d="M2.3 4.2 6.6 8 2.3 11.8" fill="none" stroke="#000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="10" y="9" width="2" height="5" rx=".5"/>
+  <rect x="14" y="3" width="2" height="11" rx=".5"/>
+  <rect x="18" y="6" width="2" height="8" rx=".5"/>
+</svg>

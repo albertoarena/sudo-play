@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="44" height="32" viewBox="0 0 44 32">
+  <!-- Sudo Play menu bar mark at 2x, drawn on the 44 by 32 pixel grid. -->
+  <path d="M4.6 8.4 13.2 16 4.6 23.6" fill="none" stroke="#000" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="20" y="18" width="4" height="10" rx="1"/>
+  <rect x="28" y="6" width="4" height="22" rx="1"/>
+  <rect x="36" y="12" width="4" height="16" rx="1"/>
+</svg>
