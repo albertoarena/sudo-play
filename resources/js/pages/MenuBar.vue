@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import ChipGroup from '../components/ChipGroup.vue';
 import CommandLine from '../components/CommandLine.vue';
 import PickCard from '../components/PickCard.vue';
@@ -21,13 +21,63 @@ const current = ref<MenuBarState>(props.state);
 const message = ref<string | null>(null);
 const busy = ref(false);
 
+// The title that Play just started, shown for a moment as proof the press
+// worked. Each Play starts the three seconds again.
+const played = ref<string | null>(null);
+let playedTimer: ReturnType<typeof setTimeout> | undefined;
+
+function confirm(title: string): void {
+    played.value = title;
+    clearTimeout(playedTimer);
+    playedTimer = setTimeout(() => (played.value = null), 3000);
+}
+
+// A new pick, said to screen readers only, because the card already shows it.
+// A line on screen wins, so the announcement waits its turn behind it.
+const announced = ref<string | null>(null);
+
+watch(
+    () => current.value.pick?.id,
+    () => {
+        const pick = current.value.pick;
+
+        if (pick !== null && message.value === null && played.value === null) {
+            announced.value = `Today's pick: ${pick.title}`;
+        }
+    },
+);
+
+// Every line goes through the one live region, which stays in the page so
+// screen readers notice when its text changes. With nothing to show, it is
+// taken out of the layout but not out of the page.
+const status = computed((): string => {
+    if (message.value !== null) {
+        return 'text-xs text-warning';
+    }
+
+    return played.value !== null ? 'font-mono text-xs text-muted' : 'sr-only';
+});
+
+// What a new action replaces. Clearing the announcement too means an old pick
+// is not read out again when a message goes away.
+function clearStatus(): void {
+    message.value = null;
+    played.value = null;
+    announced.value = null;
+}
+
 const footerDate = computed((): string =>
     current.value.catalogDate === null ? 'Bundled catalog' : `Catalog updated ${current.value.catalogDate}`,
 );
 
+// Counts the actions the user started, so a slow focus refresh can tell that
+// its answer is older than a click.
+let actions = 0;
+
 async function run(action: () => Promise<MenuBarState>): Promise<void> {
+    actions++;
     busy.value = true;
-    message.value = null;
+    clearStatus();
 
     try {
         current.value = await action();
@@ -70,10 +120,16 @@ async function play(): Promise<void> {
     }
 
     busy.value = true;
-    message.value = null;
+    clearStatus();
 
     try {
-        message.value = (await props.api.play(pick.id)).message;
+        const result = await props.api.play(pick.id);
+
+        if (result.outcome === 'played') {
+            confirm(pick.title);
+        } else {
+            message.value = result.message;
+        }
     } catch {
         message.value = 'Could not open the playlist.';
     } finally {
@@ -115,8 +171,22 @@ async function hide(): Promise<void> {
 
 // The window stays alive between clicks on the icon. Asking again on focus
 // picks up a catalog the background sync replaced and a day that turned over.
-function refresh(): void {
-    void run(() => props.api.state(current.value.presses, current.value.date));
+// It happens on every open, so it is silent: the buttons stay as they are, a
+// failure says nothing, and the state is replaced only when it changed. An
+// answer that arrives after a click is older than that click, so it is dropped.
+async function refresh(): Promise<void> {
+    const started = actions;
+    let answer: MenuBarState;
+
+    try {
+        answer = await props.api.state(current.value.presses, current.value.date);
+    } catch {
+        return;
+    }
+
+    if (started === actions && JSON.stringify(answer) !== JSON.stringify(current.value)) {
+        current.value = answer;
+    }
 }
 
 onMounted(() => window.addEventListener('focus', refresh));
@@ -243,8 +313,16 @@ const disabled = 'disabled:cursor-default disabled:opacity-40';
                 </button>
             </div>
 
-            <p v-if="message !== null" role="status" class="text-xs text-warning">{{ message }}</p>
-            <p v-else-if="current.hint !== null" class="text-xs text-muted">{{ current.hint }}</p>
+            <p role="status" :class="status">
+                <template v-if="message !== null">{{ message }}</template>
+                <template v-else-if="played !== null">
+                    <span aria-hidden="true">▶</span> playing "{{ played }}"
+                </template>
+                <template v-else-if="announced !== null">{{ announced }}</template>
+            </p>
+            <p v-if="message === null && played === null && current.hint !== null" class="text-xs text-muted">
+                {{ current.hint }}
+            </p>
 
             <footer class="flex items-center gap-3 text-xs text-muted">
                 <span class="mr-auto">{{ footerDate }}</span>

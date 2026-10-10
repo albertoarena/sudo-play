@@ -86,6 +86,17 @@ VoiceOver with Command F5 for the two screen reader checks.
 - [ ] VoiceOver reads a chip as a radio button with its place, such as "Jazz, radio button, 2 of 7"
 - [ ] Hovering Play, Next and Surprise me shows "Play (Enter)", "Next (N)" and "Surprise me (S)"
 
+## Feedback
+
+Open the window a few times from the menu bar icon, then use it with VoiceOver
+on for the last two checks.
+
+- [ ] Opening the window does not dim Play, Next and Surprise me, not even for a moment
+- [ ] After a played Play, `▶ playing "<title>"` shows under the buttons in grey, not amber, and goes after about three seconds
+- [ ] The line does not make the window jump: the footer stays where it was when the line comes and goes
+- [ ] With VoiceOver on, Next reads "Today's pick:" and the new title
+- [ ] With VoiceOver on, a message such as a failed Settings click is read out when it appears
+
 ## Settings window
 
 - [ ] Settings in the menu bar footer opens the settings window, with a title bar and no Dock icon

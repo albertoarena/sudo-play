@@ -516,3 +516,22 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 
 **Would change if:** NativePHP fixes the route. Then `NativeMenuBarWindow` calls `MenuBar::hide()` and its test checks the same request.
 
+## 2026-10-10: The popover gives quiet feedback
+
+**Choice:** the focus refresh is silent, a played Play shows `▶ playing "<title>"` for three seconds, and one live region is always in the window. Alberto decided this on 2026-10-10 as design fix D4. Requirements 7.1 now says so.
+
+**Why:** the buttons dimmed on every open, a Play gave no sign that it worked, and a status line inserted with `v-if` may not be read out.
+
+**Note:** the choices the fix left open:
+
+- A failed focus refresh says nothing and keeps the state. The next open asks again
+- "Differs" means the JSON of the two states differs. It is a small object, so this is cheap
+- A focus answer that arrives after a click is dropped, because it is older than that click
+- The line shows only for the `played` outcome. A fallback or a failure keeps its own message
+- The line says "playing" in every player mode. In "open only" mode Spotify waits for its own Play press, but the window does not know the mode, and the line is gone in three seconds
+- The play sign is hidden from screen readers, so they read "playing" and the title
+- The line goes when another action starts. Another Play starts the three seconds again
+- The new pick is said to screen readers only, because the card already shows it. It is not said on the first draw, and it does not replace a line on screen
+- With nothing to show, the region is `sr-only`: out of the layout, still in the page
+- A new action clears the announcement too, so an old pick is not read again when a message goes away
+
