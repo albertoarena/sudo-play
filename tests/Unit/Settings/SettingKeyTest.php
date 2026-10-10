@@ -20,11 +20,16 @@ it('covers every setting the app needs', function (): void {
         'launch_at_login',
         'catalog_url',
         'reminder_sent_on',
+        'autoplay_worked',
     ]);
 });
 
 it('has no reminder sent before the first one', function (): void {
     expect(SettingKey::ReminderSentOn->default())->toBeNull();
+});
+
+it('has not seen autoplay work before the first Play', function (): void {
+    expect(SettingKey::AutoplayWorked->default())->toBeFalse();
 });
 
 it('defaults the player mode to autoplay', function (): void {

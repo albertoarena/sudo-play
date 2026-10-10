@@ -133,6 +133,15 @@ it('explains the macOS permission prompt only in autoplay mode', function (strin
     'web' => ['web', null],
 ]);
 
+it('stops explaining the permission prompt once autoplay has worked', function (): void {
+    MenuBarSetup::with(MenuBarCatalog::full(), [
+        SettingKey::PlayerMode->value => 'autoplay',
+        SettingKey::AutoplayWorked->value => true,
+    ]);
+
+    $this->getJson('/menu-bar/state')->assertJsonPath('hint', null);
+});
+
 it('renders the menu bar page with the same state', function (): void {
     MenuBarSetup::with(MenuBarCatalog::full(), [SettingKey::LastGenre->value => 'jazz', SettingKey::LastMood->value => 'debugging']);
 
