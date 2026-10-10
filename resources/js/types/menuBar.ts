@@ -2,6 +2,7 @@
 // so the two change together.
 
 import type { Genre, Mood } from './catalog';
+import type { PlayerMode } from './settings';
 
 export interface Pick {
     id: string;
@@ -37,9 +38,9 @@ export interface MenuBarState {
         next: boolean;
         surprise: boolean;
     };
-    /** The day of the last successful sync, or null for the bundled catalog. */
+    /** The day of the last successful sync, or null for the built-in playlists. */
     catalogDate: string | null;
-    /** One line about the macOS permission prompt, in autoplay mode only. */
+    /** One line about the macOS permission prompt, in autoplay mode until autoplay first works. */
     hint: string | null;
 }
 
@@ -48,4 +49,6 @@ export type PlayOutcome = 'played' | 'fell-back' | 'failed';
 export interface PlayResponse {
     outcome: PlayOutcome;
     message: string | null;
+    /** The player mode that was chosen. A fallback still names the chosen one, not the browser. */
+    mode: PlayerMode;
 }

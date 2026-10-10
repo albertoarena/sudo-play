@@ -6,6 +6,7 @@ import PickCard from '../components/PickCard.vue';
 import { createMenuBarApi } from '../api';
 import type { MenuBarApi } from '../api';
 import type { MenuBarState } from '../types/menuBar';
+import type { PlayerMode } from '../types/settings';
 
 const props = withDefaults(
     defineProps<{
@@ -22,12 +23,15 @@ const message = ref<string | null>(null);
 const busy = ref(false);
 
 // The title that Play just started, shown for a moment as proof the press
-// worked. Each Play starts the three seconds again.
+// worked. Each Play starts the three seconds again. In Open only mode Spotify
+// waits for its own Play press, so the line says the playlist opened instead.
 const played = ref<string | null>(null);
+const openedOnly = ref(false);
 let playedTimer: ReturnType<typeof setTimeout> | undefined;
 
-function confirm(title: string): void {
+function confirm(title: string, mode: PlayerMode): void {
     played.value = title;
+    openedOnly.value = mode === 'open-app';
     clearTimeout(playedTimer);
     playedTimer = setTimeout(() => (played.value = null), 3000);
 }
@@ -67,7 +71,7 @@ function clearStatus(): void {
 }
 
 const footerDate = computed((): string =>
-    current.value.catalogDate === null ? 'Bundled catalog' : `Catalog updated ${current.value.catalogDate}`,
+    current.value.catalogDate === null ? 'Built-in playlists' : `Catalog updated ${current.value.catalogDate}`,
 );
 
 // Counts the actions the user started, so a slow focus refresh can tell that
@@ -126,7 +130,7 @@ async function play(): Promise<void> {
         const result = await props.api.play(pick.id);
 
         if (result.outcome === 'played') {
-            confirm(pick.title);
+            confirm(pick.title, result.mode);
         } else {
             message.value = result.message;
         }
@@ -247,6 +251,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', shortcut));
 // cursor, because there is nothing to click.
 const outline = 'rounded-md border border-edge px-3 py-2 text-sm hover:border-ink';
 const disabled = 'disabled:cursor-default disabled:opacity-40';
+
+// A footer link is small text, but a whole button to click: the padding takes
+// the target to 24px, and the underline shows it is a link on hover and focus.
+const footerLink = 'min-h-6 rounded px-1.5 hover:text-ink hover:underline focus-visible:underline';
 </script>
 
 <template>
@@ -316,7 +324,9 @@ const disabled = 'disabled:cursor-default disabled:opacity-40';
             <p role="status" :class="status">
                 <template v-if="message !== null">{{ message }}</template>
                 <template v-else-if="played !== null">
-                    <span aria-hidden="true">▶</span> playing "{{ played }}"
+                    <span aria-hidden="true">▶</span>
+                    <template v-if="openedOnly"> opened "{{ played }}" in Spotify</template>
+                    <template v-else> playing "{{ played }}"</template>
                 </template>
                 <template v-else-if="announced !== null">{{ announced }}</template>
             </p>
@@ -324,11 +334,13 @@ const disabled = 'disabled:cursor-default disabled:opacity-40';
                 {{ current.hint }}
             </p>
 
-            <footer class="flex items-center gap-3 text-xs text-muted">
+            <!-- The divider keeps Quit apart from Settings, so a slip does not close the app. -->
+            <footer class="flex items-center gap-1 text-xs text-muted">
                 <span class="mr-auto">{{ footerDate }}</span>
-                <button type="button" class="hover:text-ink" @click="openContributing">Add a playlist</button>
-                <button type="button" class="hover:text-ink" @click="openSettings">Settings</button>
-                <button type="button" class="hover:text-ink" @click="quit">Quit</button>
+                <button type="button" :class="footerLink" @click="openContributing">Add a playlist</button>
+                <button type="button" :class="footerLink" @click="openSettings">Settings</button>
+                <span aria-hidden="true" class="mx-1 h-3 w-px bg-divider"></span>
+                <button type="button" :class="footerLink" @click="quit">Quit</button>
             </footer>
         </div>
     </main>

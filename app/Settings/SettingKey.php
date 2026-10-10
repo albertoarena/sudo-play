@@ -57,6 +57,13 @@ enum SettingKey: string
     case ReminderSentOn = 'reminder_sent_on';
 
     /**
+     * True once a Play in autoplay mode has worked, so macOS has already asked
+     * for its permission. Not a choice the user makes, so the settings window
+     * never shows it. It is what ends the permission hint. Requirements 6.
+     */
+    case AutoplayWorked = 'autoplay_worked';
+
+    /**
      * A genre or mood default of null means "not chosen yet". The window then
      * opens on the first genre and mood the catalog offers, so a fork with its
      * own catalog needs no code change and no id can be a default that the
@@ -67,7 +74,7 @@ enum SettingKey: string
         return match ($this) {
             self::DefaultGenre, self::DefaultMood, self::LastGenre, self::LastMood, self::ReminderSentOn => null,
             self::PlayerMode => PlayerMode::Autoplay->value,
-            self::ReminderEnabled, self::LaunchAtLogin => false,
+            self::ReminderEnabled, self::LaunchAtLogin, self::AutoplayWorked => false,
             self::ReminderTime => self::DEFAULT_REMINDER_TIME,
             self::WeekdaysOnly => true,
             self::CatalogUrl => self::DEFAULT_CATALOG_URL,

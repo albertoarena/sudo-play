@@ -129,13 +129,15 @@ If autoplay fails (Spotify not installed, AppleScript error), fall back to the w
 - Today's pick card: title, genre, mood, curator (if any)
 - A pick from a wider search adds a comment line under the command and an "Add one" link on the card (section 5)
 - Buttons: **Play** (primary), **Next**, **Surprise me**
-- Footer: catalog last updated date, link "Add a playlist" (opens the GitHub contributing page), Settings, Quit
+- Footer: catalog last updated date ("Built-in playlists" before the first sync), link "Add a playlist" (opens the GitHub contributing page), Settings, Quit. Each link has a target at least 24px tall and an underline on hover and focus. A divider sets Quit apart from Settings
+- Every enabled control shows the pointer cursor, in this window and in the Settings window. A disabled one shows the plain cursor
 - Last selected genre and mood are remembered
 - Empty state when there is no pick at all: a short line ("No playlists in the catalog yet"), the "Add a playlist" link, and Play, Next and Surprise me disabled
 - Keyboard: Enter or Space on the window plays, `N` is Next, `S` is Surprise me, Esc hides the window. A shortcut does nothing while a control that takes text has focus, or when its button is disabled. Each button names its key in a tooltip, such as "Next (N)"
 - Each chip group is one Tab stop and a radio group for screen readers. Inside it, the arrow keys move and select, Home and End jump to the first and last chip
 - Opening the window asks for the state again without any visible sign: the buttons do not dim, and the window changes only when the state did
-- After a successful Play, one muted line in the command line style says what plays, such as `▶ playing "Jazz for deep work"`, for about three seconds. When the player fell back or failed, its own message shows instead
+- After a successful Play, one muted line in the command line style says what plays, such as `▶ playing "Jazz for deep work"`, for about three seconds. In Open only mode Spotify does not start on its own, so the line says `▶ opened "Jazz for deep work" in Spotify`. When the player fell back or failed, its own message shows instead
+- In autoplay mode, one muted line explains the macOS permission prompt (section 6). It shows until the first autoplay Play that works, and never again after that
 - One live region is always in the window, and only its text changes. It carries the messages, the Play line, and a new pick for screen readers ("Today's pick: Jazz for deep work")
 
 ### 7.2 Settings window

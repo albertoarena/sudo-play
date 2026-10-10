@@ -40,7 +40,7 @@ function fakeApi(next: MenuBarState = state()): MenuBarApi {
         select: vi.fn(async () => next),
         next: vi.fn(async () => next),
         surprise: vi.fn(async () => next),
-        play: vi.fn(async () => ({ outcome: 'played' as const, message: null })),
+        play: vi.fn(async () => ({ outcome: 'played' as const, message: null, mode: 'autoplay' as const })),
         addPlaylist: vi.fn(async () => undefined),
         openSettings: vi.fn(async () => undefined),
         quit: vi.fn(async () => undefined),
@@ -78,10 +78,11 @@ describe('MenuBar', () => {
         expect(wrapper.text()).toContain('Catalog updated 2026-10-07');
     });
 
-    it('says the catalog is the bundled one when it was never synced', () => {
+    it('says the playlists are the built-in ones when the catalog was never synced', () => {
         const wrapper = mount(MenuBar, { props: { state: state({ catalogDate: null }), api: fakeApi() } });
 
-        expect(wrapper.text()).toContain('Bundled catalog');
+        expect(wrapper.get('footer').text()).toContain('Built-in playlists');
+        expect(wrapper.text()).not.toContain('Bundled catalog');
     });
 
     it('selects a genre with the current mood, and draws the answer', async () => {
@@ -127,6 +128,7 @@ describe('MenuBar', () => {
         api.play = vi.fn(async () => ({
             outcome: 'fell-back' as const,
             message: 'Could not start Spotify. Opened the playlist in your browser instead.',
+            mode: 'autoplay' as const,
         }));
         const wrapper = mount(MenuBar, { props: { state: state(), api } });
 
@@ -166,6 +168,26 @@ describe('MenuBar', () => {
             expect(wrapper.text()).not.toContain('playing "Riffs for risky releases"');
         });
 
+        // In Open only mode Spotify opens the playlist and waits for its own
+        // Play press, so "playing" would not be true.
+        it('says the playlist opened in Spotify in Open only mode', async () => {
+            const api = fakeApi();
+            api.play = vi.fn(async () => ({ outcome: 'played' as const, message: null, mode: 'open-app' as const }));
+            const wrapper = mount(MenuBar, { props: { state: state(), api } });
+
+            await button(wrapper, 'Play').trigger('click');
+            await flushPromises();
+
+            const line = wrapper.get('[role="status"]');
+            expect(line.text()).toBe('▶ opened "Riffs for risky releases" in Spotify');
+            expect(line.classes()).toEqual(expect.arrayContaining(['font-mono', 'text-muted']));
+            expect(wrapper.text()).not.toContain('playing');
+
+            vi.advanceTimersByTime(3000);
+            await flushPromises();
+            expect(wrapper.text()).not.toContain('opened "Riffs for risky releases"');
+        });
+
         it('keeps the line for three seconds from the last Play', async () => {
             const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
 
@@ -185,7 +207,7 @@ describe('MenuBar', () => {
             ['failed', 'Could not open Spotify.'],
         ] as const)('shows what the player said instead when it %s', async (outcome, said) => {
             const api = fakeApi();
-            api.play = vi.fn(async () => ({ outcome, message: said }));
+            api.play = vi.fn(async () => ({ outcome, message: said, mode: 'autoplay' as const }));
             const wrapper = mount(MenuBar, { props: { state: state(), api } });
 
             await button(wrapper, 'Play').trigger('click');
@@ -372,6 +394,37 @@ describe('MenuBar', () => {
         await flushPromises();
 
         expect(wrapper.get('[role="status"]').text()).toBe('Could not open the settings. Please try again.');
+    });
+
+    // The footer links are buttons, not captions: a hit target of at least
+    // 24px, an underline on hover and on focus, and Quit set apart from
+    // Settings so a slip does not close the app.
+    describe('footer links', () => {
+        const links = ['Add a playlist', 'Settings', 'Quit'];
+
+        it.each(links)('gives "%s" a target of at least 24px', (label) => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+
+            expect(button(wrapper, label).classes()).toEqual(expect.arrayContaining(['min-h-6', 'px-1.5']));
+        });
+
+        it.each(links)('underlines "%s" on hover and on focus', (label) => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+
+            expect(button(wrapper, label).classes()).toEqual(
+                expect.arrayContaining(['hover:underline', 'focus-visible:underline']),
+            );
+        });
+
+        it('puts a divider between Settings and Quit', () => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+            const quit = button(wrapper, 'Quit').element;
+            const divider = quit.previousElementSibling;
+
+            expect(divider?.getAttribute('aria-hidden')).toBe('true');
+            expect(divider?.classList.contains('bg-divider')).toBe(true);
+            expect(divider?.previousElementSibling?.textContent?.trim()).toBe('Settings');
+        });
     });
 
     it('quits from the footer', async () => {

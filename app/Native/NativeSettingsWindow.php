@@ -13,6 +13,10 @@ use Native\Laravel\Facades\Window;
  * Electron keeps one window per id. Asked to open an id that is already open,
  * it shows and focuses that window, so a second click on Settings never makes
  * a second window.
+ *
+ * NativePHP turns the inspector on whenever `app.debug` is true. In a window
+ * this narrow it takes half the width, so it stays off and development looks
+ * like the shipped app.
  */
 final class NativeSettingsWindow implements SettingsWindow
 {
@@ -32,6 +36,7 @@ final class NativeSettingsWindow implements SettingsWindow
             ->resizable(false)
             ->minimizable(false)
             ->maximizable(false)
-            ->fullscreenable(false);
+            ->fullscreenable(false)
+            ->showDevTools(false);
     }
 }
