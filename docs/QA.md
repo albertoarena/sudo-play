@@ -36,7 +36,7 @@ that count for the release.
 
 - [x] The menu bar icon is readable in light mode and dark mode _(dev, 2026-10-08)_
 - [ ] Clicking the icon opens a window of 360 by 520 under the icon, and there is no Dock icon
-- [x] The footer stays visible without scrolling at the default window size, with a fallback note and the autoplay hint both showing _(dev, 2026-10-08)_
+- [ ] The footer stays visible without scrolling at the default window size, with a fallback comment, the "Add one" link and the autoplay hint all showing
 - [x] No unthemed band appears below the content in dark mode, at any scroll position _(dev, 2026-10-08)_
 - [x] The buttons and the footer stay put while the chips and the pick card scroll _(dev, 2026-10-08)_
 - [ ] "Add a playlist" opens the contributing page in the default browser, not inside the window
@@ -67,6 +67,8 @@ Settings, Appearance. The contrast numbers are already checked by
 - [ ] With the macOS accent colour set to orange, a ticked checkbox and a chosen radio in the settings window stay green
 - [ ] With Play disabled, it is dimmed and the pointer stays an arrow
 - [ ] A warning line, for example after denying the Automation permission, reads as a warning and not as body text
+- [ ] Pick a genre and mood with no playlist, so a fallback plays: the command line keeps the command as asked and shows a dim `#` comment line under it, the card shows a muted "Add one" link, and nothing on screen is amber
+- [ ] "Add one" on the card opens the contributing page in the default browser
 - [ ] The window uses the system font, with no flash of a fallback on open
 
 ## Settings window
