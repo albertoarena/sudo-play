@@ -207,6 +207,105 @@ describe('MenuBar', () => {
         });
     });
 
+    // Screen readers may miss a live region that is inserted with its text, so
+    // there is one region from the start and only its text changes.
+    describe('announcements', () => {
+        const jazz = state({
+            selection: { genre: 'jazz', mood: 'friday-deploy' },
+            pick: {
+                id: 'jazz-friday-deploy-01',
+                title: 'Jazz for deep work',
+                curator: null,
+                genre: { id: 'jazz', label: 'Jazz' },
+                mood: { id: 'friday-deploy', label: 'Friday Deploy', emoji: '🚀' },
+            },
+        });
+
+        it('keeps one live region from the start, quiet and out of the layout', () => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+
+            expect(wrapper.findAll('[role="status"]')).toHaveLength(1);
+            expect(wrapper.get('[role="status"]').text()).toBe('');
+            expect(wrapper.get('[role="status"]').classes()).toContain('sr-only');
+        });
+
+        it('changes the text of the same region, never a new one', async () => {
+            const api = fakeApi();
+            api.openSettings = vi.fn(async () => {
+                throw new Error('The app answered 500');
+            });
+            const wrapper = mount(MenuBar, { props: { state: state(), api } });
+            const region = wrapper.get('[role="status"]').element;
+
+            await button(wrapper, 'Settings').trigger('click');
+            await flushPromises();
+            expect(wrapper.get('[role="status"]').element).toBe(region);
+
+            await button(wrapper, 'Play').trigger('click');
+            await flushPromises();
+            expect(wrapper.get('[role="status"]').element).toBe(region);
+            expect(wrapper.get('[role="status"]').classes()).not.toContain('sr-only');
+        });
+
+        it('announces a new pick, to screen readers only', async () => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi(jazz) } });
+
+            await button(wrapper, 'Next').trigger('click');
+            await flushPromises();
+
+            const region = wrapper.get('[role="status"]');
+            expect(region.text()).toBe("Today's pick: Jazz for deep work");
+            expect(region.classes()).toContain('sr-only');
+        });
+
+        it('announces a new pick that comes with a focus refresh', async () => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi(jazz) }, attachTo: document.body });
+
+            window.dispatchEvent(new Event('focus'));
+            await flushPromises();
+
+            expect(wrapper.get('[role="status"]').text()).toBe("Today's pick: Jazz for deep work");
+            wrapper.unmount();
+        });
+
+        it('says nothing when the pick stays the same', async () => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi(state({ presses: 1 })) } });
+
+            await button(wrapper, 'Next').trigger('click');
+            await flushPromises();
+
+            expect(wrapper.get('[role="status"]').text()).toBe('');
+        });
+
+        // The card already shows the new pick. A line the user can read wins.
+        it('does not replace a message that is on screen', async () => {
+            const api = fakeApi(jazz);
+            api.openSettings = vi.fn(async () => {
+                throw new Error('The app answered 500');
+            });
+            const wrapper = mount(MenuBar, { props: { state: state(), api }, attachTo: document.body });
+
+            await button(wrapper, 'Settings').trigger('click');
+            await flushPromises();
+            window.dispatchEvent(new Event('focus'));
+            await flushPromises();
+
+            expect(wrapper.get('[role="status"]').text()).toBe('Could not open the settings. Please try again.');
+            expect(wrapper.text()).toContain('Jazz for deep work');
+            wrapper.unmount();
+        });
+
+        it('shows the permission hint while the region is quiet', async () => {
+            const hint = 'The first time you press Play, macOS asks if Sudo Play may control Spotify.';
+            const wrapper = mount(MenuBar, { props: { state: state({ hint }), api: fakeApi({ ...jazz, hint }) } });
+
+            await button(wrapper, 'Next').trigger('click');
+            await flushPromises();
+
+            expect(wrapper.text()).toContain(hint);
+        });
+    });
+
     it('shows the permission hint when there is one', () => {
         const hint = 'The first time you press Play, macOS asks if Sudo Play may control Spotify.';
         const wrapper = mount(MenuBar, { props: { state: state({ hint }), api: fakeApi() } });
