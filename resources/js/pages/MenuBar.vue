@@ -67,7 +67,7 @@ function clearStatus(): void {
 }
 
 const footerDate = computed((): string =>
-    current.value.catalogDate === null ? 'Bundled catalog' : `Catalog updated ${current.value.catalogDate}`,
+    current.value.catalogDate === null ? 'Built-in playlists' : `Catalog updated ${current.value.catalogDate}`,
 );
 
 // Counts the actions the user started, so a slow focus refresh can tell that
@@ -247,6 +247,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', shortcut));
 // cursor, because there is nothing to click.
 const outline = 'rounded-md border border-edge px-3 py-2 text-sm hover:border-ink';
 const disabled = 'disabled:cursor-default disabled:opacity-40';
+
+// A footer link is small text, but a whole button to click: the padding takes
+// the target to 24px, and the underline shows it is a link on hover and focus.
+const footerLink = 'min-h-6 rounded px-1.5 hover:text-ink hover:underline focus-visible:underline';
 </script>
 
 <template>
@@ -324,11 +328,13 @@ const disabled = 'disabled:cursor-default disabled:opacity-40';
                 {{ current.hint }}
             </p>
 
-            <footer class="flex items-center gap-3 text-xs text-muted">
+            <!-- The divider keeps Quit apart from Settings, so a slip does not close the app. -->
+            <footer class="flex items-center gap-1 text-xs text-muted">
                 <span class="mr-auto">{{ footerDate }}</span>
-                <button type="button" class="hover:text-ink" @click="openContributing">Add a playlist</button>
-                <button type="button" class="hover:text-ink" @click="openSettings">Settings</button>
-                <button type="button" class="hover:text-ink" @click="quit">Quit</button>
+                <button type="button" :class="footerLink" @click="openContributing">Add a playlist</button>
+                <button type="button" :class="footerLink" @click="openSettings">Settings</button>
+                <span aria-hidden="true" class="mx-1 h-3 w-px bg-divider"></span>
+                <button type="button" :class="footerLink" @click="quit">Quit</button>
             </footer>
         </div>
     </main>
