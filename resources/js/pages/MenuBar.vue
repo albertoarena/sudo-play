@@ -105,6 +105,14 @@ async function quit(): Promise<void> {
     }
 }
 
+async function hide(): Promise<void> {
+    try {
+        await props.api.hide();
+    } catch {
+        message.value = 'Could not hide the window. Please try again.';
+    }
+}
+
 // The window stays alive between clicks on the icon. Asking again on focus
 // picks up a catalog the background sync replaced and a day that turned over.
 function refresh(): void {
@@ -126,8 +134,9 @@ const canNext = computed((): boolean => current.value.actions.next && !busy.valu
 const canSurprise = computed((): boolean => current.value.actions.surprise && !busy.value);
 
 // The keyboard shortcuts. Each one does what its button does, and nothing
-// when the button is disabled. Command, Control and Option are left to the
-// system, so Command N and the like keep their meaning.
+// when the button is disabled. Esc has no button and works wherever the focus
+// is. Command, Control and Option are left to the system, so Command N and the
+// like keep their meaning.
 function shortcut(event: KeyboardEvent): void {
     if (event.metaKey || event.ctrlKey || event.altKey) {
         return;
@@ -141,7 +150,10 @@ function shortcut(event: KeyboardEvent): void {
 
     const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
 
-    if (key === 'Enter' || key === ' ') {
+    if (key === 'Escape') {
+        event.preventDefault();
+        void hide();
+    } else if (key === 'Enter' || key === ' ') {
         if (focused?.closest(control) || !canPlay.value) {
             return;
         }

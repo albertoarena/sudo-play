@@ -19,6 +19,7 @@ export interface MenuBarApi {
     addPlaylist(): Promise<void>;
     openSettings(): Promise<void>;
     quit(): Promise<void>;
+    hide(): Promise<void>;
 }
 
 export interface SettingsApi {
@@ -101,6 +102,7 @@ export function createMenuBarApi(
         addPlaylist: () => send('POST', '/menu-bar/add-playlist'),
         openSettings: () => send('POST', '/menu-bar/settings'),
         quit: () => send('POST', '/menu-bar/quit'),
+        hide: () => send('POST', '/menu-bar/hide'),
     };
 }
 
