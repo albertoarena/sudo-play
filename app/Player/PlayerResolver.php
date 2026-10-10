@@ -37,19 +37,19 @@ final readonly class PlayerResolver implements PlayerInterface
      */
     public function resolve(): PlayerInterface
     {
-        $stored = $this->settings->get(SettingKey::PlayerMode->value);
-        $mode = is_string($stored) ? PlayerMode::tryFrom($stored) : null;
-
-        return match ($mode ?? PlayerMode::Autoplay) {
-            PlayerMode::Autoplay => $this->autoplay,
-            PlayerMode::OpenApp => $this->openApp,
-            PlayerMode::Web => $this->web,
-        };
+        return $this->player($this->mode());
     }
 
+    /** Every result names the mode the setting chose, so the window can say what happened. */
     public function play(Playlist $playlist): PlayResult
     {
-        $player = $this->resolve();
+        $mode = $this->mode();
+
+        return $this->attempt($this->player($mode), $playlist)->ranAs($mode);
+    }
+
+    private function attempt(PlayerInterface $player, Playlist $playlist): PlayResult
+    {
         $result = $player->play($playlist);
 
         if ($result->outcome !== PlayOutcome::Failed) {
@@ -71,5 +71,21 @@ final readonly class PlayerResolver implements PlayerInterface
         }
 
         return PlayResult::fellBack($result->message.' '.self::FALLBACK_NOTE, (string) $result->reason);
+    }
+
+    private function mode(): PlayerMode
+    {
+        $stored = $this->settings->get(SettingKey::PlayerMode->value);
+
+        return (is_string($stored) ? PlayerMode::tryFrom($stored) : null) ?? PlayerMode::Autoplay;
+    }
+
+    private function player(PlayerMode $mode): PlayerInterface
+    {
+        return match ($mode) {
+            PlayerMode::Autoplay => $this->autoplay,
+            PlayerMode::OpenApp => $this->openApp,
+            PlayerMode::Web => $this->web,
+        };
     }
 }
