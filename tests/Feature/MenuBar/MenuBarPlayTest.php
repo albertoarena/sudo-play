@@ -2,10 +2,12 @@
 
 declare(strict_types=1);
 
+use App\MenuBar\MenuBarWindow;
 use App\MenuBar\Quitter;
 use App\Player\PlayerInterface;
 use App\Player\PlayResult;
 use App\Player\UrlOpener;
+use Tests\Support\FakeMenuBarWindow;
 use Tests\Support\FakeQuitter;
 use Tests\Support\MenuBarCatalog;
 use Tests\Support\MenuBarSetup;
@@ -72,5 +74,16 @@ describe('footer', function (): void {
         $this->postJson('/menu-bar/quit')->assertNoContent();
 
         expect($quitter->quits)->toBe(1);
+    });
+});
+
+describe('keyboard', function (): void {
+    it('hides the window for Esc', function (): void {
+        $window = new FakeMenuBarWindow;
+        app()->instance(MenuBarWindow::class, $window);
+
+        $this->postJson('/menu-bar/hide')->assertNoContent();
+
+        expect($window->hides)->toBe(1);
     });
 });
