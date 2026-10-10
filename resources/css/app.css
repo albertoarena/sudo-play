@@ -67,6 +67,25 @@
     outline-offset: 2px;
 }
 
+/*
+    One pointer cursor for the whole app. Tailwind 4 gives a button the plain
+    cursor, which makes the popover feel like a page of text. Only an enabled
+    control takes the pointer, so Play while it runs and the weekdays box keep
+    the plain one. The rule sits in the base layer and `:where` keeps its
+    specificity at zero, so `disabled:cursor-default` still wins.
+*/
+@layer base {
+    :where(
+            button:enabled,
+            a[href],
+            [role="radio"]:not(:disabled),
+            input:is([type="checkbox"], [type="radio"]):enabled,
+            label:has(input:is([type="checkbox"], [type="radio"]):enabled)
+        ) {
+        cursor: pointer;
+    }
+}
+
 /* The Inertia root fills the menu bar window, so the footer sits at the bottom. */
 #app {
     height: 100%;
