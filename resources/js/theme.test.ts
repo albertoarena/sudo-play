@@ -139,6 +139,38 @@ describe('the colour scheme in app.css', () => {
     it('names no font that the app does not load', () => {
         expect(appCss).not.toContain('Instrument Sans');
     });
+
+    // Without an authored focus style the browser draws its own, which on
+    // macOS follows the system accent colour and can put orange on a green
+    // chip. One rule in app.css covers every control, so no component can
+    // forget it.
+    it('authors one focus style, in the project colour', () => {
+        const rule = /:focus-visible\s*\{[^}]*outline:\s*2px solid var\(--color-focus\)[^}]*outline-offset:\s*2px/;
+
+        expect(appCss).toMatch(rule);
+    });
+});
+
+describe('the components', () => {
+    const components = [
+        'resources/js/pages/MenuBar.vue',
+        'resources/js/pages/Settings.vue',
+        'resources/js/components/ChipGroup.vue',
+        'resources/js/components/CommandLine.vue',
+        'resources/js/components/PickCard.vue',
+    ];
+
+    // Colours belong to the scheme, not to a component. A raw palette class
+    // cannot be checked for contrast and cannot follow the dark scheme, so
+    // none is allowed in these files.
+    for (const path of components) {
+        it(`uses the colour tokens, not the palette, in ${path}`, () => {
+            const markup = readFileSync(path, 'utf8');
+            const palette = /\b(?:emerald|amber|zinc|neutral|gray|slate|stone|green|teal|lime)-\d{2,3}\b/g;
+
+            expect(markup.match(palette)).toBeNull();
+        });
+    }
 });
 
 describe('the contrast formula', () => {
