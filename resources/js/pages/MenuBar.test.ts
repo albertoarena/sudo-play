@@ -155,6 +155,22 @@ describe('MenuBar', () => {
         expect(api.addPlaylist).toHaveBeenCalledOnce();
     });
 
+    it('explains a fallback in the command line and opens the contributing page from the card', async () => {
+        const api = fakeApi();
+        const fallback = state({
+            selection: { genre: 'electronic', mood: 'debugging' },
+            note: 'no electronic for debugging, playing jazz',
+        });
+        const wrapper = mount(MenuBar, { props: { state: fallback, api } });
+
+        expect(wrapper.find('header').text()).toContain('$ sudo play --genre electronic --mood debugging');
+        expect(wrapper.find('header').text()).toContain('# no electronic for debugging, playing jazz');
+
+        await button(wrapper, 'Add one').trigger('click');
+
+        expect(api.addPlaylist).toHaveBeenCalledOnce();
+    });
+
     it('opens the settings window from the footer', async () => {
         const api = fakeApi();
         const wrapper = mount(MenuBar, { props: { state: state(), api } });

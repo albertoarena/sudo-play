@@ -13,7 +13,7 @@ const pick: Pick = {
 
 describe('PickCard', () => {
     it('renders the title, the genre, the mood and the curator', () => {
-        const wrapper = mount(PickCard, { props: { pick, note: null, empty: null } });
+        const wrapper = mount(PickCard, { props: { pick, fallback: false, empty: null } });
 
         expect(wrapper.text()).toContain('Riffs for risky releases');
         expect(wrapper.text()).toContain('Rock');
@@ -22,21 +22,37 @@ describe('PickCard', () => {
     });
 
     it('leaves the curator out when there is none', () => {
-        const wrapper = mount(PickCard, { props: { pick: { ...pick, curator: null }, note: null, empty: null } });
+        const wrapper = mount(PickCard, { props: { pick: { ...pick, curator: null }, fallback: false, empty: null } });
 
         expect(wrapper.text()).not.toContain('@');
     });
 
-    it('shows the fallback note under the pick', () => {
-        const note = 'No lo-fi playlist for Debugging yet, here is a jazz one. Add one on GitHub!';
-        const wrapper = mount(PickCard, { props: { pick, note, empty: null } });
+    it('invites a playlist with a muted link when the pick is a fallback', async () => {
+        const wrapper = mount(PickCard, { props: { pick, fallback: true, empty: null } });
 
-        expect(wrapper.text()).toContain(note);
+        const link = wrapper.find('button');
+        expect(link.text()).toBe('Add one');
+        expect(link.classes()).toContain('text-muted');
+
+        await link.trigger('click');
+        expect(wrapper.emitted('add-playlist')).toHaveLength(1);
+    });
+
+    it('keeps the warning colour for real errors, never for a fallback', () => {
+        const wrapper = mount(PickCard, { props: { pick, fallback: true, empty: null } });
+
+        expect(wrapper.find('.text-warning').exists()).toBe(false);
+    });
+
+    it('shows no link for an exact pick', () => {
+        const wrapper = mount(PickCard, { props: { pick, fallback: false, empty: null } });
+
+        expect(wrapper.find('button').exists()).toBe(false);
     });
 
     it('renders the empty state with a link to add a playlist', async () => {
         const wrapper = mount(PickCard, {
-            props: { pick: null, note: null, empty: 'No playlists in the catalog yet' },
+            props: { pick: null, fallback: false, empty: 'No playlists in the catalog yet' },
         });
 
         expect(wrapper.text()).toContain('No playlists in the catalog yet');
