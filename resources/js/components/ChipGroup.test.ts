@@ -86,6 +86,7 @@ describe('ChipGroup', () => {
             const wrapper = mount(ChipGroup, { props: { label: 'Genre', options: genres, selected: 'lofi' } });
 
             await wrapper.findAll('button')[2]?.trigger('keydown', { key: 'ArrowRight' });
+            await wrapper.setProps({ selected: 'rock' });
             await wrapper.findAll('button')[0]?.trigger('keydown', { key: 'ArrowLeft' });
 
             expect(wrapper.emitted('select')).toEqual([['rock'], ['lofi']]);
