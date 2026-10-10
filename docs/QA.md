@@ -64,6 +64,7 @@ Settings, Appearance. The contrast numbers are already checked by
 - [ ] Tab through the menu bar window: every button and chip takes a green focus ring, 2px with a gap, and no ring is clipped by the window edge
 - [ ] Tab through the settings window: the same ring on every field, checkbox, radio and button
 - [ ] The focus ring stays green after changing the macOS accent colour to orange in System Settings, Appearance
+- [ ] With the macOS accent colour set to orange, a ticked checkbox and a chosen radio in the settings window stay green
 - [ ] With Play disabled, it is dimmed and the pointer stays an arrow
 - [ ] A warning line, for example after denying the Automation permission, reads as a warning and not as body text
 - [ ] The window uses the system font, with no flash of a fallback on open

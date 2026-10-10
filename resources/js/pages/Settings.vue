@@ -108,6 +108,9 @@ const help = 'text-xs text-muted';
 // nothing to click. The weekdays checkbox only takes the cursor: its label is
 // already dimmed, and two layers of 40 per cent leave it almost invisible.
 const disabled = 'disabled:cursor-default disabled:opacity-40';
+// The system draws a checkbox and a radio, and paints them in the macOS
+// accent colour unless the page names its own.
+const tick = 'accent-accent';
 </script>
 
 <template>
@@ -159,6 +162,7 @@ const disabled = 'disabled:cursor-default disabled:opacity-40';
                             v-model="form.playerMode"
                             type="radio"
                             name="player-mode"
+                            :class="tick"
                             :value="mode.id"
                         />
                         {{ mode.label }}
@@ -171,7 +175,7 @@ const disabled = 'disabled:cursor-default disabled:opacity-40';
                 <h2 :class="heading">Daily reminder</h2>
                 <div class="flex flex-col gap-2">
                     <label class="flex items-center gap-2 text-sm">
-                        <input id="reminder-enabled" v-model="form.reminderEnabled" type="checkbox" />
+                        <input id="reminder-enabled" v-model="form.reminderEnabled" type="checkbox" :class="tick" />
                         Remind me of today's pick
                     </label>
                     <label class="flex items-center gap-2 text-sm">
@@ -191,7 +195,7 @@ const disabled = 'disabled:cursor-default disabled:opacity-40';
                             id="weekdays-only"
                             v-model="form.weekdaysOnly"
                             type="checkbox"
-                            class="disabled:cursor-default"
+                            :class="[tick, 'disabled:cursor-default']"
                             :disabled="!form.reminderEnabled"
                         />
                         Weekdays only
@@ -202,7 +206,7 @@ const disabled = 'disabled:cursor-default disabled:opacity-40';
             <section>
                 <h2 :class="heading">System</h2>
                 <label class="flex items-center gap-2 text-sm">
-                    <input id="launch-at-login" v-model="form.launchAtLogin" type="checkbox" />
+                    <input id="launch-at-login" v-model="form.launchAtLogin" type="checkbox" :class="tick" />
                     Open Sudo Play when I log in
                 </label>
             </section>
