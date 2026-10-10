@@ -485,3 +485,13 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Note:** `FallbackNote` returns the comment text from ids alone, so it no longer needs the catalog. The `#` sign is drawn by `CommandLine`, like the `$` sign. `PickCard` takes a `fallback` flag instead of the text, because it only needs to know whether to show the link. The window keeps its height: the card lost one line and the header gained one. The QA check on the footer at the default size is open again until it is seen on a Mac.
 
 **Would change if:** the app is translated. The comment is built from ids, so only its few English words would move to the language files.
+
+## 2026-10-10: The mark is a prompt and equaliser bars
+
+**Choice:** the app icon and the menu bar icon show a `>` prompt followed by three equaliser bars. On the app icon the prompt is dim and the bars are the scheme's green, on a dark terminal panel. The art lives in `art/`, and the menu bar images in `public/` are exported from it. Alberto chose this on 2026-10-10 from two sketches.
+
+**Why:** the old `>_` said "terminal" and nothing about music, and it was optically small next to other menu bar icons. The other sketch, `$` with a play triangle, was dropped because the `$` reads as money first, which looks like "pay to play" on a free app.
+
+**Note:** the menu bar canvas is now 22 by 16 points instead of 16 by 16, so the mark can be wider than it is tall, as many menu bar icons are. The app icon is not wired into the build yet; that is a separate change.
+
+**Would change if:** the mark has to work as a single glyph, for example a favicon at 16 pixels, where the bars alone may read better than the pair.
