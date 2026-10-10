@@ -21,6 +21,17 @@ const current = ref<MenuBarState>(props.state);
 const message = ref<string | null>(null);
 const busy = ref(false);
 
+// The title that Play just started, shown for a moment as proof the press
+// worked. Each Play starts the three seconds again.
+const played = ref<string | null>(null);
+let playedTimer: ReturnType<typeof setTimeout> | undefined;
+
+function confirm(title: string): void {
+    played.value = title;
+    clearTimeout(playedTimer);
+    playedTimer = setTimeout(() => (played.value = null), 3000);
+}
+
 const footerDate = computed((): string =>
     current.value.catalogDate === null ? 'Bundled catalog' : `Catalog updated ${current.value.catalogDate}`,
 );
@@ -33,6 +44,7 @@ async function run(action: () => Promise<MenuBarState>): Promise<void> {
     actions++;
     busy.value = true;
     message.value = null;
+    played.value = null;
 
     try {
         current.value = await action();
@@ -76,9 +88,16 @@ async function play(): Promise<void> {
 
     busy.value = true;
     message.value = null;
+    played.value = null;
 
     try {
-        message.value = (await props.api.play(pick.id)).message;
+        const result = await props.api.play(pick.id);
+
+        if (result.outcome === 'played') {
+            confirm(pick.title);
+        } else {
+            message.value = result.message;
+        }
     } catch {
         message.value = 'Could not open the playlist.';
     } finally {
@@ -263,6 +282,9 @@ const disabled = 'disabled:cursor-default disabled:opacity-40';
             </div>
 
             <p v-if="message !== null" role="status" class="text-xs text-warning">{{ message }}</p>
+            <p v-else-if="played !== null" role="status" class="font-mono text-xs text-muted">
+                <span aria-hidden="true">▶</span> playing "{{ played }}"
+            </p>
             <p v-else-if="current.hint !== null" class="text-xs text-muted">{{ current.hint }}</p>
 
             <footer class="flex items-center gap-3 text-xs text-muted">
