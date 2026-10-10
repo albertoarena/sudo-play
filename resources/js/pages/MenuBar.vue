@@ -25,7 +25,12 @@ const footerDate = computed((): string =>
     current.value.catalogDate === null ? 'Bundled catalog' : `Catalog updated ${current.value.catalogDate}`,
 );
 
+// Counts the actions the user started, so a slow focus refresh can tell that
+// its answer is older than a click.
+let actions = 0;
+
 async function run(action: () => Promise<MenuBarState>): Promise<void> {
+    actions++;
     busy.value = true;
     message.value = null;
 
@@ -115,8 +120,22 @@ async function hide(): Promise<void> {
 
 // The window stays alive between clicks on the icon. Asking again on focus
 // picks up a catalog the background sync replaced and a day that turned over.
-function refresh(): void {
-    void run(() => props.api.state(current.value.presses, current.value.date));
+// It happens on every open, so it is silent: the buttons stay as they are, a
+// failure says nothing, and the state is replaced only when it changed. An
+// answer that arrives after a click is older than that click, so it is dropped.
+async function refresh(): Promise<void> {
+    const started = actions;
+    let answer: MenuBarState;
+
+    try {
+        answer = await props.api.state(current.value.presses, current.value.date);
+    } catch {
+        return;
+    }
+
+    if (started === actions && JSON.stringify(answer) !== JSON.stringify(current.value)) {
+        current.value = answer;
+    }
 }
 
 onMounted(() => window.addEventListener('focus', refresh));
