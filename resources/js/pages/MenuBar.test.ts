@@ -188,6 +188,94 @@ describe('MenuBar', () => {
             expect(wrapper.text()).not.toContain('opened "Riffs for risky releases"');
         });
 
+        // Spotify's web player does not start a playlist opened from a link.
+        it('says the playlist opened in the browser in Web player mode', async () => {
+            const api = fakeApi();
+            api.play = vi.fn(async () => ({ outcome: 'played' as const, message: null, mode: 'web' as const }));
+            const wrapper = mount(MenuBar, { props: { state: state(), api } });
+
+            await button(wrapper, 'Play').trigger('click');
+            await flushPromises();
+
+            const line = wrapper.get('[role="status"]');
+            expect(line.text()).toBe('▶ opened "Riffs for risky releases" in your browser');
+            expect(line.classes()).toEqual(expect.arrayContaining(['font-mono', 'text-muted']));
+            expect(wrapper.text()).not.toContain('playing');
+
+            vi.advanceTimersByTime(3000);
+            await flushPromises();
+            expect(wrapper.text()).not.toContain('opened "Riffs for risky releases"');
+        });
+
+        // Starting Spotify can take up to about 20 seconds. Until the answer
+        // comes, Play stays off and nothing claims the playlist plays.
+        it('keeps Play disabled and says nothing until the answer comes', async () => {
+            let answer: (value: Awaited<ReturnType<MenuBarApi['play']>>) => void = () => undefined;
+            const api = fakeApi();
+            api.play = vi.fn(() => new Promise((resolve) => (answer = resolve)));
+            const wrapper = mount(MenuBar, { props: { state: state(), api } });
+
+            await button(wrapper, 'Play').trigger('click');
+            vi.advanceTimersByTime(20000);
+            await flushPromises();
+
+            expect(button(wrapper, 'Play').attributes('disabled')).toBeDefined();
+            expect(wrapper.text()).not.toContain('▶');
+
+            answer({ outcome: 'played', message: null, mode: 'autoplay' });
+            await flushPromises();
+
+            expect(button(wrapper, 'Play').attributes('disabled')).toBeUndefined();
+            expect(wrapper.get('[role="status"]').text()).toBe('▶ playing "Riffs for risky releases"');
+        });
+
+        describe('when Spotify is still starting', () => {
+            function starting() {
+                const api = fakeApi();
+                api.play = vi.fn(async () => ({ outcome: 'starting' as const, message: null, mode: 'autoplay' as const }));
+
+                return { api, wrapper: mount(MenuBar, { props: { state: state(), api } }) };
+            }
+
+            it('asks for another Play in a dimmed comment line', async () => {
+                const { wrapper } = starting();
+
+                await button(wrapper, 'Play').trigger('click');
+                await flushPromises();
+
+                const line = wrapper.get('[role="status"]');
+                expect(line.text()).toBe('# spotify is still starting, press Play again');
+                expect(line.classes()).toEqual(expect.arrayContaining(['font-mono', 'text-muted']));
+                expect(line.classes()).not.toContain('text-warning');
+                expect(wrapper.text()).not.toContain('▶');
+            });
+
+            it('keeps the window open and the line on screen', async () => {
+                const { api, wrapper } = starting();
+
+                await button(wrapper, 'Play').trigger('click');
+                await flushPromises();
+                vi.advanceTimersByTime(10000);
+                await flushPromises();
+
+                expect(api.hide).not.toHaveBeenCalled();
+                expect(wrapper.get('[role="status"]').text()).toBe('# spotify is still starting, press Play again');
+                expect(button(wrapper, 'Play').attributes('disabled')).toBeUndefined();
+            });
+
+            it('takes the line away when Play is pressed again', async () => {
+                const { api, wrapper } = starting();
+
+                await button(wrapper, 'Play').trigger('click');
+                await flushPromises();
+                api.play = vi.fn(async () => ({ outcome: 'played' as const, message: null, mode: 'autoplay' as const }));
+                await button(wrapper, 'Play').trigger('click');
+                await flushPromises();
+
+                expect(wrapper.get('[role="status"]').text()).toBe('▶ playing "Riffs for risky releases"');
+            });
+        });
+
         it('keeps the line for three seconds from the last Play', async () => {
             const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
 
