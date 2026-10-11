@@ -1,5 +1,8 @@
 # Art
 
+The art here is not covered by the MIT licence. See [TRADEMARK.md](../TRADEMARK.md)
+for what you can do with it without asking.
+
 The Sudo Play mark: a dim terminal prompt followed by three green equaliser
 bars. It says "terminal" and "music" in two shapes, and uses the same pairing
 as the command line header in the app: a dim sign, a bright green command.

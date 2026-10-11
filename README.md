@@ -70,7 +70,7 @@ See [PRIVACY.md](PRIVACY.md).
 
 ## Contributing
 
-Playlists, fixes and ideas are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md). It explains how to add a playlist and how to run the checks.
+Playlists, fixes and ideas are welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md). It explains how to add a playlist and how to run the checks. Forking to contribute needs no permission and keeps this project's name: [TRADEMARK.md](TRADEMARK.md) is about publishing your own version, not about pull requests.
 
 ## Documentation
 
@@ -90,3 +90,5 @@ Spotify is a trademark of Spotify AB.
 ## Licence
 
 [MIT](LICENSE). Contributions are made under MIT too, see [CONTRIBUTING.md](CONTRIBUTING.md#licence-of-contributions).
+
+The licence covers the code. The name, the app icon, the other art and the tagline are not part of it, and [TRADEMARK.md](TRADEMARK.md) says what you can do with them. Most things need no permission, including writing about Sudo Play and contributing.
