@@ -585,7 +585,7 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Note:** the choices the fix left open:
 
 - An `<option>` holds plain text, so its emoji cannot be hidden on its own. Each mood option in Settings takes its label as its `aria-label` and keeps the emoji on screen
-- The window counts the columns itself: the font is monospace, so the width of the line over the width of one character says how many fit. It measures again when the line changes size. Before the window is laid out the command stays on one line
+- The window counts the columns itself: the font is monospace, so the width of the line over the width of one character says how many fit. One character is measured on a hidden probe of ten characters that never wraps. The first version measured the command text, and Alberto's Mac QA found on 2026-10-11 that it never wrapped: the browser had already wrapped that text, so its box was as wide as the line and the command seemed to fit. It measures again when the line changes size. Before the window is laid out the command stays on one line
 - `sudo play` counts as one part, like each flag with its value. A part wider than the whole line gets a line of its own, and only then may the browser break it, because the other choice is text cut off at the window edge
 - The backslash is dimmed like the `$` sign. The comment line under the command does not wrap this way: it is a comment, not a command
 - The curator handle takes `font-mono text-xs`, the size of the "today's pick" label, not only its font
