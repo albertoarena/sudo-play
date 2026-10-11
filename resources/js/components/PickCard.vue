@@ -20,7 +20,9 @@ const emit = defineEmits<{
             <h2 class="mt-1 text-base font-semibold">{{ pick.title }}</h2>
             <p class="mt-1 text-sm text-muted">
                 {{ pick.genre.label }} · <span aria-hidden="true">{{ pick.mood.emoji }}</span> {{ pick.mood.label }}
-                <span v-if="pick.curator !== null"> · @{{ pick.curator }}</span>
+                <template v-if="pick.curator !== null">
+                    · <span data-curator class="font-mono text-xs">@{{ pick.curator }}</span>
+                </template>
             </p>
             <button
                 v-if="fallback"
