@@ -84,6 +84,18 @@ function clearStatus(): void {
     announced.value = null;
 }
 
+// The label of the genre that was asked for, when the pick comes from a wider
+// search. The card names it in its "Add a ... playlist" link.
+const askedGenre = computed((): string | null => {
+    const id = current.value.selection.genre;
+
+    if (current.value.note === null || current.value.pick === null || id === null) {
+        return null;
+    }
+
+    return current.value.genres.find((genre) => genre.id === id)?.label ?? id;
+});
+
 const footerDate = computed((): string =>
     current.value.catalogDate === null ? 'Built-in playlists' : `Catalog updated ${current.value.catalogDate}`,
 );
@@ -294,7 +306,7 @@ const footerLink = 'min-h-6 rounded px-1.5 hover:text-ink hover:underline focus-
 
             <PickCard
                 :pick="current.pick"
-                :fallback="current.note !== null"
+                :asked-genre="askedGenre"
                 :empty="current.empty"
                 @add-playlist="openContributing"
             />
