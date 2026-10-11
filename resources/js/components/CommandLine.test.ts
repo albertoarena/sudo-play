@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { mount } from '@vue/test-utils';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { flushPromises, mount } from '@vue/test-utils';
 import CommandLine from './CommandLine.vue';
 
 describe('CommandLine', () => {
@@ -40,5 +40,50 @@ describe('CommandLine', () => {
 
         expect(wrapper.findAll('p')).toHaveLength(1);
         expect(wrapper.text()).not.toContain('#');
+    });
+
+    describe('when the command does not fit', () => {
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        // The window is about 30 columns wide: 300px of line, 10px a character.
+        function narrow(): void {
+            vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(300);
+            vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+                width: 100,
+            } as DOMRect);
+        }
+
+        it('continues on the next line after a backslash, as a shell does', async () => {
+            narrow();
+            const wrapper = mount(CommandLine, { props: { genre: 'rock', mood: 'friday-deploy', note: null } });
+            await flushPromises();
+
+            const lines = wrapper.findAll('[data-line]');
+
+            expect(lines.map((line) => line.text())).toEqual(['$ sudo play --genre rock \\', '--mood friday-deploy']);
+            expect(lines[1]?.element.textContent).toBe('  --mood friday-deploy');
+        });
+
+        it('hides the backslash from screen readers and dims it like the prompt sign', async () => {
+            narrow();
+            const wrapper = mount(CommandLine, { props: { genre: 'rock', mood: 'friday-deploy', note: null } });
+            await flushPromises();
+
+            const slash = wrapper.findAll('[data-line]')[0]?.find('[aria-hidden="true"]');
+
+            expect(slash?.text()).toBe('\\');
+            expect(slash?.classes()).toContain('text-term-dim');
+        });
+
+        it('keeps a command that fits on one line with no backslash', async () => {
+            narrow();
+            const wrapper = mount(CommandLine, { props: { genre: 'jazz', mood: null, note: null } });
+            await flushPromises();
+
+            expect(wrapper.findAll('[data-line]')).toHaveLength(1);
+            expect(wrapper.text()).toBe('$ sudo play --genre jazz');
+        });
     });
 });
