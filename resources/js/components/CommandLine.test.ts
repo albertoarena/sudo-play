@@ -38,7 +38,7 @@ describe('CommandLine', () => {
 
         const lines = wrapper.findAll('p');
         expect(lines).toHaveLength(2);
-        expect(lines[0].text()).toBe('$ sudo play --genre electronic --mood flow-state');
+        expect(command(wrapper)).toBe('$ sudo play --genre electronic --mood flow-state');
         expect(lines[1].text()).toBe('# no electronic for flow-state, playing jazz');
         expect(lines[1].classes()).toContain('text-term-dim');
     });
@@ -96,13 +96,14 @@ describe('CommandLine', () => {
 
         it('takes the character width from the probe, not from the command the browser already wrapped', async () => {
             // The real window: the browser has wrapped the command text, so its
-            // box is as wide as the line, 300px, whatever its length. Only the
-            // probe, which never wraps, gives the true 10px a character.
-            vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(300);
+            // box is as wide as the line, 320px, whatever its length. Only the
+            // probe, which never wraps, gives the true 10px a character, so 32
+            // columns fit.
+            vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(320);
             vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
                 const probe = this.hasAttribute('data-probe');
 
-                return { width: probe ? (this.textContent?.length ?? 0) * 10 : 300 } as DOMRect;
+                return { width: probe ? (this.textContent?.length ?? 0) * 10 : 320 } as DOMRect;
             });
 
             const wrapper = mount(CommandLine, { props: { genre: 'classical', mood: 'friday-deploy', note: null } });

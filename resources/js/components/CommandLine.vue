@@ -10,16 +10,20 @@ const props = defineProps<{
 }>();
 
 // How many characters fit on a line. The font is monospace, so the width of
-// the first line's text over its number of characters is the width of one.
+// the line over the width of one character says it. One character is measured
+// on a hidden probe that never wraps. The command text cannot serve: once the
+// browser has wrapped it, its box is as wide as the line, whatever its length.
 // Until the window is laid out nothing has a width, and the command stays on
 // one line.
 const columns = ref(Infinity);
 const command = ref<HTMLElement | null>(null);
+const probe = ref<HTMLElement | null>(null);
+
+// The probe holds ten characters, so one is a tenth of its width.
+const PROBE = '0000000000';
 
 function measure(): void {
-    const text = command.value?.querySelector<HTMLElement>('[data-text]');
-    const length = text?.textContent?.length ?? 0;
-    const character = length > 0 ? (text?.getBoundingClientRect().width ?? 0) / length : 0;
+    const character = (probe.value?.getBoundingClientRect().width ?? 0) / PROBE.length;
     const available = command.value?.clientWidth ?? 0;
 
     columns.value = character > 0 && available > 0 ? Math.floor(available / character) : Infinity;
@@ -52,9 +56,16 @@ const lines = computed((): string[][] => wrapCommand(commandParts(props.genre, p
         only between flags. The browser wraps a line itself only when one flag
         alone is wider than the window.
     -->
-    <p ref="command" class="font-mono text-sm text-term-command">
+    <p ref="command" class="relative font-mono text-sm text-term-command">
+        <span
+            ref="probe"
+            data-probe
+            aria-hidden="true"
+            class="pointer-events-none invisible absolute whitespace-nowrap select-none"
+            >{{ PROBE }}</span
+        >
         <span v-for="(parts, index) in lines" :key="index" data-line class="block break-words whitespace-pre-wrap">
-            <span data-text><span v-if="index === 0" class="text-term-dim">$</span>{{ index === 0 ? ' ' : '  ' }}{{ parts.join(' ') }}<span v-if="index < lines.length - 1" aria-hidden="true" class="text-term-dim">{{ ' \\' }}</span></span>
+            <span><span v-if="index === 0" class="text-term-dim">$</span>{{ index === 0 ? ' ' : '  ' }}{{ parts.join(' ') }}<span v-if="index < lines.length - 1" aria-hidden="true" class="text-term-dim">{{ ' \\' }}</span></span>
         </span>
     </p>
     <p v-if="note !== null" class="font-mono text-xs break-words text-term-dim"># {{ note }}</p>
