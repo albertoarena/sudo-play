@@ -82,6 +82,7 @@ Add these scripts to `composer.json` and `package.json` in milestone 0 if they d
 - UI copy and docs: plain English, short sentences, no em dashes
 - Colours come from the semantic tokens in `resources/css/app.css`, never a palette class such as `emerald-600`. `resources/js/theme.test.ts` measures every pair against WCAG AA and refuses a palette class in a component. Add a token, check the test, then use it
 - The pointer cursor comes from one base rule in `resources/css/app.css`, which `resources/js/theme.test.ts` checks. Do not add `cursor-pointer` to a component. Keep `disabled:cursor-default` on a control that can be disabled
+- Emoji are for moods only. An emoji goes in its own `aria-hidden="true"` part, so a screen reader reads the label alone. An `<option>` holds plain text only, so it takes the label as its `aria-label` instead
 - Never use the Spotify logo. Text only: "Open in Spotify". The README must say the project is not affiliated with Spotify.
 
 ## Git conventions

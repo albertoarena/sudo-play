@@ -38,7 +38,7 @@ that count for the release.
 
 - [x] The menu bar icon is readable in light mode and dark mode _(dev, 2026-10-08)_
 - [ ] Clicking the icon opens a window of 360 by 520 under the icon, and there is no Dock icon
-- [ ] The footer stays visible without scrolling at the default window size, with a fallback comment, the "Add one" link and the autoplay hint all showing
+- [ ] The footer stays visible without scrolling at the default window size, with a fallback comment, the "Add a ... playlist" link and the autoplay hint all showing
 - [x] No unthemed band appears below the content in dark mode, at any scroll position _(dev, 2026-10-08)_
 - [x] The buttons and the footer stay put while the chips and the pick card scroll _(dev, 2026-10-08)_
 - [ ] "Add a playlist" opens the contributing page in the default browser, not inside the window
@@ -72,8 +72,12 @@ Settings, Appearance. The contrast numbers are already checked by
 - [ ] With the macOS accent colour set to orange, a ticked checkbox and a chosen radio in the settings window stay green
 - [ ] With Play disabled, it is dimmed and the pointer stays an arrow
 - [ ] A warning line, for example after denying the Automation permission, reads as a warning and not as body text
-- [ ] Pick a genre and mood with no playlist, so a fallback plays: the command line keeps the command as asked and shows a dim `#` comment line under it, the card shows a muted "Add one" link, and nothing on screen is amber
-- [ ] "Add one" on the card opens the contributing page in the default browser
+- [ ] Pick a genre and mood with no playlist, so a fallback plays: the command line keeps the command as asked and shows a dim `#` comment line under it, the card shows a muted link that names the asked genre, such as "Add a classical playlist", and nothing on screen is amber
+- [ ] The "Add a ... playlist" link on the card opens the contributing page in the default browser
+- [ ] Pick a genre and mood that has nothing, not even a fallback: the header shows a dim `# no playlists yet` line under the command, and the card keeps its sentence and its "Add a playlist" link
+- [ ] Choose a long genre and mood, such as `--genre electronic --mood friday-deploy`: if the command does not fit, it breaks between flags with a dim ` \` at the end of the line and a two space indent on the next, never inside a flag. Make the window narrower if the NativePHP window allows it and check again
+- [ ] The curator handle on the card is in the mono font, and sits well next to the genre and mood
+- [ ] The Settings section headings look like the "today's pick" label: mono, small, grey, lower case
 - [ ] The window uses the system font, with no flash of a fallback on open
 
 ## Keyboard
@@ -86,9 +90,11 @@ VoiceOver with Command F5 for the two screen reader checks.
 - [ ] Esc hides the window, and a click on the icon opens it again on the same pick
 - [ ] Esc still hides the window while a button or a chip has focus
 - [ ] Command N, Command S and Command Q keep their usual meaning and do not trigger a shortcut
-- [ ] Tab goes genre chips, mood chips, then Play, with one stop for each chip group. With a fallback, "Add one" comes just before Play
+- [ ] Tab goes genre chips, mood chips, then Play, with one stop for each chip group. With a fallback, the "Add a ... playlist" link comes just before Play
 - [ ] Inside a chip group, the arrow keys move and select, Home and End jump to the ends, and the command line follows
 - [ ] VoiceOver reads a chip as a radio button with its place, such as "Jazz, radio button, 2 of 7"
+- [ ] VoiceOver reads a mood chip by its label, "Shipped It", with no emoji name first. The same on the card's mood, and on the mood options in Settings, Defaults
+- [ ] VoiceOver does not read the backslash of a wrapped command line
 - [ ] Hovering Play, Next and Surprise me shows "Play (Enter)", "Next (N)" and "Surprise me (S)"
 
 ## Feedback

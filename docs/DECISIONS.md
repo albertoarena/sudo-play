@@ -575,3 +575,22 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Accepted cost:** the Play request can now take about 20 seconds, or a few more if a call hangs at the end. Nothing cuts it short: the window's `fetch` has no timeout, and PHP counts CPU time, not waiting. But NativePHP serves the app with `php -S`, one request at a time, so Esc, Settings or Quit pressed during the wait take effect after it.
 
 **Would change if:** the QA checks show cold starts regularly taking longer than 20 seconds on a normal Mac, or NativePHP serves more than one request at a time.
+
+## 2026-10-10: Small fixes to the popover and Settings
+
+**Choice:** mood emoji are hidden from screen readers. A command too wide for the window wraps between flags, with a trailing ` \` and a two space indent. The curator handle and the Settings headings use the mono label style of "today's pick". The fallback link says "Add a classical playlist". The empty state for a genre and mood with nothing gets `# no playlists yet` in the header. `.impeccable/` is ignored. Alberto decided this on 2026-10-10 as design fix D6. Requirements 5, 7.1 and 7.2 now say so.
+
+**Why:** a screen reader read "party popper Shipped It". The browser broke the command inside a flag, such as `--mood` on one line and `friday-deploy` on the next. "Add one" left the reader to guess what one was. The empty state had no line in the header to say why the card is empty, where a fallback has one.
+
+**Note:** the choices the fix left open:
+
+- An `<option>` holds plain text, so its emoji cannot be hidden on its own. Each mood option in Settings takes its label as its `aria-label` and keeps the emoji on screen
+- The window counts the columns itself: the font is monospace, so the width of the line over the width of one character says how many fit. It measures again when the line changes size. Before the window is laid out the command stays on one line
+- `sudo play` counts as one part, like each flag with its value. A part wider than the whole line gets a line of its own, and only then may the browser break it, because the other choice is text cut off at the window edge
+- The backslash is dimmed like the `$` sign. The comment line under the command does not wrap this way: it is a comment, not a command
+- The curator handle takes `font-mono text-xs`, the size of the "today's pick" label, not only its font
+- The Settings headings are lower case in the text itself, not through CSS, so a screen reader and a copy read what the screen shows. The bold and the letter spacing went with the capitals
+- The link takes "an" before a genre that starts with a vowel: "Add an indie playlist". A genre missing from the catalog's list falls back to its id
+- `# no playlists yet` is the state's `note`, built on the server like a fallback note. It shows only when the catalog has playlists but none for the chosen pair. An empty catalog keeps its own sentence and no comment, because it has no genre or mood to comment on
+
+**Would change if:** a genre label ever needs a different article than its first letter suggests, such as one that starts with a silent consonant. Then the catalog should carry the link text.
