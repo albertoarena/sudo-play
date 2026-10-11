@@ -37,6 +37,12 @@ final readonly class PlayResult
         return new self(PlayOutcome::Played, message: null, reason: null);
     }
 
+    /** The window draws its own line for this, so there is no message. */
+    public static function starting(string $reason): self
+    {
+        return new self(PlayOutcome::Starting, message: null, reason: $reason);
+    }
+
     public static function fellBack(string $message, string $reason): self
     {
         return new self(PlayOutcome::FellBack, $message, $reason);

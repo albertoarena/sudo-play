@@ -272,6 +272,8 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 
 **Would change if:** the manual checks in `docs/QA.md` show cold starts regularly taking longer on a normal Mac.
 
+**Replaced** on 2026-10-11 by design fix D7: the play event sent during a cold start was lost, so a timeout left Spotify idle and the browser playing.
+
 ## 2026-10-07: A denied Automation permission gets its own message
 
 **Choice:** when `osascript` fails with error -1743 ("Not authorized to send Apple events"), the message tells the user where to allow it: System Settings, Privacy & Security, Automation. Every other failure says "Could not start Spotify."
@@ -518,7 +520,7 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 
 ## 2026-10-10: The popover gives quiet feedback
 
-**Choice:** the focus refresh is silent, a played Play shows `▶ playing "<title>"` for three seconds, and one live region is always in the window. Alberto decided this on 2026-10-10 as design fix D4. Requirements 7.1 now says so.
+**Choice:** the focus refresh is silent, a played Play shows `▶ playing "<title>"` until the next action, and one live region is always in the window. Alberto decided this on 2026-10-10 as design fix D4. Requirements 7.1 now says so. The line first went after three seconds. Alberto's Mac QA for D7 found on 2026-10-11 that it was never seen in Open only and Web player mode: Spotify or the browser takes the focus, the window hides on blur, and the timer cleared the line before the window opened again. So the timer went.
 
 **Why:** the buttons dimmed on every open, a Play gave no sign that it worked, and a status line inserted with `v-if` may not be read out.
 
@@ -530,7 +532,7 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 - The line shows only for the `played` outcome. A fallback or a failure keeps its own message
 - The line said "playing" in every player mode, because the window did not know the mode. In "open only" mode that was not true: Spotify waits for its own Play press. Design fix D5 closed the gap: the Play answer now names the mode, and that mode says `▶ opened "<title>" in Spotify`
 - The play sign is hidden from screen readers, so they read "playing" and the title
-- The line goes when another action starts. Another Play starts the three seconds again
+- The line has no timer. It goes when another action starts: Next, Surprise me, a chip or another Play. A focus refresh does not clear it
 - The new pick is said to screen readers only, because the card already shows it. It is not said on the first draw, and it does not replace a line on screen
 - With nothing to show, the region is `sr-only`: out of the layout, still in the page
 - A new action clears the announcement too, so an old pick is not read again when a message goes away
@@ -546,9 +548,30 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 - The setting is `autoplay_worked`, false until a Play in autoplay mode comes back `played`. A fallback or a failure does not set it, and a Play in another mode does not either. Nothing clears it, and the Settings window does not show it
 - If the permission is taken away later, the hint does not come back. The failed Play already says where to allow it
 - `mode` in the Play answer is the mode the setting chose, with the same reading as the player resolver. A fallback still names that mode, not the browser, so the meaning of each outcome stays as it was
-- The Web player mode keeps the "playing" line. Whether the web player starts on its own depends on the browser. D5 fixes Open only mode, where the line was known to be wrong
+- The Web player mode keeps the "playing" line. Whether the web player starts on its own depends on the browser. D5 fixes Open only mode, where the line was known to be wrong. Design fix D7 closed this on 2026-10-11: the web player does not start a playlist opened from a link, so Web player mode says `▶ opened "<title>" in your browser`
 - A footer link is 24px tall through `min-h-6` and `px-1.5`. The gap between links went from 12px to 4px, because the padding now gives the space
 - Quit is set apart by a 1px line in the divider colour. It is decorative, so like the other dividers it is exempt from the 3 to 1 rule
 - The pointer rule covers enabled buttons, links with an `href`, enabled chips, enabled checkboxes and radios, and the label around one. The `disabled:cursor-default` classes stay as they were
 
 **Would change if:** NativePHP stops turning the inspector on with `app.debug`. Then `->showDevTools(false)` can go, but it does no harm.
+
+## 2026-10-11: Autoplay waits for Spotify to start
+
+**Choice:** a closed Spotify is started first, without the play event, and asked for its player state until it answers, for about 20 seconds. Then the play event goes, with one retry when Spotify is not playing. When the time runs out with Spotify running, the new `starting` outcome keeps the window open with `# spotify is still starting, press Play again`, and the browser does not open. Web player mode says `▶ opened "<title>" in your browser`. Alberto decided this on 2026-10-11 as design fix D7. Requirements 6 and 7.1 now say so.
+
+**Why:** Alberto found on his Mac on 2026-10-10 that the play event sent during a cold start was lost. After 8 seconds the browser opened, and Spotify finished starting with nothing playing: the wrong player played and the right one was idle. A slow start is not a failure. Spotify is there and the next Play works, so a browser tab is the wrong answer. It stays the answer for real failures.
+
+**Note:** the choices the fix left open:
+
+- "Running" is asked with `application "Spotify" is running`, which does not start Spotify. Any answer other than `true`, a failure or a timeout included, means not running, and `open -g -a Spotify` then decides: it fails when Spotify is not installed
+- `-g` keeps Spotify in the background, so the menu bar window keeps its focus and stays open. If Spotify brings itself to the front while it starts, the app cannot stop that
+- Each question has a 2 second timeout, the play event 5 seconds. A question that hangs counts as no answer. A play event that hangs, with Spotify running, counts as still starting
+- After each play event the app waits half a second, then asks the player state. The retry is skipped when the 20 seconds are already used up
+- At the end of the 20 seconds, a Spotify that is not running means it did not start: "Spotify did not start.", and the browser opens. A `-1743` answer at any point means the permission is denied, and the wait ends at once
+- The comment line sits in the live region under the buttons, not in the header, because it answers the Play press. It has no timer, because it asks for an action. It uses the muted colour of the Play line, not the terminal dim colour, which is measured against the terminal background only
+- `starting` does not count as autoplay working, so the permission hint stays
+- The clock and the sleep are behind `App\Player\Clock`. The tests use a fake clock and a fake Spotify behind `Process::fake()`
+
+**Accepted cost:** the Play request can now take about 20 seconds, or a few more if a call hangs at the end. Nothing cuts it short: the window's `fetch` has no timeout, and PHP counts CPU time, not waiting. But NativePHP serves the app with `php -S`, one request at a time, so Esc, Settings or Quit pressed during the wait take effect after it.
+
+**Would change if:** the QA checks show cold starts regularly taking longer than 20 seconds on a normal Mac, or NativePHP serves more than one request at a time.

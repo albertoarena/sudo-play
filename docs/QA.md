@@ -18,7 +18,9 @@ that count for the release.
 - [ ] Denying that permission falls back to the web player and shows a short message
 - [ ] With the permission denied, the message says where to allow it (System Settings, Privacy & Security, Automation)
 - [ ] Autoplay with Spotify not installed falls back to the web player and shows a short message
-- [ ] Autoplay with Spotify closed either launches it and plays, or times out and falls back. It never hangs the window
+- [ ] Autoplay with Spotify closed: quit Spotify, press Play. Spotify opens and plays the playlist, and no browser tab opens. Play stays disabled meanwhile, and the window stays open
+- [ ] Autoplay with a slow Spotify start, if one can be produced (for example right after a restart, or with a large Spotify cache): press Play. Either Spotify plays the playlist, or after about 20 seconds the window stays open and says `# spotify is still starting, press Play again`. No browser tab opens. A second Play then plays the playlist
+- [ ] Autoplay with Spotify not installed does not show a "Where is Spotify?" dialog
 - [ ] Open only mode opens the playlist in the Spotify app without starting playback
 - [ ] Open only mode with Spotify not installed: write down what macOS does. The app cannot detect it, see `docs/DECISIONS.md`
 - [ ] Web player mode opens the playlist in the default browser
@@ -95,9 +97,11 @@ Open the window a few times from the menu bar icon, then use it with VoiceOver
 on for the last two checks.
 
 - [ ] Opening the window does not dim Play, Next and Surprise me, not even for a moment
-- [ ] After a played Play, `▶ playing "<title>"` shows under the buttons in grey, not amber, and goes after about three seconds
+- [ ] After a played Play, `▶ playing "<title>"` shows under the buttons in grey, not amber. It is still there when the window is opened again later, in every player mode, and goes when Next, Surprise me, a chip or another Play is pressed
 - [ ] The line does not make the window jump: the footer stays where it was when the line comes and goes
 - [ ] In Open only mode, a Play shows `▶ opened "<title>" in Spotify`, and Spotify opens the playlist without playing it
+- [ ] In Web player mode, a Play shows `▶ opened "<title>" in your browser`, and the browser opens the playlist
+- [ ] In autoplay mode, `▶ playing "<title>"` shows only once Spotify really plays, also after a cold start
 - [ ] The permission hint shows in autoplay mode until the first Play that starts music, then never again, also after a restart
 - [ ] With VoiceOver on, Next reads "Today's pick:" and the new title
 - [ ] With VoiceOver on, a message such as a failed Settings click is read out when it appears

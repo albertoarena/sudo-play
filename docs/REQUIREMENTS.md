@@ -112,9 +112,13 @@ The user chooses the player mode in settings:
 
 1. **Spotify app, autoplay** (default): runs AppleScript `tell application "Spotify" to play track "spotify:playlist:{id}"`. Starts playback directly.
 2. **Spotify app, open only**: opens the `spotify:playlist:{id}` URI. The user presses play.
-3. **Web player**: opens the `https://open.spotify.com/playlist/{id}` URL in the default browser.
+3. **Web player**: opens the `https://open.spotify.com/playlist/{id}` URL in the default browser. Spotify's web player does not start a playlist opened from a link, so the user presses play there too.
 
-If autoplay fails (Spotify not installed, AppleScript error), fall back to the web player and show a short message. macOS may ask permission to control Spotify the first time: the app explains this in one line.
+Autoplay when Spotify is closed: a play event sent while Spotify starts is lost. So the app first starts Spotify in the background without the play event (`open -g -a Spotify`), then asks for its `player state` about every half second, for about 20 seconds in all. Each question is its own short `osascript` call with its own timeout. Once Spotify answers, the app sends the play event and checks that `player state` says `playing`. If not, it sends the event once more, and no more.
+
+If the 20 seconds run out while Spotify is running, the browser does not open: the next Play will work, and a browser tab would leave the wrong player playing. The window stays open and says `# spotify is still starting, press Play again` (section 7.1).
+
+If autoplay fails (Spotify not installed, Spotify does not start at all, the Automation permission denied, or another AppleScript error), fall back to the web player and show a short message. macOS may ask permission to control Spotify the first time: the app explains this in one line.
 
 ## 7. User interface
 
@@ -136,7 +140,8 @@ If autoplay fails (Spotify not installed, AppleScript error), fall back to the w
 - Keyboard: Enter or Space on the window plays, `N` is Next, `S` is Surprise me, Esc hides the window. A shortcut does nothing while a control that takes text has focus, or when its button is disabled. Each button names its key in a tooltip, such as "Next (N)"
 - Each chip group is one Tab stop and a radio group for screen readers. Inside it, the arrow keys move and select, Home and End jump to the first and last chip
 - Opening the window asks for the state again without any visible sign: the buttons do not dim, and the window changes only when the state did
-- After a successful Play, one muted line in the command line style says what plays, such as `▶ playing "Jazz for deep work"`, for about three seconds. In Open only mode Spotify does not start on its own, so the line says `▶ opened "Jazz for deep work" in Spotify`. When the player fell back or failed, its own message shows instead
+- After a successful Play, one muted line in the command line style says what plays, such as `▶ playing "Jazz for deep work"`. It stays until the next action (Next, Surprise me, a chip or another Play), because Spotify or the browser takes the focus and the window hides before anyone could read a short line. In Open only mode Spotify does not start on its own, so the line says `▶ opened "Jazz for deep work" in Spotify`. The web player does not start on its own either, so Web player mode says `▶ opened "Jazz for deep work" in your browser`. When the player fell back or failed, its own message shows instead
+- When autoplay finds Spotify still starting (section 6), the line under the buttons is a muted terminal comment, `# spotify is still starting, press Play again`. It stays until the next action, and the window stays open. Play stays disabled while the app waits for Spotify, which can take about 20 seconds
 - In autoplay mode, one muted line explains the macOS permission prompt (section 6). It shows until the first autoplay Play that works, and never again after that
 - One live region is always in the window, and only its text changes. It carries the messages, the Play line, and a new pick for screen readers ("Today's pick: Jazz for deep work")
 

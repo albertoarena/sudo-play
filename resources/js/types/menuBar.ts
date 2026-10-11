@@ -44,7 +44,11 @@ export interface MenuBarState {
     hint: string | null;
 }
 
-export type PlayOutcome = 'played' | 'fell-back' | 'failed';
+/**
+ * "starting" means Spotify is running but did not take the playlist in time.
+ * Nothing else opened, and another Play is the answer.
+ */
+export type PlayOutcome = 'played' | 'starting' | 'fell-back' | 'failed';
 
 export interface PlayResponse {
     outcome: PlayOutcome;

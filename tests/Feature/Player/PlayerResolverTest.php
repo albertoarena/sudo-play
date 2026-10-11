@@ -11,7 +11,8 @@ use App\Player\UrlOpener;
 use App\Player\WebPlayer;
 use App\Settings\PlayerMode;
 use App\Settings\SettingKey;
-use Illuminate\Support\Facades\Process;
+use Tests\Support\FakeClock;
+use Tests\Support\FakeSpotify;
 use Tests\Support\InMemorySettingsStore;
 use Tests\Support\RecordingLogger;
 use Tests\Support\RecordingUrlOpener;
@@ -41,7 +42,7 @@ function resolver(
 
     return new PlayerResolver(
         new InMemorySettingsStore($settings),
-        new AppleScriptPlayer,
+        new AppleScriptPlayer(new FakeClock),
         new OpenAppPlayer($opener),
         new WebPlayer($opener),
         $log ?? new RecordingLogger,
@@ -50,9 +51,12 @@ function resolver(
 
 function failingScript(): void
 {
-    Process::fake([
-        '*' => Process::result(errorOutput: 'execution error: Not authorized to send Apple events to Spotify. (-1743)', exitCode: 1),
-    ]);
+    FakeSpotify::running(new FakeClock)->denying()->fake();
+}
+
+function workingScript(): FakeSpotify
+{
+    return FakeSpotify::running(new FakeClock)->fake();
 }
 
 it('returns the player matching the setting', function (PlayerMode $mode, string $player): void {
@@ -76,7 +80,7 @@ it('reads the setting again on every play, so a change needs no restart', functi
     $settings = new InMemorySettingsStore([SettingKey::PlayerMode->value => PlayerMode::OpenApp->value]);
     $resolver = new PlayerResolver(
         $settings,
-        new AppleScriptPlayer,
+        new AppleScriptPlayer(new FakeClock),
         new OpenAppPlayer($opener),
         new WebPlayer($opener),
         new RecordingLogger,
@@ -90,19 +94,54 @@ it('reads the setting again on every play, so a change needs no restart', functi
 });
 
 it('plays through the chosen player and says nothing when it works', function (): void {
-    Process::fake();
+    $spotify = workingScript();
     $opener = RecordingUrlOpener::working();
 
     $result = resolver(opener: $opener)->play(resolverPlaylist());
 
     expect($result->outcome)->toBe(PlayOutcome::Played)
         ->and($result->message)->toBeNull()
+        ->and($opener->opened)->toBe([])
+        ->and($spotify->playEvents())->toBe(1);
+});
+
+// Spotify is running and will take the next Play. A browser tab now would
+// leave the wrong player playing and the right one idle.
+it('does not open the browser while Spotify is still starting', function (): void {
+    FakeSpotify::closed(new FakeClock)->neverAnswering()->fake();
+    $opener = RecordingUrlOpener::working();
+
+    $result = resolver(opener: $opener)->play(resolverPlaylist());
+
+    expect($result->outcome)->toBe(PlayOutcome::Starting)
+        ->and($result->mode)->toBe(PlayerMode::Autoplay)
         ->and($opener->opened)->toBe([]);
-    Process::assertRanTimes(fn (): bool => true, 1);
+});
+
+it('falls back to the web player when Spotify is not installed', function (): void {
+    FakeSpotify::closed(new FakeClock)->notInstalled()->fake();
+    $opener = RecordingUrlOpener::working();
+
+    $result = resolver(opener: $opener)->play(resolverPlaylist());
+
+    expect($opener->opened)->toBe([RESOLVER_WEB_URL])
+        ->and($result->outcome)->toBe(PlayOutcome::FellBack)
+        ->and($result->message)->toBe('Could not start Spotify. Opened the playlist in your browser instead.');
+});
+
+it('falls back to the web player when Spotify does not start at all', function (): void {
+    FakeSpotify::closed(new FakeClock)->neverStarting()->fake();
+    $opener = RecordingUrlOpener::working();
+
+    $result = resolver(opener: $opener)->play(resolverPlaylist());
+
+    expect($opener->opened)->toBe([RESOLVER_WEB_URL])
+        ->and($result->outcome)->toBe(PlayOutcome::FellBack)
+        ->and($result->message)->toBe('Spotify did not start. Opened the playlist in your browser instead.');
 });
 
 it('says which mode ran', function (PlayerMode $mode): void {
-    Process::fake();
+    workingScript();
 
     $result = resolver([SettingKey::PlayerMode->value => $mode->value])->play(resolverPlaylist());
 
@@ -115,7 +154,7 @@ it('says which mode ran', function (PlayerMode $mode): void {
 ]);
 
 it('says autoplay ran when the stored setting is not a player mode', function (): void {
-    Process::fake();
+    workingScript();
 
     expect(resolver([SettingKey::PlayerMode->value => 'cassette'])->play(resolverPlaylist())->mode)
         ->toBe(PlayerMode::Autoplay);
@@ -173,7 +212,7 @@ it('falls back to the web player when the app cannot be opened', function (): vo
     };
     $resolver = new PlayerResolver(
         new InMemorySettingsStore($settings),
-        new AppleScriptPlayer,
+        new AppleScriptPlayer(new FakeClock),
         new OpenAppPlayer($opener),
         new WebPlayer($opener),
         new RecordingLogger,
