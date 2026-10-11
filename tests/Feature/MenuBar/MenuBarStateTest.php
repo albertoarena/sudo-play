@@ -102,6 +102,7 @@ it('shows the empty state and disables every action when the catalog has no play
         ->assertJsonCount(3, 'genres')
         ->assertJsonPath('pick', null)
         ->assertJsonPath('empty', 'No playlists in the catalog yet')
+        ->assertJsonPath('note', null)
         ->assertJsonPath('actions', ['play' => false, 'next' => false, 'surprise' => false]);
 });
 
@@ -112,6 +113,14 @@ it('keeps Surprise me when only the chosen pair has nothing at all', function ()
         ->assertJsonPath('pick', null)
         ->assertJsonPath('empty', 'No playlists for this genre or mood yet')
         ->assertJsonPath('actions', ['play' => false, 'next' => false, 'surprise' => true]);
+});
+
+it('adds a comment line to the command when the chosen pair has nothing at all', function (): void {
+    MenuBarSetup::with(MenuBarCatalog::full(), [SettingKey::LastGenre->value => 'lofi', SettingKey::LastMood->value => 'flow-state']);
+
+    $this->getJson('/menu-bar/state')
+        ->assertJsonPath('pick', null)
+        ->assertJsonPath('note', 'no playlists yet');
 });
 
 it('loads the bundled catalog when nothing is stored yet', function (): void {

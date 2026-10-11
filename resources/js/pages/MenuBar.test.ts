@@ -443,6 +443,20 @@ describe('MenuBar', () => {
         }
     });
 
+    it('adds a comment line to the header when the chosen pair has nothing', () => {
+        const empty = state({
+            pick: null,
+            note: 'no playlists yet',
+            empty: 'No playlists for this genre or mood yet',
+            actions: { play: false, next: false, surprise: true },
+        });
+        const wrapper = mount(MenuBar, { props: { state: empty, api: fakeApi() } });
+
+        expect(wrapper.find('header').text()).toContain('# no playlists yet');
+        expect(wrapper.find('section').text()).toContain('No playlists for this genre or mood yet');
+        expect(wrapper.find('section').find('button').text()).toBe('Add a playlist');
+    });
+
     it('opens the contributing page from the footer', async () => {
         const api = fakeApi();
         const wrapper = mount(MenuBar, { props: { state: state(), api } });
