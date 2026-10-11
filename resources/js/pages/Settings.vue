@@ -143,7 +143,13 @@ const tick = 'accent-accent';
                             :aria-invalid="errors.defaultMood ? 'true' : undefined"
                         >
                             <option value="">First in the catalog</option>
-                            <option v-for="mood in options.moods" :key="mood.id" :value="mood.id">
+                            <!-- An option holds plain text only, so the label names it and the emoji is not read out. -->
+                            <option
+                                v-for="mood in options.moods"
+                                :key="mood.id"
+                                :value="mood.id"
+                                :aria-label="mood.label"
+                            >
                                 {{ mood.emoji ? `${mood.emoji} ${mood.label}` : mood.label }}
                             </option>
                         </select>
