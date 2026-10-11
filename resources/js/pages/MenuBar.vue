@@ -36,16 +36,14 @@ const playedLines: Record<PlayerMode, (title: string) => string> = {
 // until the next action, because it asks for one.
 const STARTING_LINE = 'spotify is still starting, press Play again';
 
-// The line that Play just earned, shown for a moment as proof the press
-// worked. Each Play starts the three seconds again.
+// The line that Play just earned, as proof the press worked. It has no timer:
+// Spotify or the browser takes the focus and the window hides, so the line
+// stays until the next action and is still there when the window opens again.
 const played = ref<string | null>(null);
 const starting = ref(false);
-let playedTimer: ReturnType<typeof setTimeout> | undefined;
 
 function confirm(title: string, mode: PlayerMode): void {
     played.value = playedLines[mode](title);
-    clearTimeout(playedTimer);
-    playedTimer = setTimeout(() => (played.value = null), 3000);
 }
 
 // True when no line is on screen.
