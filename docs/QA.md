@@ -97,7 +97,7 @@ Open the window a few times from the menu bar icon, then use it with VoiceOver
 on for the last two checks.
 
 - [ ] Opening the window does not dim Play, Next and Surprise me, not even for a moment
-- [ ] After a played Play, `▶ playing "<title>"` shows under the buttons in grey, not amber, and goes after about three seconds
+- [ ] After a played Play, `▶ playing "<title>"` shows under the buttons in grey, not amber. It is still there when the window is opened again later, in every player mode, and goes when Next, Surprise me, a chip or another Play is pressed
 - [ ] The line does not make the window jump: the footer stays where it was when the line comes and goes
 - [ ] In Open only mode, a Play shows `▶ opened "<title>" in Spotify`, and Spotify opens the playlist without playing it
 - [ ] In Web player mode, a Play shows `▶ opened "<title>" in your browser`, and the browser opens the playlist

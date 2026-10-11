@@ -520,7 +520,7 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 
 ## 2026-10-10: The popover gives quiet feedback
 
-**Choice:** the focus refresh is silent, a played Play shows `▶ playing "<title>"` for three seconds, and one live region is always in the window. Alberto decided this on 2026-10-10 as design fix D4. Requirements 7.1 now says so.
+**Choice:** the focus refresh is silent, a played Play shows `▶ playing "<title>"` until the next action, and one live region is always in the window. Alberto decided this on 2026-10-10 as design fix D4. Requirements 7.1 now says so. The line first went after three seconds. Alberto's Mac QA for D7 found on 2026-10-11 that it was never seen in Open only and Web player mode: Spotify or the browser takes the focus, the window hides on blur, and the timer cleared the line before the window opened again. So the timer went.
 
 **Why:** the buttons dimmed on every open, a Play gave no sign that it worked, and a status line inserted with `v-if` may not be read out.
 
@@ -532,7 +532,7 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 - The line shows only for the `played` outcome. A fallback or a failure keeps its own message
 - The line said "playing" in every player mode, because the window did not know the mode. In "open only" mode that was not true: Spotify waits for its own Play press. Design fix D5 closed the gap: the Play answer now names the mode, and that mode says `▶ opened "<title>" in Spotify`
 - The play sign is hidden from screen readers, so they read "playing" and the title
-- The line goes when another action starts. Another Play starts the three seconds again
+- The line has no timer. It goes when another action starts: Next, Surprise me, a chip or another Play. A focus refresh does not clear it
 - The new pick is said to screen readers only, because the card already shows it. It is not said on the first draw, and it does not replace a line on screen
 - With nothing to show, the region is `sr-only`: out of the layout, still in the page
 - A new action clears the announcement too, so an old pick is not read again when a message goes away
