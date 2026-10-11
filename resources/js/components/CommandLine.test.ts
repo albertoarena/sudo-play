@@ -47,12 +47,12 @@ describe('CommandLine', () => {
             vi.restoreAllMocks();
         });
 
-        // The window is about 30 columns wide: 300px of line, 10px a character.
+        // The window is 30 columns wide: 300px of line, 10px a character.
         function narrow(): void {
             vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(300);
-            vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
-                width: 100,
-            } as DOMRect);
+            vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+                return { width: (this.textContent?.length ?? 0) * 10 } as DOMRect;
+            });
         }
 
         it('continues on the next line after a backslash, as a shell does', async () => {
