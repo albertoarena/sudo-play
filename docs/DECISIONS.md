@@ -494,7 +494,7 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 
 **Why:** the old `>_` said "terminal" and nothing about music, and it was optically small next to other menu bar icons. The other sketch, `$` with a play triangle, was dropped because the `$` reads as money first, which looks like "pay to play" on a free app.
 
-**Note:** the menu bar canvas is now 22 by 16 points instead of 16 by 16, so the mark can be wider than it is tall, as many menu bar icons are. The app icon is not wired into the build yet; that is a separate change.
+**Note:** the menu bar canvas is now 22 by 16 points instead of 16 by 16, so the mark can be wider than it is tall, as many menu bar icons are. The app icon is not wired into the build yet; that is a separate change. Design fix I2 wired it on 2026-10-11, see the entry of that date.
 
 **Would change if:** the mark has to work as a single glyph, for example a favicon at 16 pixels, where the bars alone may read better than the pair.
 
@@ -575,3 +575,19 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Accepted cost:** the Play request can now take about 20 seconds, or a few more if a call hangs at the end. Nothing cuts it short: the window's `fetch` has no timeout, and PHP counts CPU time, not waiting. But NativePHP serves the app with `php -S`, one request at a time, so Esc, Settings or Quit pressed during the wait take effect after it.
 
 **Would change if:** the QA checks show cold starts regularly taking longer than 20 seconds on a normal Mac, or NativePHP serves more than one request at a time.
+
+## 2026-10-11: The app icon comes from public/
+
+**Choice:** the app icon is wired in by copying `art/icon/SudoPlay.icns` to `public/icon.icns` and `art/icon/sudo-play-icon-1024.png` to `public/icon.png`. Nothing changes in `config/nativephp.php`. Alberto asked for this on 2026-10-11 as design fix I2.
+
+**Why:** NativePHP has no icon setting. The `native:build` command copies these fixed names from `public/` into its Electron `build` folder, and electron-builder takes the macOS icon from there (`InstallsAppIcon` in nativephp/electron 1.3.0). The `.icns` from I1 already holds every size from 16 to 1024, so no step that needs a Mac is left. Committed copies follow the menu bar images, which I1 already exported into `public/`.
+
+**Note:** the choices the fix left open:
+
+- `AppIconTest` reads NativePHP's own `InstallsAppIcon` source for the two file names, so an upgrade that renames them fails the tests instead of shipping the default icon
+- The same test fails when a copy in `public/` differs from its source in `art/icon/`
+- No `IconTemplate.png` is added. NativePHP uses it only for a menu bar created without an icon, and `NativeAppServiceProvider` always passes `menuBarIconTemplate.png`
+- No `icon.ico`: there is no Windows build
+- `native:serve` runs inside Electron's own app bundle, so in development the notifications, Login Items and the Automation prompt still show the Electron icon. Only the built app shows the new one. The QA checks for it are in the Release section
+
+**Would change if:** NativePHP adds an icon setting to `config/nativephp.php`, or renames the files it copies.
