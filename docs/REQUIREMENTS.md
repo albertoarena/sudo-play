@@ -102,8 +102,8 @@ Genres and moods are defined in the catalog, so new ones need no code change.
 - The seed and the step both come from the genre and the mood, so each pair walks its own list in its own order
 - The rule stays a pure function of the date, the genre, the mood and the candidate list. Nothing is stored, so two users with the same catalog always see the same pick
 - **Next** button: cycles through the other candidates for today, in the same sorted order, wrapping around. The position is in memory only: it resets when the app restarts and when the local date changes
-- **Fallback** when no candidate: same mood any genre, then same genre any mood. The same deterministic rule runs over the fallback candidate list. The header keeps the command as asked and adds a second, dimmed line as a terminal comment, with the ids as typed: `# no electronic for flow-state, playing jazz` for the same mood, `# no rock for debugging, playing a rock pick for coffee-needed` for the same genre. The pick card shows a muted "Add one" link to the contributing page below its meta line. The warning colour is for real errors only, never for a fallback
-- If both fallbacks are empty the pick is null. The UI shows an empty state with a link to the contributing page, and Play is disabled
+- **Fallback** when no candidate: same mood any genre, then same genre any mood. The same deterministic rule runs over the fallback candidate list. The header keeps the command as asked and adds a second, dimmed line as a terminal comment, with the ids as typed: `# no electronic for flow-state, playing jazz` for the same mood, `# no rock for debugging, playing a rock pick for coffee-needed` for the same genre. The pick card shows a muted link to the contributing page below its meta line. It names the genre that was asked for, in lower case: "Add a classical playlist", or "Add an indie playlist" before a vowel. The warning colour is for real errors only, never for a fallback
+- If both fallbacks are empty the pick is null. The UI shows an empty state with a link to the contributing page, and Play is disabled. The header adds the same dimmed comment line as a fallback, `# no playlists yet`. An empty catalog has no command to comment on, so it adds no line
 - **Surprise me**: random genre and mood with at least one candidate
 
 ## 6. Playing
@@ -129,14 +129,17 @@ If autoplay fails (Spotify not installed, Spotify does not start at all, the Aut
 - Terminal-style look: monospace font for the header line, Tailwind for the rest
 - Header shows a live command line that changes with the selection:
   `$ sudo play --genre rock --mood friday-deploy`
+- When the command does not fit, it wraps the way a shell does: the line ends with ` \`, and the next line starts with a two space indent. It breaks only between flags, never inside one. The backslash is dimmed like the `$` sign and hidden from screen readers
 - Genre chips and mood chips (single select each), mood chips show emoji
-- Today's pick card: title, genre, mood, curator (if any)
-- A pick from a wider search adds a comment line under the command and an "Add one" link on the card (section 5)
+- Emoji are for moods only. Wherever one shows, it is hidden from screen readers, so a chip reads "Shipped It" and not the emoji name first. In the Settings window a mood option is named by its label alone
+- Today's pick card: title, genre, mood, curator (if any). The curator handle uses the mono font of the "today's pick" label
+- A pick from a wider search adds a comment line under the command and an "Add a classical playlist" link on the card (section 5)
 - Buttons: **Play** (primary), **Next**, **Surprise me**
 - Footer: catalog last updated date ("Built-in playlists" before the first sync), link "Add a playlist" (opens the GitHub contributing page), Settings, Quit. Each link has a target at least 24px tall and an underline on hover and focus. A divider sets Quit apart from Settings
 - Every enabled control shows the pointer cursor, in this window and in the Settings window. A disabled one shows the plain cursor
 - Last selected genre and mood are remembered
 - Empty state when there is no pick at all: a short line ("No playlists in the catalog yet"), the "Add a playlist" link, and Play, Next and Surprise me disabled
+- When the catalog has playlists but none for the chosen genre and mood, the card says "No playlists for this genre or mood yet", and the header adds `# no playlists yet` under the command (section 5)
 - Keyboard: Enter or Space on the window plays, `N` is Next, `S` is Surprise me, Esc hides the window. A shortcut does nothing while a control that takes text has focus, or when its button is disabled. Each button names its key in a tooltip, such as "Next (N)"
 - Each chip group is one Tab stop and a radio group for screen readers. Inside it, the arrow keys move and select, Home and End jump to the first and last chip
 - Opening the window asks for the state again without any visible sign: the buttons do not dim, and the window changes only when the state did
@@ -147,6 +150,7 @@ If autoplay fails (Spotify not installed, Spotify does not start at all, the Aut
 
 ### 7.2 Settings window
 
+- Section headings use the mono lower case label style of "today's pick", such as `defaults`, so the two windows share one voice
 - Default genre and mood
 - Player mode (section 6)
 - Daily reminder: on/off, time (default 09:00), weekdays only (default on)

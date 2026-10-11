@@ -24,7 +24,7 @@ The pick is the same all day, and the same for everyone who chooses the same gen
 
 Press Play and it opens in Spotify. A short line under the buttons says what is playing. If Spotify is closed, Sudo Play starts it first and then plays, which can take a few seconds. If Spotify is still starting after about 20 seconds, the line asks you to press Play again. If you chose "open only" or the web player in Settings, the playlist opens in Spotify or in your browser and you press play there, so the line says where it opened. You can cycle to another playlist with Next, or hit Surprise me and let it choose both for you.
 
-It works from the keyboard too. Press Enter to play, `N` for Next, `S` for Surprise me and Esc to close the window. Tab moves between the genre chips, the mood chips and the buttons, and the arrow keys pick a chip.
+It works from the keyboard too. Press Enter to play, `N` for Next, `S` for Surprise me and Esc to close the window. Tab moves between the genre chips, the mood chips and the buttons, and the arrow keys pick a chip. Screen readers read a mood by its name, without the emoji.
 
 There is an optional daily reminder, so a playlist is waiting when you start work.
 

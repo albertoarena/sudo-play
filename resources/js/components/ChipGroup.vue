@@ -61,10 +61,6 @@ function move(index: number, event: KeyboardEvent): void {
     chips.value[to]?.focus();
     choose(option.id);
 }
-
-function text(option: ChipOption): string {
-    return option.emoji ? `${option.emoji} ${option.label}` : option.label;
-}
 </script>
 
 <template>
@@ -86,7 +82,8 @@ function text(option: ChipOption): string {
             @click="choose(option.id)"
             @keydown="move(index, $event)"
         >
-            {{ text(option) }}
+            <!-- The emoji is decoration. A screen reader reads the label alone. -->
+            <span v-if="option.emoji" aria-hidden="true">{{ option.emoji }}</span>{{ option.emoji ? ` ${option.label}` : option.label }}
         </button>
     </div>
 </template>

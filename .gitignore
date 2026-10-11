@@ -24,6 +24,9 @@ Thumbs.db
 CLAUDE.local.md
 AGENTS.local.md
 
+# Local design tool output
+.impeccable/
+
 # Laravel
 *.log
 .DS_Store

@@ -23,6 +23,9 @@ final readonly class MenuBarState
 
     public const string EMPTY_PAIR = 'No playlists for this genre or mood yet';
 
+    /** The header comment for the same empty state, drawn like a fallback note. */
+    public const string EMPTY_PAIR_NOTE = 'no playlists yet';
+
     public function __construct(
         public CalendarDate $date,
         public ?Catalog $catalog,
@@ -57,7 +60,7 @@ final readonly class MenuBarState
             'selection' => ['genre' => $this->genre, 'mood' => $this->mood],
             'pick' => $this->pick(),
             'presses' => $this->presses,
-            'note' => $this->note(),
+            'note' => $this->note($hasPlaylists),
             'empty' => match (true) {
                 $this->pick !== null => null,
                 $hasPlaylists => self::EMPTY_PAIR,
@@ -95,10 +98,14 @@ final readonly class MenuBarState
         ];
     }
 
-    private function note(): ?string
+    /**
+     * The comment under the command. An empty catalog has nothing to comment
+     * on, so it gets none.
+     */
+    private function note(bool $hasPlaylists): ?string
     {
         if ($this->pick === null) {
-            return null;
+            return $hasPlaylists ? self::EMPTY_PAIR_NOTE : null;
         }
 
         return FallbackNote::for($this->pick, $this->shownMood()->id);

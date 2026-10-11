@@ -23,6 +23,23 @@ describe('ChipGroup', () => {
         expect(chips[0]?.text()).toBe('🚀 Friday Deploy');
     });
 
+    it('hides the emoji from screen readers, so a chip reads as its label', () => {
+        const wrapper = mount(ChipGroup, { props: { label: 'Mood', options: moods, selected: null } });
+
+        const chip = wrapper.findAll('button')[0];
+        const hidden = chip?.findAll('[aria-hidden="true"]') ?? [];
+
+        expect(hidden).toHaveLength(1);
+        expect(hidden[0]?.text()).toBe('🚀');
+    });
+
+    it('draws no hidden part on a chip without an emoji', () => {
+        const wrapper = mount(ChipGroup, { props: { label: 'Genre', options: genres, selected: null } });
+
+        expect(wrapper.find('[aria-hidden="true"]').exists()).toBe(false);
+        expect(wrapper.findAll('button')[0]?.text()).toBe('Rock');
+    });
+
     it('emits the id of the chip that was clicked', async () => {
         const wrapper = mount(ChipGroup, { props: { label: 'Mood', options: moods, selected: 'friday-deploy' } });
 

@@ -100,7 +100,8 @@ async function openLink(open: () => Promise<void>): Promise<void> {
 
 const field = 'w-full rounded-md border border-edge bg-surface px-2 py-1.5 text-sm';
 const fieldError = 'border-warning';
-const heading = 'mb-2 text-xs font-semibold tracking-wide text-muted uppercase';
+// The same mono lower case label as "today's pick" in the menu bar.
+const heading = 'mb-2 font-mono text-xs text-muted';
 const errorText = 'mt-1 text-xs text-warning';
 const link = 'text-sm text-accent hover:underline';
 const help = 'text-xs text-muted';
@@ -117,7 +118,7 @@ const tick = 'accent-accent';
     <main class="flex h-full flex-col bg-page text-ink">
         <form class="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4" @submit.prevent="save">
             <section>
-                <h2 :class="heading">Defaults</h2>
+                <h2 :class="heading">defaults</h2>
                 <div class="grid grid-cols-2 gap-3">
                     <label class="text-sm">
                         Genre
@@ -143,7 +144,13 @@ const tick = 'accent-accent';
                             :aria-invalid="errors.defaultMood ? 'true' : undefined"
                         >
                             <option value="">First in the catalog</option>
-                            <option v-for="mood in options.moods" :key="mood.id" :value="mood.id">
+                            <!-- An option holds plain text only, so the label names it and the emoji is not read out. -->
+                            <option
+                                v-for="mood in options.moods"
+                                :key="mood.id"
+                                :value="mood.id"
+                                :aria-label="mood.label"
+                            >
                                 {{ mood.emoji ? `${mood.emoji} ${mood.label}` : mood.label }}
                             </option>
                         </select>
@@ -154,7 +161,7 @@ const tick = 'accent-accent';
             </section>
 
             <section>
-                <h2 :class="heading">Play with</h2>
+                <h2 :class="heading">play with</h2>
                 <div class="flex flex-col gap-1.5">
                     <label v-for="mode in options.playerModes" :key="mode.id" class="flex items-center gap-2 text-sm">
                         <input
@@ -172,7 +179,7 @@ const tick = 'accent-accent';
             </section>
 
             <section>
-                <h2 :class="heading">Daily reminder</h2>
+                <h2 :class="heading">daily reminder</h2>
                 <div class="flex flex-col gap-2">
                     <label class="flex items-center gap-2 text-sm">
                         <input id="reminder-enabled" v-model="form.reminderEnabled" type="checkbox" :class="tick" />
@@ -204,7 +211,7 @@ const tick = 'accent-accent';
             </section>
 
             <section>
-                <h2 :class="heading">System</h2>
+                <h2 :class="heading">system</h2>
                 <label class="flex items-center gap-2 text-sm">
                     <input id="launch-at-login" v-model="form.launchAtLogin" type="checkbox" :class="tick" />
                     Open Sudo Play when I log in
@@ -212,7 +219,7 @@ const tick = 'accent-accent';
             </section>
 
             <section>
-                <h2 :class="heading">Catalog</h2>
+                <h2 :class="heading">catalog</h2>
                 <label class="text-sm">
                     Catalog URL
                     <input
@@ -243,7 +250,7 @@ const tick = 'accent-accent';
             </section>
 
             <section>
-                <h2 :class="heading">About</h2>
+                <h2 :class="heading">about</h2>
                 <p class="text-sm">Sudo Play {{ about.version }}</p>
                 <p :class="help">{{ about.notice }}</p>
                 <p :class="[help, 'mt-1']">{{ about.privacy }}</p>
@@ -254,7 +261,7 @@ const tick = 'accent-accent';
             </section>
 
             <section>
-                <h2 :class="heading">Credits</h2>
+                <h2 :class="heading">credits</h2>
                 <template v-if="about.curators.length > 0">
                     <p :class="help">Playlists in this catalog were picked by:</p>
                     <ul id="curators" class="mt-1 flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs">

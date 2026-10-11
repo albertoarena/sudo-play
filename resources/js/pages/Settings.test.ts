@@ -93,6 +93,27 @@ describe('Settings', () => {
     // A checkbox and a radio are drawn by the system, and the system paints
     // them in the macOS accent colour. Left alone, a ticked box goes orange on
     // a Mac set to orange, next to the app's green everywhere else.
+    it('labels each section in the mono lower case style of the menu bar', () => {
+        const wrapper = mountSettings(props());
+
+        const headings = wrapper.findAll('h2');
+
+        expect(headings.map((heading) => heading.text())).toEqual([
+            'defaults',
+            'play with',
+            'daily reminder',
+            'system',
+            'catalog',
+            'about',
+            'credits',
+        ]);
+
+        for (const heading of headings) {
+            expect(heading.classes()).toEqual(expect.arrayContaining(['font-mono', 'text-xs', 'text-muted']));
+            expect(heading.classes()).not.toContain('uppercase');
+        }
+    });
+
     it('tints every checkbox and radio with the accent colour', () => {
         const wrapper = mountSettings();
 
@@ -111,6 +132,15 @@ describe('Settings', () => {
         expect((wrapper.get('#default-genre').element as HTMLSelectElement).value).toBe('');
         expect(wrapper.get('#default-genre').text()).toContain('First in the catalog');
         expect(wrapper.get('#default-mood').text()).toContain('🐛 Debugging');
+    });
+
+    it('names each mood option by its label alone, so the emoji is not read out', () => {
+        const wrapper = mountSettings(props());
+
+        const option = wrapper.get('#default-mood option[value="debugging"]');
+
+        expect(option.text()).toBe('🐛 Debugging');
+        expect(option.attributes('aria-label')).toBe('Debugging');
     });
 
     it('saves what was changed and shows the answer', async () => {

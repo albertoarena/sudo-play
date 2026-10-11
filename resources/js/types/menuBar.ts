@@ -28,7 +28,8 @@ export interface MenuBarState {
     /**
      * Why the pick comes from another genre or mood, or null. Ids as typed,
      * such as "no electronic for flow-state, playing jazz". The command line
-     * draws it as a comment.
+     * draws it as a comment. With no pick for the chosen pair it is
+     * "no playlists yet". An empty catalog has none.
      */
     note: string | null;
     /** The empty state line, or null when there is a pick. */

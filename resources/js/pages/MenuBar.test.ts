@@ -443,6 +443,20 @@ describe('MenuBar', () => {
         }
     });
 
+    it('adds a comment line to the header when the chosen pair has nothing', () => {
+        const empty = state({
+            pick: null,
+            note: 'no playlists yet',
+            empty: 'No playlists for this genre or mood yet',
+            actions: { play: false, next: false, surprise: true },
+        });
+        const wrapper = mount(MenuBar, { props: { state: empty, api: fakeApi() } });
+
+        expect(wrapper.find('header').text()).toContain('# no playlists yet');
+        expect(wrapper.find('section').text()).toContain('No playlists for this genre or mood yet');
+        expect(wrapper.find('section').find('button').text()).toBe('Add a playlist');
+    });
+
     it('opens the contributing page from the footer', async () => {
         const api = fakeApi();
         const wrapper = mount(MenuBar, { props: { state: state(), api } });
@@ -455,6 +469,10 @@ describe('MenuBar', () => {
     it('explains a fallback in the command line and opens the contributing page from the card', async () => {
         const api = fakeApi();
         const fallback = state({
+            genres: [
+                { id: 'electronic', label: 'Electronic' },
+                { id: 'jazz', label: 'Jazz' },
+            ],
             selection: { genre: 'electronic', mood: 'debugging' },
             note: 'no electronic for debugging, playing jazz',
         });
@@ -463,7 +481,7 @@ describe('MenuBar', () => {
         expect(wrapper.find('header').text()).toContain('$ sudo play --genre electronic --mood debugging');
         expect(wrapper.find('header').text()).toContain('# no electronic for debugging, playing jazz');
 
-        await button(wrapper, 'Add one').trigger('click');
+        await button(wrapper, 'Add an electronic playlist').trigger('click');
 
         expect(api.addPlaylist).toHaveBeenCalledOnce();
     });
@@ -584,7 +602,7 @@ describe('MenuBar', () => {
         it('does not redraw the card when the answer is the same', async () => {
             let renders = 0;
             const CountingCard = defineComponent({
-                props: ['pick', 'fallback', 'empty'],
+                props: ['pick', 'askedGenre', 'empty'],
                 setup() {
                     return () => {
                         renders++;
