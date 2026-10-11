@@ -21,6 +21,15 @@ describe('PickCard', () => {
         expect(wrapper.text()).toContain('@octocat');
     });
 
+    it('hides the mood emoji from screen readers', () => {
+        const wrapper = mount(PickCard, { props: { pick, fallback: false, empty: null } });
+
+        const hidden = wrapper.findAll('[aria-hidden="true"]');
+
+        expect(hidden).toHaveLength(1);
+        expect(hidden[0]?.text()).toBe('🚀');
+    });
+
     it('leaves the curator out when there is none', () => {
         const wrapper = mount(PickCard, { props: { pick: { ...pick, curator: null }, fallback: false, empty: null } });
 

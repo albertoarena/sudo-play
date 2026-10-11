@@ -113,6 +113,15 @@ describe('Settings', () => {
         expect(wrapper.get('#default-mood').text()).toContain('🐛 Debugging');
     });
 
+    it('names each mood option by its label alone, so the emoji is not read out', () => {
+        const wrapper = mountSettings(props());
+
+        const option = wrapper.get('#default-mood option[value="debugging"]');
+
+        expect(option.text()).toBe('🐛 Debugging');
+        expect(option.attributes('aria-label')).toBe('Debugging');
+    });
+
     it('saves what was changed and shows the answer', async () => {
         const api = fakeApi();
         const wrapper = mountSettings(props(), api);
