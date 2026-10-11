@@ -148,7 +148,7 @@ describe('MenuBar', () => {
             vi.useRealTimers();
         });
 
-        it('says what is playing in the command line style, for three seconds', async () => {
+        it('says what is playing in the command line style', async () => {
             const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
 
             await button(wrapper, 'Play').trigger('click');
@@ -158,14 +158,25 @@ describe('MenuBar', () => {
             expect(line.text()).toBe('▶ playing "Riffs for risky releases"');
             expect(line.classes()).toEqual(expect.arrayContaining(['font-mono', 'text-muted']));
             expect(line.classes()).not.toContain('text-warning');
+        });
 
-            vi.advanceTimersByTime(2900);
-            await flushPromises();
-            expect(wrapper.text()).toContain('playing "Riffs for risky releases"');
+        // Spotify or the browser takes the focus, so the window hides on blur.
+        // A line on a timer would be gone before the window opens again.
+        it.each([
+            ['autoplay', '▶ playing "Riffs for risky releases"'],
+            ['open-app', '▶ opened "Riffs for risky releases" in Spotify'],
+            ['web', '▶ opened "Riffs for risky releases" in your browser'],
+        ] as const)('keeps the line in %s mode however long the window was away', async (mode, said) => {
+            const api = fakeApi();
+            api.play = vi.fn(async () => ({ outcome: 'played' as const, message: null, mode }));
+            const wrapper = mount(MenuBar, { props: { state: state(), api } });
 
-            vi.advanceTimersByTime(100);
+            await button(wrapper, 'Play').trigger('click');
             await flushPromises();
-            expect(wrapper.text()).not.toContain('playing "Riffs for risky releases"');
+            vi.advanceTimersByTime(60 * 60 * 1000);
+            await flushPromises();
+
+            expect(wrapper.get('[role="status"]').text()).toBe(said);
         });
 
         // In Open only mode Spotify opens the playlist and waits for its own
@@ -182,10 +193,6 @@ describe('MenuBar', () => {
             expect(line.text()).toBe('▶ opened "Riffs for risky releases" in Spotify');
             expect(line.classes()).toEqual(expect.arrayContaining(['font-mono', 'text-muted']));
             expect(wrapper.text()).not.toContain('playing');
-
-            vi.advanceTimersByTime(3000);
-            await flushPromises();
-            expect(wrapper.text()).not.toContain('opened "Riffs for risky releases"');
         });
 
         // Spotify's web player does not start a playlist opened from a link.
@@ -201,10 +208,6 @@ describe('MenuBar', () => {
             expect(line.text()).toBe('▶ opened "Riffs for risky releases" in your browser');
             expect(line.classes()).toEqual(expect.arrayContaining(['font-mono', 'text-muted']));
             expect(wrapper.text()).not.toContain('playing');
-
-            vi.advanceTimersByTime(3000);
-            await flushPromises();
-            expect(wrapper.text()).not.toContain('opened "Riffs for risky releases"');
         });
 
         // Starting Spotify can take up to about 20 seconds. Until the answer
@@ -276,18 +279,18 @@ describe('MenuBar', () => {
             });
         });
 
-        it('keeps the line for three seconds from the last Play', async () => {
-            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+        it('replaces the line with what another Play says', async () => {
+            const api = fakeApi();
+            const wrapper = mount(MenuBar, { props: { state: state(), api } });
 
             await button(wrapper, 'Play').trigger('click');
             await flushPromises();
-            vi.advanceTimersByTime(2000);
+            api.play = vi.fn(async () => ({ outcome: 'failed' as const, message: 'Could not open the playlist.', mode: 'autoplay' as const }));
             await button(wrapper, 'Play').trigger('click');
             await flushPromises();
-            vi.advanceTimersByTime(2000);
-            await flushPromises();
 
-            expect(wrapper.text()).toContain('playing "Riffs for risky releases"');
+            expect(wrapper.get('[role="status"]').text()).toBe('Could not open the playlist.');
+            expect(wrapper.text()).not.toContain('▶');
         });
 
         it.each([
@@ -305,16 +308,19 @@ describe('MenuBar', () => {
             expect(wrapper.text()).not.toContain('▶ playing');
         });
 
-        it('takes the line away when another action starts', async () => {
-            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+        it.each([['Next'], ['Surprise me'], ['Jazz'], ['🐛 Debugging']])(
+            'takes the line away when %s is pressed',
+            async (action) => {
+                const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
 
-            await button(wrapper, 'Play').trigger('click');
-            await flushPromises();
-            await button(wrapper, 'Next').trigger('click');
-            await flushPromises();
+                await button(wrapper, 'Play').trigger('click');
+                await flushPromises();
+                await button(wrapper, action).trigger('click');
+                await flushPromises();
 
-            expect(wrapper.text()).not.toContain('▶ playing');
-        });
+                expect(wrapper.text()).not.toContain('▶ playing');
+            },
+        );
     });
 
     // Screen readers may miss a live region that is inserted with its text, so
