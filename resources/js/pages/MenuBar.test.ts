@@ -3,7 +3,7 @@ import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent, h } from 'vue';
 import MenuBar from './MenuBar.vue';
 import type { MenuBarApi } from '../api';
-import type { MenuBarState } from '../types/menuBar';
+import type { MenuBarState, PlayResponse } from '../types/menuBar';
 
 function state(overrides: Partial<MenuBarState> = {}): MenuBarState {
     return {
@@ -210,9 +210,9 @@ describe('MenuBar', () => {
         // Starting Spotify can take up to about 20 seconds. Until the answer
         // comes, Play stays off and nothing claims the playlist plays.
         it('keeps Play disabled and says nothing until the answer comes', async () => {
-            let answer: (value: Awaited<ReturnType<MenuBarApi['play']>>) => void = () => undefined;
+            let answer: (value: PlayResponse) => void = () => undefined;
             const api = fakeApi();
-            api.play = vi.fn(() => new Promise((resolve) => (answer = resolve)));
+            api.play = vi.fn(() => new Promise<PlayResponse>((resolve) => (answer = resolve)));
             const wrapper = mount(MenuBar, { props: { state: state(), api } });
 
             await button(wrapper, 'Play').trigger('click');

@@ -22,19 +22,34 @@ const current = ref<MenuBarState>(props.state);
 const message = ref<string | null>(null);
 const busy = ref(false);
 
-// The title that Play just started, shown for a moment as proof the press
-// worked. Each Play starts the three seconds again. In Open only mode Spotify
-// waits for its own Play press, so the line says the playlist opened instead.
+// What a Play that worked says, one line per mode. Only autoplay starts the
+// music. In Open only mode Spotify waits for its own Play press, and the web
+// player does not start a playlist opened from a link, so those two say where
+// the playlist opened instead.
+const playedLines: Record<PlayerMode, (title: string) => string> = {
+    autoplay: (title) => `playing "${title}"`,
+    'open-app': (title) => `opened "${title}" in Spotify`,
+    web: (title) => `opened "${title}" in your browser`,
+};
+
+// Spotify is running but did not take the playlist in time. The line stays
+// until the next action, because it asks for one.
+const STARTING_LINE = 'spotify is still starting, press Play again';
+
+// The line that Play just earned, shown for a moment as proof the press
+// worked. Each Play starts the three seconds again.
 const played = ref<string | null>(null);
-const openedOnly = ref(false);
+const starting = ref(false);
 let playedTimer: ReturnType<typeof setTimeout> | undefined;
 
 function confirm(title: string, mode: PlayerMode): void {
-    played.value = title;
-    openedOnly.value = mode === 'open-app';
+    played.value = playedLines[mode](title);
     clearTimeout(playedTimer);
     playedTimer = setTimeout(() => (played.value = null), 3000);
 }
+
+// True when no line is on screen.
+const quiet = computed((): boolean => message.value === null && played.value === null && !starting.value);
 
 // A new pick, said to screen readers only, because the card already shows it.
 // A line on screen wins, so the announcement waits its turn behind it.
@@ -45,7 +60,7 @@ watch(
     () => {
         const pick = current.value.pick;
 
-        if (pick !== null && message.value === null && played.value === null) {
+        if (pick !== null && quiet.value) {
             announced.value = `Today's pick: ${pick.title}`;
         }
     },
@@ -59,7 +74,7 @@ const status = computed((): string => {
         return 'text-xs text-warning';
     }
 
-    return played.value !== null ? 'font-mono text-xs text-muted' : 'sr-only';
+    return played.value !== null || starting.value ? 'font-mono text-xs text-muted' : 'sr-only';
 });
 
 // What a new action replaces. Clearing the announcement too means an old pick
@@ -67,6 +82,7 @@ const status = computed((): string => {
 function clearStatus(): void {
     message.value = null;
     played.value = null;
+    starting.value = false;
     announced.value = null;
 }
 
@@ -131,6 +147,8 @@ async function play(): Promise<void> {
 
         if (result.outcome === 'played') {
             confirm(pick.title, result.mode);
+        } else if (result.outcome === 'starting') {
+            starting.value = true;
         } else {
             message.value = result.message;
         }
@@ -323,14 +341,11 @@ const footerLink = 'min-h-6 rounded px-1.5 hover:text-ink hover:underline focus-
 
             <p role="status" :class="status">
                 <template v-if="message !== null">{{ message }}</template>
-                <template v-else-if="played !== null">
-                    <span aria-hidden="true">▶</span>
-                    <template v-if="openedOnly"> opened "{{ played }}" in Spotify</template>
-                    <template v-else> playing "{{ played }}"</template>
-                </template>
+                <template v-else-if="played !== null"><span aria-hidden="true">▶</span> {{ played }}</template>
+                <template v-else-if="starting"><span aria-hidden="true">#</span> {{ STARTING_LINE }}</template>
                 <template v-else-if="announced !== null">{{ announced }}</template>
             </p>
-            <p v-if="message === null && played === null && current.hint !== null" class="text-xs text-muted">
+            <p v-if="quiet && current.hint !== null" class="text-xs text-muted">
                 {{ current.hint }}
             </p>
 
