@@ -130,6 +130,10 @@ on for the last two checks.
 
 - [ ] The DMG installs on a Mac that has never run the app
 - [ ] Gatekeeper does not block the signed and notarized build
+- [ ] The Sudo Play icon, not the NativePHP one, shows on the DMG volume, and on the app in Finder and Applications
+- [ ] The Sudo Play icon shows in System Settings, General, Login Items, after turning on launch at login
+- [ ] The Sudo Play icon shows on the daily reminder notification and in System Settings, Notifications
+- [ ] The Sudo Play icon shows on the macOS prompt that asks to control Spotify, and in System Settings, Privacy & Security, Automation
 - [ ] The About panel shows the version, the GitHub link and "Not affiliated with Spotify"
 - [ ] The About panel links to `PRIVACY.md` and the link opens
 - [ ] The Credits section lists the curators in the current catalog, and an empty catalog shows no broken list
