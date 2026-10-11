@@ -25,8 +25,10 @@ use App\Native\NativeSettingsWindow;
 use App\Native\OpenMenuBarOnReminderClick;
 use App\Native\ShellUrlOpener;
 use App\Notifications\Notifier;
+use App\Player\Clock;
 use App\Player\PlayerInterface;
 use App\Player\PlayerResolver;
+use App\Player\SystemClock;
 use App\Player\UrlOpener;
 use App\Rotation\RandomSource;
 use App\Rotation\SystemRandomSource;
@@ -51,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(SyncLauncher::class, ChildProcessSyncLauncher::class);
         $this->app->singleton(UrlOpener::class, ShellUrlOpener::class);
         $this->app->singleton(PlayerInterface::class, PlayerResolver::class);
+        $this->app->singleton(Clock::class, SystemClock::class);
         $this->app->singleton(RandomSource::class, SystemRandomSource::class);
         $this->app->singleton(Quitter::class, NativeQuitter::class);
         $this->app->singleton(Today::class, static fn (): Today => LocalToday::system());
