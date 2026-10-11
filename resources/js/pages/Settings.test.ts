@@ -93,6 +93,27 @@ describe('Settings', () => {
     // A checkbox and a radio are drawn by the system, and the system paints
     // them in the macOS accent colour. Left alone, a ticked box goes orange on
     // a Mac set to orange, next to the app's green everywhere else.
+    it('labels each section in the mono lower case style of the menu bar', () => {
+        const wrapper = mountSettings(props());
+
+        const headings = wrapper.findAll('h2');
+
+        expect(headings.map((heading) => heading.text())).toEqual([
+            'defaults',
+            'play with',
+            'daily reminder',
+            'system',
+            'catalog',
+            'about',
+            'credits',
+        ]);
+
+        for (const heading of headings) {
+            expect(heading.classes()).toEqual(expect.arrayContaining(['font-mono', 'text-xs', 'text-muted']));
+            expect(heading.classes()).not.toContain('uppercase');
+        }
+    });
+
     it('tints every checkbox and radio with the accent colour', () => {
         const wrapper = mountSettings();
 

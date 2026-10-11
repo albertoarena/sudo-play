@@ -30,6 +30,15 @@ describe('PickCard', () => {
         expect(hidden[0]?.text()).toBe('🚀');
     });
 
+    it('sets the curator handle in the mono font of the "today\'s pick" label', () => {
+        const wrapper = mount(PickCard, { props: { pick, fallback: false, empty: null } });
+
+        const handle = wrapper.get('[data-curator]');
+
+        expect(handle.text()).toBe('@octocat');
+        expect(handle.classes()).toContain('font-mono');
+    });
+
     it('leaves the curator out when there is none', () => {
         const wrapper = mount(PickCard, { props: { pick: { ...pick, curator: null }, fallback: false, empty: null } });
 
