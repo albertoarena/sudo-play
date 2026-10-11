@@ -46,6 +46,19 @@ describe('play', function (): void {
             ]);
     });
 
+    // Spotify is running but did not take the playlist yet. The window draws
+    // its own line for this, so there is no message to pass on.
+    it('passes on that Spotify is still starting', function (): void {
+        MenuBarSetup::with(MenuBarCatalog::full());
+        app()->instance(PlayerInterface::class, new RecordingPlayer(
+            PlayResult::starting('Spotify answered after the budget')->ranAs(PlayerMode::Autoplay),
+        ));
+
+        $this->postJson('/menu-bar/play', ['playlist' => 'jazz-debugging-01'])
+            ->assertOk()
+            ->assertExactJson(['outcome' => 'starting', 'message' => null, 'mode' => 'autoplay']);
+    });
+
     it('says which mode ran', function (PlayerMode $mode): void {
         MenuBarSetup::with(MenuBarCatalog::full());
         app()->instance(PlayerInterface::class, new RecordingPlayer(PlayResult::played()->ranAs($mode)));
@@ -83,6 +96,7 @@ describe('play', function (): void {
     })->with([
         'fell back' => fn (): PlayResult => PlayResult::fellBack('Could not start Spotify.', 'osascript exited 1')->ranAs(PlayerMode::Autoplay),
         'failed' => fn (): PlayResult => PlayResult::failed('Could not open the playlist.', 'no browser')->ranAs(PlayerMode::Autoplay),
+        'still starting' => fn (): PlayResult => PlayResult::starting('Spotify answered after the budget')->ranAs(PlayerMode::Autoplay),
     ]);
 
     it('does not count a Play in another mode as autoplay working', function (PlayerMode $mode): void {
