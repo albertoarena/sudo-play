@@ -37,6 +37,10 @@ final class NativeAppServiceProvider implements ProvidesPhpIni
      * The icon is a template image. macOS reads the name ending in "Template"
      * and recolours the black shape for light and dark mode, and picks the
      * `@2x` file on a Retina screen by itself.
+     *
+     * The window shows on every Space. NativePHP turns that off unless asked,
+     * and then clicking the icon from another Space switches back to the one
+     * the window was first shown on.
      */
     private function createMenuBar(): void
     {
@@ -47,6 +51,7 @@ final class NativeAppServiceProvider implements ProvidesPhpIni
             ->width(self::WIDTH)
             ->height(self::HEIGHT)
             ->resizable(false)
+            ->showOnAllWorkspaces()
             ->showDockIcon(false);
     }
 
