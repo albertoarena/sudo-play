@@ -75,7 +75,7 @@ npm test
 npm run typecheck
 ```
 
-The app itself runs only on macOS: `php artisan native:serve`.
+The app itself runs only on macOS. To set it up and start it, see [Run it from source](README.md#run-it-from-source) in the README.
 
 ## Licence of contributions
 
