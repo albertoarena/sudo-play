@@ -45,7 +45,28 @@ Genres and moods live in the catalog, so adding one takes no code.
 
 ## Install
 
-Nothing to install yet. The first release will be a signed DMG attached to a GitHub Release, so it opens without a security warning.
+Nothing to install yet. The first release will be a signed DMG attached to a GitHub Release, so it opens without a security warning. Until then, you can run it from source.
+
+## Run it from source
+
+You need a Mac, PHP 8.4 with Composer, and Node 22 or later. The `.nvmrc` file pins Node 22, so `nvm use` picks it.
+
+```bash
+git clone https://github.com/albertoarena/sudo-play.git
+cd sudo-play
+composer setup
+php artisan native:serve
+```
+
+`composer setup` installs the PHP and JavaScript dependencies, creates `.env` and the app key, sets up the local database and builds the frontend. Run it once.
+
+`php artisan native:serve` starts the app. The first run also downloads Electron, so it takes a while. Stop it with Ctrl+C.
+
+If you are changing the interface, run `composer native:dev` instead. It starts the app and the Vite dev server together, so your changes show up without a rebuild.
+
+The catalog has no playlists yet, so the app has nothing to suggest until the first ones are merged. [Adding a playlist](#adding-a-playlist) explains how.
+
+To run the tests and checks, see [CONTRIBUTING.md](CONTRIBUTING.md#changing-the-code).
 
 ## Adding a playlist
 
