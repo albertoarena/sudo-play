@@ -79,7 +79,8 @@ Add these scripts to `composer.json` and `package.json` in milestone 0 if they d
 
 - Strict types in every PHP file: `declare(strict_types=1);`
 - Final classes by default, readonly value objects for catalog data
-- UI copy and docs: plain English, short sentences, no em dashes
+- UI copy and docs: plain English, short sentences
+- **No em dashes, anywhere.** Not in UI copy, docs, comments, commit messages, pull request descriptions or replies. Use a comma, a colon, a full stop or brackets instead
 - Colours come from the semantic tokens in `resources/css/app.css`, never a palette class such as `emerald-600`. `resources/js/theme.test.ts` measures every pair against WCAG AA and refuses a palette class in a component. Add a token, check the test, then use it
 - The pointer cursor comes from one base rule in `resources/css/app.css`, which `resources/js/theme.test.ts` checks. Do not add `cursor-pointer` to a component. Keep `disabled:cursor-default` on a control that can be disabled
 - Emoji are for moods only. An emoji goes in its own `aria-hidden="true"` part, so a screen reader reads the label alone. An `<option>` holds plain text only, so it takes the label as its `aria-label` instead
