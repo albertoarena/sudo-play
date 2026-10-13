@@ -14,6 +14,8 @@ as the command line header in the app: a dim sign, a bright green command.
 | `icon/SudoPlay.icns` | The app icon for macOS, every size from 16 to 1024, built with `iconutil` |
 | `menu-bar/menu-bar-template-1x.svg` | The menu bar mark at 1x, drawn on a 22 by 16 pixel grid |
 | `menu-bar/menu-bar-template-2x.svg` | The menu bar mark at 2x, drawn on a 44 by 32 pixel grid |
+| `screenshots/menu-bar-window-light.png` | The menu bar window in light mode, 944 by 1264 (2x), with the macOS window shadow |
+| `screenshots/menu-bar-window-dark.png` | The same window in dark mode, same size |
 
 The menu bar images the app loads are `public/menuBarIconTemplate.png` and
 `public/menuBarIconTemplate@2x.png`, exported from the two menu bar sources.
@@ -49,3 +51,9 @@ into `public/`:
     cp sudo-play-icon-1024.png ../../public/icon.png
 
 `iconutil` exists only on macOS.
+
+The screenshots are also used by [sudoplay.dev](https://sudoplay.dev). Take a
+new pair when the window changes, both at the same size and with the same pick,
+so light and dark can be shown side by side. The site keeps its own copies,
+cropped to the window and converted to WebP, so they need redoing in
+`sudo-play-docs` after a new pair lands here.
