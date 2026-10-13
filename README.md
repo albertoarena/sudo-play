@@ -10,6 +10,8 @@ A small macOS menu bar app that picks today's Spotify playlist for you, based on
 
 Pick a genre. Pick a developer mood. Press play.
 
+The documentation lives at [sudoplay.dev](https://sudoplay.dev).
+
 ## Status
 
 The app is built and works in development. There is no release yet: the first one waits for a signed and notarized build.
@@ -74,8 +76,10 @@ Playlists, fixes and ideas are welcome. Start with [CONTRIBUTING.md](CONTRIBUTIN
 
 ## Documentation
 
+- [sudoplay.dev](https://sudoplay.dev), the documentation site for the released app
 - [CONTRIBUTING.md](CONTRIBUTING.md), how to add a playlist or change the code
 - [PRIVACY.md](PRIVACY.md), what the app sends and stores
+- [SECURITY.md](SECURITY.md), how to report a security problem
 - [docs/REQUIREMENTS.md](docs/REQUIREMENTS.md), what the app does
 - [docs/INSTRUCTIONS.md](docs/INSTRUCTIONS.md), the build plan
 - [docs/DECISIONS.md](docs/DECISIONS.md), why things are the way they are
