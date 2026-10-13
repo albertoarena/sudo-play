@@ -38,6 +38,7 @@ that count for the release.
 
 - [x] The menu bar icon is readable in light mode and dark mode _(dev, 2026-10-08)_
 - [ ] Clicking the icon opens a window of 360 by 520 under the icon, and there is no Dock icon
+- [ ] With two Spaces on one display, clicking the icon from the second Space opens the window there, without switching to the first. Same on a second display
 - [ ] The footer stays visible without scrolling at the default window size, with a fallback comment, the "Add a ... playlist" link and the autoplay hint all showing
 - [x] No unthemed band appears below the content in dark mode, at any scroll position _(dev, 2026-10-08)_
 - [x] The buttons and the footer stay put while the chips and the pick card scroll _(dev, 2026-10-08)_

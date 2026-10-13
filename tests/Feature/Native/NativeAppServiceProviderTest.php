@@ -39,6 +39,18 @@ it('creates the menu bar with the window size from requirements 7.1', function (
         ->and($request['resizable'])->toBeFalse();
 });
 
+// NativePHP turns this off unless asked. Off, the window belongs to the Space
+// it was first shown on, and clicking the icon from another Space makes macOS
+// switch back to that one instead of opening the window where the user is.
+it('shows the menu bar window on every Space', function (): void {
+    Http::fake();
+    $this->app->instance(SyncLauncher::class, new FakeSyncLauncher);
+
+    (new NativeAppServiceProvider)->boot();
+
+    expect(menuBarCreated()['showOnAllWorkspaces'] ?? null)->toBeTrue();
+});
+
 it('uses a template image, so the icon follows light and dark mode', function (): void {
     Http::fake();
     $this->app->instance(SyncLauncher::class, new FakeSyncLauncher);

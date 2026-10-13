@@ -610,3 +610,11 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 - `native:serve` runs inside Electron's own app bundle, so in development the notifications, Login Items and the Automation prompt still show the Electron icon. Only the built app shows the new one. The QA checks for it are in the Release section
 
 **Would change if:** NativePHP adds an icon setting to `config/nativephp.php`, or renames the files it copies.
+
+## 2026-10-13: The menu bar window shows on every Space
+
+**Choice:** `NativeAppServiceProvider` calls `showOnAllWorkspaces()` on the menu bar. Alberto found the problem on 2026-10-13: with two Spaces on his main display, clicking the icon from the second one switched macOS to the first and opened the window there.
+
+**Why:** the `menubar` package NativePHP uses defaults to every Space, but NativePHP passes `false` unless the app asks (`menuBar.ts` in nativephp/electron). A window that belongs to one Space makes macOS switch to that Space to show it. A menu bar app should open where the user is, like a native menu. The setting only adds the window to every Space, it does not change how the window is shown or hidden.
+
+**Would change if:** NativePHP changes its default, or the window ever needs to stay on one Space.
