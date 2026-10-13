@@ -73,4 +73,24 @@ moods:
     emoji: "🚀"
     description: Brave, energetic, a bit risky.
 
-playlists: []
+playlists:
+  - id: rock-friday-deploy-01
+    title: Riffs for risky releases
+    url: https://open.spotify.com/playlist/3f48OVuCnymSOJpbXiMZ3j
+    genre: rock
+    moods: [friday-deploy, debugging]
+    curator: albertoarena
+
+  - id: rock-friday-deploy-02
+    title: Second rock pick for shipping day
+    url: https://open.spotify.com/playlist/1wjjaCDYuOWIoLQLImBZWJ
+    genre: rock
+    moods: [friday-deploy]
+    curator: albertoarena
+
+  - id: jazz-flow-state-01
+    title: Jazz for deep work
+    url: https://open.spotify.com/playlist/3PLHdsGIEWOY2XgXIT5gS8
+    genre: jazz
+    moods: [flow-state]
+    curator: albertoarena

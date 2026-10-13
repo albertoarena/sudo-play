@@ -54,4 +54,6 @@ into `public/`:
 
 The screenshots are also used by [sudoplay.dev](https://sudoplay.dev). Take a
 new pair when the window changes, both at the same size and with the same pick,
-so light and dark can be shown side by side.
+so light and dark can be shown side by side. The site keeps its own copies,
+cropped to the window and converted to WebP, so they need redoing in
+`sudo-play-docs` after a new pair lands here.
