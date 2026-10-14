@@ -14,7 +14,7 @@ The documentation lives at [sudoplay.dev](https://sudoplay.dev).
 
 ## Status
 
-[Sudo Play 1.0.0](https://github.com/albertoarena/sudo-play/releases/tag/v1.0.0) is out, signed and notarized, for Macs with Apple silicon.
+[Sudo Play 1.0.1](https://github.com/albertoarena/sudo-play/releases/tag/v1.0.1) is out, signed and notarized, for Macs with Apple silicon.
 
 Follow the Status list in [docs/INSTRUCTIONS.md](docs/INSTRUCTIONS.md) to see how far along it is.
 
@@ -47,23 +47,23 @@ Genres and moods live in the catalog, so adding one takes no code.
 
 **You need** a Mac with Apple silicon, M1 or later, and the Spotify app or a browser. There is no Intel build yet.
 
-1. Download [Sudo-Play-1.0.0-arm64.dmg](https://github.com/albertoarena/sudo-play/releases/download/v1.0.0/Sudo-Play-1.0.0-arm64.dmg) (170 MB) from the [1.0.0 release](https://github.com/albertoarena/sudo-play/releases/tag/v1.0.0).
+1. Download [Sudo-Play-1.0.1-arm64.dmg](https://github.com/albertoarena/sudo-play/releases/download/v1.0.1/Sudo-Play-1.0.1-arm64.dmg) (169 MB) from the [1.0.1 release](https://github.com/albertoarena/sudo-play/releases/tag/v1.0.1).
 2. Open the DMG and drag Sudo Play to Applications.
 3. Open Sudo Play. macOS asks once whether to open an app downloaded from the internet. Click **Open**.
 
 The first time you press Play, macOS asks whether Sudo Play may control Spotify. Click **Allow**, so it can start the playlist in the Spotify app.
 
-**Coming from the beta?** Download the DMG and drag Sudo Play to Applications, then choose **Replace**. Your settings stay. The beta does not update itself.
+**Coming from 1.0.0 or the beta?** Download the DMG and drag Sudo Play to Applications, then choose **Replace**. Your settings stay. The app does not update itself.
 
 ### Check the download
 
 This step is optional. In Terminal, run:
 
 ```
-shasum -a 256 ~/Downloads/Sudo-Play-1.0.0-arm64.dmg
+shasum -a 256 ~/Downloads/Sudo-Play-1.0.1-arm64.dmg
 ```
 
-It should print `2e4419bab91257a60b9dbf52ffc1f07ccf15678ad1f385d431de4c6444838212`.
+It should print `abe61bcd9d03d9372930bf7dca2e013220479f14012f9614cf0763e68c01dda9`.
 
 ### Hear about new releases
 

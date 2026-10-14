@@ -62,7 +62,7 @@ Keep the private key and the `.p8` file out of every repository. The certificate
 ### Each release
 
 1. Clone `main` into a fresh folder, so no local `.env`, database or private note ends up in the bundle
-2. `composer install --no-dev --optimize-autoloader`, `npm ci`, `npm run build`
+2. Use the Node version in `.nvmrc` (`nvm use`), then `composer install --no-dev --optimize-autoloader`, `npm ci`, `npm run build`
 3. Copy `.env.example` to `.env`, set `APP_ENV=production` and `APP_DEBUG=false` (debug on opens the inspector on every window), run `php artisan key:generate`, and add `NATIVEPHP_APP_VERSION`, `NATIVEPHP_APP_AUTHOR`, `NATIVEPHP_APP_COPYRIGHT`, `NATIVEPHP_APP_DESCRIPTION` and `NATIVEPHP_APP_WEBSITE`
 4. Build unsigned, so electron-builder leaves signing to us:
    ```
