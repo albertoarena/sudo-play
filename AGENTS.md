@@ -101,6 +101,7 @@ Add these scripts to `composer.json` and `package.json` in milestone 0 if they d
 - That is a different mechanism from the attribution rules above, which govern message text only. A commit message can be perfectly clean while the author is wrong, so checking one says nothing about the other. M3 failed exactly this way
 - Every commit goes through a pull request, never straight to `main`
 - Only exception: a commit that touches markdown files only can go straight to `main`
+- Since `main` is protected, that push goes through the admin bypass, and GitHub records it as a bypassed rule. If it is ever refused, open a pull request instead
 - `main` is protected since the repository went public on 2026-10-14: a pull request is required, the `Checks` job from `ci.yml` must pass, conversations must be resolved, and force pushes and deletion are blocked. `catalog-live` blocks force pushes and deletion too
 - The maintainer can bypass the protection, and the tools may run with his credentials. So never push to `main` and never merge your own pull request because these rules say so, not only because GitHub would stop you
 - Only merge commits are enabled on GitHub. Squash and rebase merging are off
