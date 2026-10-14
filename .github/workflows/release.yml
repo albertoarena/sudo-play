@@ -51,6 +51,14 @@ jobs:
         with:
           ref: ${{ env.TAG }}
 
+      # The app comes from the tag, the signing tools from the commit this
+      # workflow runs from. On a tag push they are the same commit. On a dry
+      # run of an older tag, this signs it with today's scripts/macos.
+      - name: Use the current signing scripts
+        run: |
+          git fetch --no-tags --depth=1 origin "$GITHUB_SHA"
+          git checkout FETCH_HEAD -- scripts/macos
+
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
