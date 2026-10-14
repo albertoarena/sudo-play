@@ -75,7 +75,7 @@ Settings, Appearance. The contrast numbers are already checked by
 - [ ] A warning line, for example after denying the Automation permission, reads as a warning and not as body text
 - [ ] Pick a genre and mood with no playlist, so a fallback plays: the command line keeps the command as asked and shows a dim `#` comment line under it, the card shows a muted link that names the asked genre, such as "Add a classical playlist", and nothing on screen is amber
 - [ ] The "Add a ... playlist" link on the card opens the contributing page in the default browser
-- [ ] Pick a genre and mood that has nothing, not even a fallback: the header shows a dim `# no playlists yet` line under the command, and the card keeps its sentence and its "Add a playlist" link
+- [ ] With a test catalog in Settings that leaves a mood with no playlist at all (the shipped catalog covers every mood, so it never gets here), pick a genre and mood that has nothing, not even a fallback: the header shows a dim `# no playlists yet` line under the command, and the card keeps its sentence and its "Add a playlist" link
 - [ ] Choose a long genre and mood, such as `--genre electronic --mood friday-deploy`: if the command does not fit, it breaks between flags with a dim ` \` at the end of the line and a two space indent on the next, never inside a flag. Make the window narrower if the NativePHP window allows it and check again
 - [ ] The curator handle on the card is in the mono font, and sits well next to the genre and mood
 - [ ] The Settings section headings look like the "today's pick" label: mono, small, grey, lower case

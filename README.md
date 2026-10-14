@@ -64,7 +64,7 @@ php artisan native:serve
 
 If you are changing the interface, run `composer native:dev` instead. It starts the app and the Vite dev server together, so your changes show up without a rebuild.
 
-The catalog has no playlists yet, so the app has nothing to suggest until the first ones are merged. [Adding a playlist](#adding-a-playlist) explains how.
+A copy of the catalog ships with the app, so it has playlists to suggest from the first run, even offline. To add one, see [Adding a playlist](#adding-a-playlist).
 
 To run the tests and checks, see [CONTRIBUTING.md](CONTRIBUTING.md#changing-the-code).
 
