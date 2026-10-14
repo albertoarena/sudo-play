@@ -21,14 +21,21 @@ Playlist changes are not releases. They reach users through the `catalog-live` b
 
 Signing and notarization need a paid Apple Developer account.
 
-Four repository secrets, for `release.yml`. Names are indicative until that workflow exists. A local release uses the keychain instead, see below.
+`release.yml` reads four secrets and two variables from the **`release` environment**, never from the repository, so only an approved release job can reach them. A local release uses the keychain instead, see below.
 
 | Secret | What it is |
 |---|---|
-| `APPLE_CERT_P12_BASE64` | Developer ID Application certificate, exported as .p12, base64 encoded |
-| `APPLE_CERT_PASSWORD` | Password used when exporting that .p12 |
+| `APPLE_CERT_P12_BASE64` | The Developer ID Application certificate and its private key, exported as .p12, base64 encoded |
+| `APPLE_CERT_PASSWORD` | The password used when exporting that .p12 |
 | `KEYCHAIN_PASSWORD` | Any strong value, used to create a temporary keychain on the runner |
-| `APPLE_API_KEY` | App Store Connect API key used by `notarytool` |
+| `APPLE_API_KEY` | The App Store Connect `.p8` key used by `notarytool`, base64 encoded |
+
+| Variable | What it is |
+|---|---|
+| `APPLE_API_KEY_ID` | The key's id, as in its file name `AuthKey_<id>.p8` |
+| `APPLE_API_ISSUER` | The issuer id shown above the Team Keys table |
+
+The two ids are not secret on their own: they only work with the `.p8` file.
 
 An App Store Connect API key is used rather than an Apple ID and an app specific password, because the key is scoped and can be revoked without touching the Apple account.
 
@@ -87,9 +94,31 @@ Notarization requires the hardened runtime. Under it, macOS refuses to let an ap
 
 ## Automating it afterwards
 
-`release.yml` turns the steps above into a workflow. On a `v*` tag, on a macOS runner, behind a protected environment so a stray tag cannot publish or reach the secrets.
+`.github/workflows/release.yml` does steps 1 to 5 of "Each release" on a `v*` tag, on a `macos-15` runner (Apple silicon), and attaches the DMG to a **draft** release with its SHA-256. Steps 6 and 7 stay with the maintainer: download the draft's DMG, test it, write the notes and publish.
 
-macOS runners bill at ten times the Linux rate, which is why only this workflow uses one.
+- The job runs in the `release` environment, which needs the maintainer's approval, so a stray tag cannot reach the secrets or make a release
+- Run it by hand from the Actions tab with an existing tag for a **dry run**: it builds, signs and notarizes, keeps the DMG as a workflow artifact for 7 days, and creates no release
+- A version with a dash, such as `1.1.0-beta.1`, becomes a pre-release
+- Signing and notarization go through the same `scripts/macos/release.sh` as a local release, with the `.p8` key passed directly instead of a keychain profile
+
+macOS runners are free for public repositories but bill at ten times the Linux rate on private ones, which is why only this workflow uses one.
+
+### Setting up the secrets
+
+Once, on the maintainer's Mac, from the folder with the key and the certificate:
+
+```
+openssl x509 -inform der -in developerID_application.cer -out developer-id.pem
+openssl pkcs12 -export -legacy -inkey developer-id.key -in developer-id.pem -out developer-id.p12 -name "Developer ID Application"
+base64 -i developer-id.p12 | gh secret set APPLE_CERT_P12_BASE64 --env release
+gh secret set APPLE_CERT_PASSWORD --env release
+gh secret set KEYCHAIN_PASSWORD --env release
+base64 -i AuthKey_<key id>.p8 | gh secret set APPLE_API_KEY --env release
+gh variable set APPLE_API_KEY_ID --env release --body <key id>
+gh variable set APPLE_API_ISSUER --env release --body <issuer id>
+```
+
+`-legacy` keeps the .p12 readable by the macOS `security` tool, which does not read OpenSSL 3's default encryption. The two `gh secret set` lines without a pipe ask for the value, so it never lands in the shell history.
 
 ## Hotfixes
 

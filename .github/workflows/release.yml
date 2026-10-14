@@ -1,0 +1,162 @@
+name: Release
+
+# Builds, signs and notarizes the macOS app from a v* tag, the same way as
+# docs/RELEASE.md does by hand, and attaches the DMG to a DRAFT release. The
+# maintainer downloads it, tests it, and publishes the release himself.
+#
+# Run it by hand on an existing tag for a dry run: it builds and notarizes, then
+# keeps the DMG as a workflow artifact and creates no release.
+#
+# The job waits for approval in the "release" environment, which holds the
+# signing secrets, so a stray tag cannot reach them. macOS runners are the only
+# ones here, and they cost more, so nothing else uses them.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to build, for example v1.0.1. Dry run: no release is created.'
+        required: true
+
+concurrency:
+  group: release-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build, sign and notarize
+    runs-on: macos-15
+    environment: release
+    timeout-minutes: 90
+
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+
+    steps:
+      - name: Check the tag
+        run: |
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "Not a version tag: $TAG" >&2
+            exit 1
+          fi
+          echo "VERSION=${TAG#v}" >> "$GITHUB_ENV"
+
+      - name: Check out the tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          coverage: none
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      # The app bundles this .env, so it holds only what the app needs.
+      # APP_DEBUG=false matters: debug on opens the inspector on every window.
+      - name: Write the production environment
+        run: |
+          cp .env.example .env
+          sed -i '' -e 's/^APP_ENV=.*/APP_ENV=production/' -e 's/^APP_DEBUG=.*/APP_DEBUG=false/' .env
+          {
+            echo "NATIVEPHP_APP_VERSION=$VERSION"
+            echo 'NATIVEPHP_APP_AUTHOR="Alberto Arena"'
+            echo 'NATIVEPHP_APP_COPYRIGHT="Copyright (c) 2026 Alberto Arena"'
+            echo "NATIVEPHP_APP_DESCRIPTION=\"Picks today's Spotify playlist for you, from the menu bar.\""
+            echo 'NATIVEPHP_APP_WEBSITE=https://sudoplay.dev'
+          } >> .env
+          php artisan key:generate --no-interaction
+
+      # Unsigned on purpose: scripts/macos signs it with our entitlements.
+      - name: Build the app
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: php artisan native:build mac arm64 --no-interaction
+
+      # A throwaway keychain that lives only for this job.
+      - name: Import the signing certificate
+        env:
+          APPLE_CERT_P12_BASE64: ${{ secrets.APPLE_CERT_P12_BASE64 }}
+          APPLE_CERT_PASSWORD: ${{ secrets.APPLE_CERT_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          echo "$APPLE_CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$keychain"
+          security import "$RUNNER_TEMP/cert.p12" -k "$keychain" -P "$APPLE_CERT_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$keychain" > /dev/null
+          existing=()
+          while IFS= read -r line; do existing+=("$(echo "$line" | sed -e 's/^ *"//' -e 's/"$//')"); done < <(security list-keychains -d user)
+          security list-keychains -d user -s "$keychain" "${existing[@]}"
+          rm "$RUNNER_TEMP/cert.p12"
+          security find-identity -v -p codesigning "$keychain"
+
+      - name: Write the notarization key
+        env:
+          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY }}
+        run: echo "$APPLE_API_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/notary.p8"
+
+      - name: Sign, notarize and staple
+        env:
+          SUDO_PLAY_NOTARY_KEY: ${{ runner.temp }}/notary.p8
+          SUDO_PLAY_NOTARY_KEY_ID: ${{ vars.APPLE_API_KEY_ID }}
+          SUDO_PLAY_NOTARY_ISSUER: ${{ vars.APPLE_API_ISSUER }}
+        run: scripts/macos/release.sh "$VERSION" arm64
+
+      - name: Keep the DMG (dry run)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Sudo-Play-${{ env.VERSION }}-arm64
+          path: dist/release/Sudo-Play-${{ env.VERSION }}-arm64.dmg
+          retention-days: 7
+
+      # A draft, so nothing is public until the maintainer has tested the
+      # download and published it. Versions with a dash are pre-releases.
+      - name: Create the draft release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          dmg="dist/release/Sudo-Play-$VERSION-arm64.dmg"
+          sha="$(shasum -a 256 "$dmg" | cut -d ' ' -f 1)"
+          prerelease=""
+          [[ "$VERSION" == *-* ]] && prerelease="--prerelease"
+          cat > "$RUNNER_TEMP/notes.md" <<EOF
+          Draft made by release.yml. Write the notes, test the download, then publish.
+
+          ## Checksum
+
+          \`\`\`
+          SHA-256  $sha  Sudo-Play-$VERSION-arm64.dmg
+          \`\`\`
+          EOF
+          gh release create "$TAG" "$dmg" --draft $prerelease --verify-tag --title "Sudo Play $VERSION" --notes-file "$RUNNER_TEMP/notes.md"
+
+      - name: Remove the keychain and the key
+        if: always()
+        run: |
+          security delete-keychain "$RUNNER_TEMP/signing.keychain-db" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/notary.p8"
