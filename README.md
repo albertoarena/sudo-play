@@ -58,7 +58,7 @@ Genres and moods live in the catalog, so adding one takes no code.
 
 macOS cannot check who made an unsigned app, so it blocks the app the first time. You let it through once:
 
-1. Open Sudo Play from Applications. macOS says **"Sudo Play.app" Not Opened**. Click **Done**, not Move to Bin.
+1. Open Sudo Play from Applications. macOS says **"Sudo Play.app" Not Opened**. Click **Done**, not Move to Bin (Move to Trash on a Mac set to US English).
 2. Open **System Settings**, then **Privacy & Security**.
 3. Scroll down to **Security**. Next to **"Sudo Play.app" was blocked to protect your Mac**, click **Open Anyway**.
 4. A last dialog asks again. Click **Open Anyway**. Move to Bin is the highlighted button, so don't press Return.
