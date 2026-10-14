@@ -101,8 +101,9 @@ Add these scripts to `composer.json` and `package.json` in milestone 0 if they d
 - That is a different mechanism from the attribution rules above, which govern message text only. A commit message can be perfectly clean while the author is wrong, so checking one says nothing about the other. M3 failed exactly this way
 - Every commit goes through a pull request, never straight to `main`
 - Only exception: a commit that touches markdown files only can go straight to `main`
-- `main` gets branch protection in M7, with `ci.yml` as the required check. It is not protected yet: the repository is private, and protection on a private repository needs a paid plan, so it waits for the milestone that makes it public
-- Until then nothing enforces any of this. Never push to `main` and never merge your own pull request because these rules say so, not because GitHub would stop you. It would not
+- `main` is protected since the repository went public on 2026-10-14: a pull request is required, the `Checks` job from `ci.yml` must pass, conversations must be resolved, and force pushes and deletion are blocked. `catalog-live` blocks force pushes and deletion too
+- The maintainer can bypass the protection, and the tools may run with his credentials. So never push to `main` and never merge your own pull request because these rules say so, not only because GitHub would stop you
+- Only merge commits are enabled on GitHub. Squash and rebase merging are off
 - Releases are tags on `main` (`vMAJOR.MINOR.PATCH`). There is no release branch. See `docs/REQUIREMENTS.md` section 12 and `docs/RELEASE.md`
 - Never commit a version bump. The version comes from the tag at build time
 
@@ -126,8 +127,8 @@ Add these scripts to `composer.json` and `package.json` in milestone 0 if they d
   is the documentation. Do not skip writing it on the grounds that a site is
   coming: the site will be assembled from this, and what is missing here is
   what will be missing there
-- **This repository does not go public until the site serves something real.**
-  Alberto decided that on 2026-10-09, accepting that it may delay the release
+- **This repository went public on 2026-10-14**, together with the site.
+  Only Alberto changes a repository's visibility
 
 ## Working as an agent
 
