@@ -1,0 +1,14 @@
+{
+    "bundle_id": "com.albertoarena.sudoplay",
+    "set": {
+        "NSAppleEventsUsageDescription": "Sudo Play controls Spotify to start today's playlist."
+    },
+    "remove": [
+        "NSBluetoothAlwaysUsageDescription",
+        "NSBluetoothPeripheralUsageDescription",
+        "NSCameraUsageDescription",
+        "NSMicrophoneUsageDescription",
+        "NSDocumentsFolderUsageDescription",
+        "NSDownloadsFolderUsageDescription"
+    ]
+}

@@ -1,6 +1,6 @@
 # Release
 
-How to cut a release of Sudo Play. Filled in properly during M7, after the first signed build is done by hand. Until then this is a checklist and a list of what is needed.
+How to cut a release of Sudo Play. The first signed build was made by hand on 2026-10-14, and the steps below are what worked.
 
 Never put a secret in this file.
 
@@ -21,7 +21,7 @@ Playlist changes are not releases. They reach users through the `catalog-live` b
 
 Signing and notarization need a paid Apple Developer account.
 
-Four repository secrets. Names are indicative until M7 confirms them against the real workflow.
+Four repository secrets, for `release.yml`. Names are indicative until that workflow exists. A local release uses the keychain instead, see below.
 
 | Secret | What it is |
 |---|---|
@@ -32,33 +32,58 @@ Four repository secrets. Names are indicative until M7 confirms them against the
 
 An App Store Connect API key is used rather than an Apple ID and an app specific password, because the key is scoped and can be revoked without touching the Apple account.
 
-## First release, by hand
+## Signed release, on a Mac
 
-Do this once on a Mac before automating anything. Notarization fails in dull ways and is much faster to debug locally.
+This is how `v1.0.0` was made on 2026-10-14, on an Apple silicon Mac with the Xcode command line tools. No full Xcode is needed.
 
-1. Build the app and the DMG with NativePHP
-2. Sign with the Developer ID Application certificate
-3. Submit to Apple with `notarytool` and wait for the result
-4. Staple the ticket to the DMG
-5. Verify with `spctl` that Gatekeeper accepts it
-6. Install on a Mac that has never run the app and confirm no warning appears
-7. Create the GitHub Release and attach the DMG
+### One-time setup
 
-Write the exact commands here as you go. That record is the point of this document.
+1. **Certificate.** Make a private key and a signing request outside any repository, then upload the request at developer.apple.com, Certificates, **Developer ID Application**, profile type **G2 Sub-CA** (the previous Sub-CA expires on 1 February 2027):
+   ```
+   openssl genrsa -out developer-id.key 2048
+   openssl req -new -key developer-id.key -out developer-id.csr -subj "/emailAddress=<email>/CN=<name>/C=<country>"
+   ```
+2. Import the key, the downloaded certificate and Apple's G2 intermediate into the login keychain:
+   ```
+   curl -O https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
+   security import DeveloperIDG2CA.cer -k ~/Library/Keychains/login.keychain-db
+   security import developer-id.key -k ~/Library/Keychains/login.keychain-db -T /usr/bin/codesign
+   security import developerID_application.cer -k ~/Library/Keychains/login.keychain-db
+   security find-identity -v -p codesigning
+   ```
+   The last command must list `Developer ID Application: <name> (<team id>)`. The first signing asks for the login password: choose **Always Allow**, or it asks once per file.
+3. **Notarization key.** At appstoreconnect.apple.com, Users and Access, Integrations, Team Keys, make a key with **Developer** access. The `.p8` file downloads once only. Store it in the keychain:
+   ```
+   xcrun notarytool store-credentials sudo-play-notary --key AuthKey_<key id>.p8 --key-id <key id> --issuer <issuer id>
+   ```
 
-## Unsigned beta, before the Apple account
+Keep the private key and the `.p8` file out of every repository. The certificate expires after about a year: signed builds keep working, but a new release then needs a new certificate.
 
-`v1.0.0-beta.1` shipped unsigned on 2026-10-14, while the Apple Developer account waited for approval. What worked, on an Apple silicon Mac:
+### Each release
 
 1. Clone `main` into a fresh folder, so no local `.env`, database or private note ends up in the bundle
 2. `composer install --no-dev --optimize-autoloader`, `npm ci`, `npm run build`
-3. Copy `.env.example` to `.env`, set `APP_ENV=production` and `APP_DEBUG=false`, run `php artisan key:generate`, and add `NATIVEPHP_APP_VERSION`, `NATIVEPHP_APP_AUTHOR`, `NATIVEPHP_APP_COPYRIGHT`, `NATIVEPHP_APP_DESCRIPTION` and `NATIVEPHP_APP_WEBSITE`
-4. `php artisan native:build mac arm64`. With no certificate, electron-builder skips signing and the notarize hook fails. The build still finishes, but the app's signature is broken, and a downloaded copy would say it is damaged, with no way to open it
-5. Sign it ad hoc: `codesign --force --deep --sign - "dist/mac-arm64/Sudo Play.app"`, then check with `codesign --verify --deep --strict`
-6. Make a new DMG from the fixed app: a folder with the app and a link to `/Applications`, then `hdiutil create -volname "Sudo Play" -srcfolder <folder> -format UDZO Sudo-Play-<version>-arm64.dmg`
-7. Create a draft pre-release pinned to the built commit, attach the DMG, download it from the draft and open it with Open Anyway before publishing
+3. Copy `.env.example` to `.env`, set `APP_ENV=production` and `APP_DEBUG=false` (debug on opens the inspector on every window), run `php artisan key:generate`, and add `NATIVEPHP_APP_VERSION`, `NATIVEPHP_APP_AUTHOR`, `NATIVEPHP_APP_COPYRIGHT`, `NATIVEPHP_APP_DESCRIPTION` and `NATIVEPHP_APP_WEBSITE`
+4. Build unsigned, so electron-builder leaves signing to us:
+   ```
+   CSC_IDENTITY_AUTO_DISCOVERY=false php artisan native:build mac arm64
+   ```
+   The NativePHP notarize hook prints a warning and skips. That is expected
+5. Sign, package, notarize and staple:
+   ```
+   scripts/macos/release.sh <version> arm64
+   ```
+   It checks the bundle id and version, applies `scripts/macos/info.json` to the Info.plist, signs every binary with the hardened runtime and `scripts/macos/entitlements.plist`, makes and signs the DMG, waits for notarization, staples the ticket and checks both with `spctl`. It ends with the DMG's path and SHA-256. The first notarization of a new account took about half an hour, later ones are usually minutes
+6. Test the DMG as a download: `xattr -w com.apple.quarantine "0081;$(printf %x $(date +%s));Safari;" <dmg>`, reset the Spotify permission with `tccutil reset AppleEvents com.albertoarena.sudoplay`, install, open, press Play. Expect only the "downloaded from the internet" question, then **"Sudo Play.app" wants access to control "Spotify.app"** with the line from `info.json`, then playback in the Spotify app, not the browser
+7. Tag the commit, create the GitHub Release, attach the DMG and put the SHA-256 in the notes
 
-An ad hoc signature gets the normal "cannot verify" prompt and Open Anyway in System Settings. The signed build replaces steps 4 to 6 with the steps above.
+### Why the signing is ours, not NativePHP's
+
+Notarization requires the hardened runtime. Under it, macOS refuses to let an app control Spotify unless the app has the `com.apple.security.automation.apple-events` entitlement and an `NSAppleEventsUsageDescription`. NativePHP has neither and no setting to add them, and its files in `vendor/` are overwritten on update. Without them, Play is refused silently and falls back to the browser, which looks fine unless tested. The same step removes the camera, microphone, Bluetooth and folder usage strings that NativePHP and Electron add, because Sudo Play uses none of them. `tests/Feature/Native/MacSigningTest.php` keeps these files in step with NativePHP and Electron.
+
+## Unsigned beta, before the Apple account
+
+`v1.0.0-beta.1` shipped unsigned on 2026-10-14, while the Apple Developer account waited for approval. It was built like a release, steps 1 to 4, then signed ad hoc instead of step 5: `codesign --force --deep --sign - "dist/mac-arm64/Sudo Play.app"`, with the DMG made by `hdiutil` as in `release.sh`. Without that ad hoc signature, a downloaded copy says it is damaged, with no way to open it. With it, macOS shows the "cannot verify" prompt and Open Anyway in System Settings.
 
 ## Automating it afterwards
 

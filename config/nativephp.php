@@ -15,9 +15,13 @@ return [
     /**
      * The ID of your application. This should be a unique identifier
      * usually in the form of a reverse domain name.
-     * For example: com.nativephp.app
+     *
+     * Sudo Play's own id is the default, not NativePHP's. A build without
+     * NATIVEPHP_APP_ID would otherwise be a different app to macOS: it would
+     * lose the user's Spotify and login permissions and could not replace an
+     * installed copy. scripts/macos/info.json checks the same id.
      */
-    'app_id' => env('NATIVEPHP_APP_ID', 'com.nativephp.app'),
+    'app_id' => env('NATIVEPHP_APP_ID', 'com.albertoarena.sudoplay'),
 
     /**
      * If your application allows deep linking, you can specify the scheme
@@ -89,6 +93,7 @@ return [
         'temp',
         'content',
         'node_modules',
+        'scripts',
         '*/tests',
     ],
 
