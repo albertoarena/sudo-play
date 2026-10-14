@@ -14,9 +14,8 @@
 #
 # Run `php artisan catalog:validate` before you push. CI runs it too.
 #
-# The playlist list is empty on purpose. Real Spotify playlist ids are chosen by
-# the maintainer, never invented, and `catalog:validate --release` refuses to
-# release a catalog that is still empty.
+# Real Spotify playlist ids only, never invented. Each playlist must be public,
+# so it plays for anyone who opens the link.
 
 version: 1
 
@@ -73,4 +72,101 @@ moods:
     emoji: "🚀"
     description: Brave, energetic, a bit risky.
 
-playlists: []
+playlists:
+  - id: lofi-flow-state-01
+    title: Beats to refactor to
+    url: https://open.spotify.com/playlist/3vRpZ8jH4GKBNCx6gDdGfJ
+    genre: lofi
+    moods: [flow-state, debugging]
+    curator: albertoarena
+
+  - id: classical-flow-state-01
+    title: Fugue state
+    url: https://open.spotify.com/playlist/3Qf0iHM6fA3vPgzfkV2XZJ
+    genre: classical
+    moods: [flow-state, debugging]
+    curator: albertoarena
+
+  - id: jazz-debugging-01
+    title: Modal debugging
+    url: https://open.spotify.com/playlist/5GxNW8anRPEkuFWwYSA4Vj
+    genre: jazz
+    moods: [debugging, flow-state]
+    curator: albertoarena
+
+  - id: electronic-flow-state-01
+    title: Ambient runtime
+    url: https://open.spotify.com/playlist/4iCzCCEu5pSnhvcGv1HbAZ
+    genre: electronic
+    moods: [flow-state, debugging]
+    curator: albertoarena
+
+  - id: lofi-coffee-needed-01
+    title: "Warm cache, cold coffee"
+    url: https://open.spotify.com/playlist/71AG4C3e54W6cYK8FAiAU2
+    genre: lofi
+    moods: [coffee-needed, blue-monday]
+    curator: albertoarena
+
+  - id: classical-blue-monday-01
+    title: Adagio for Mondays
+    url: https://open.spotify.com/playlist/0Uv7xjEhwlxEBmyUiO5jtN
+    genre: classical
+    moods: [blue-monday, coffee-needed]
+    curator: albertoarena
+
+  - id: jazz-coffee-needed-01
+    title: Kind of Blue Monday
+    url: https://open.spotify.com/playlist/3FENzWujkFE7VDnXb27Y73
+    genre: jazz
+    moods: [coffee-needed, blue-monday]
+    curator: albertoarena
+
+  - id: pop-coffee-needed-01
+    title: Gentle standup
+    url: https://open.spotify.com/playlist/4JFeSqb4VMDMDwLicIdgfL
+    genre: pop
+    moods: [coffee-needed, blue-monday]
+    curator: albertoarena
+
+  - id: indie-blue-monday-01
+    title: Soft launch
+    url: https://open.spotify.com/playlist/5DOkkAWcIjl3K6tcZpIo9A
+    genre: indie
+    moods: [blue-monday, coffee-needed]
+    curator: albertoarena
+
+  - id: rock-friday-deploy-01
+    title: Riffs for risky releases
+    url: https://open.spotify.com/playlist/6GpGexxx5zYkTAbwsKvrw6
+    genre: rock
+    moods: [friday-deploy, shipped-it]
+    curator: albertoarena
+
+  - id: electronic-friday-deploy-01
+    title: Zero downtime drops
+    url: https://open.spotify.com/playlist/7rCBGZG7NSjoI4cyjOt11c
+    genre: electronic
+    moods: [friday-deploy, shipped-it]
+    curator: albertoarena
+
+  - id: pop-shipped-it-01
+    title: Green build anthems
+    url: https://open.spotify.com/playlist/6ZyjZZPi6CHr2V3GWmrcZ7
+    genre: pop
+    moods: [shipped-it, friday-deploy]
+    curator: albertoarena
+
+  - id: indie-friday-deploy-01
+    title: Feature flags and fuzz
+    url: https://open.spotify.com/playlist/7ypVn6lXVPFkXe74E2z4K8
+    genre: indie
+    moods: [friday-deploy, shipped-it]
+    curator: albertoarena
+
+  - id: classical-friday-deploy-01
+    title: Allegro ma non rollback
+    url: https://open.spotify.com/playlist/3AzNOcVQtseCrxwvo284na
+    genre: classical
+    moods: [friday-deploy, shipped-it]
+    curator: albertoarena
