@@ -46,6 +46,20 @@ Do this once on a Mac before automating anything. Notarization fails in dull way
 
 Write the exact commands here as you go. That record is the point of this document.
 
+## Unsigned beta, before the Apple account
+
+`v1.0.0-beta.1` shipped unsigned on 2026-10-14, while the Apple Developer account waited for approval. What worked, on an Apple silicon Mac:
+
+1. Clone `main` into a fresh folder, so no local `.env`, database or private note ends up in the bundle
+2. `composer install --no-dev --optimize-autoloader`, `npm ci`, `npm run build`
+3. Copy `.env.example` to `.env`, set `APP_ENV=production` and `APP_DEBUG=false`, run `php artisan key:generate`, and add `NATIVEPHP_APP_VERSION`, `NATIVEPHP_APP_AUTHOR`, `NATIVEPHP_APP_COPYRIGHT`, `NATIVEPHP_APP_DESCRIPTION` and `NATIVEPHP_APP_WEBSITE`
+4. `php artisan native:build mac arm64`. With no certificate, electron-builder skips signing and the notarize hook fails. The build still finishes, but the app's signature is broken, and a downloaded copy would say it is damaged, with no way to open it
+5. Sign it ad hoc: `codesign --force --deep --sign - "dist/mac-arm64/Sudo Play.app"`, then check with `codesign --verify --deep --strict`
+6. Make a new DMG from the fixed app: a folder with the app and a link to `/Applications`, then `hdiutil create -volname "Sudo Play" -srcfolder <folder> -format UDZO Sudo-Play-<version>-arm64.dmg`
+7. Create a draft pre-release pinned to the built commit, attach the DMG, download it from the draft and open it with Open Anyway before publishing
+
+An ad hoc signature gets the normal "cannot verify" prompt and Open Anyway in System Settings. The signed build replaces steps 4 to 6 with the steps above.
+
 ## Automating it afterwards
 
 `release.yml` turns the steps above into a workflow. On a `v*` tag, on a macOS runner, behind a protected environment so a stray tag cannot publish or reach the secrets.
