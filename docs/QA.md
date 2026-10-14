@@ -11,10 +11,15 @@ sandbox, its own Automation permission identity and no dev server. So M7
 clears every box before the DMG run, and the ticks it then makes are the ones
 that count for the release.
 
+**Release run, started 2026-10-14 against the signed builds.** The development
+ticks were cleared. A tick now reads _(1.0.1, date)_ or _(1.0.0, date)_: the
+signed build it was seen on. A note in italics under a check records a partial
+result or a failure, and the check stays open until it fully passes.
+
 ## Player
 
-- [x] Autoplay mode plays a real public playlist in the Spotify app _(dev, 2026-10-08)_
-- [x] The first autoplay attempt shows the macOS Automation permission prompt, and the app explains it in one line before or alongside the prompt _(dev, 2026-10-08)_
+- [x] Autoplay mode plays a real public playlist in the Spotify app _(1.0.1, 2026-10-14)_
+- [x] The first autoplay attempt shows the macOS Automation permission prompt, and the app explains it in one line before or alongside the prompt _(1.0.0, 2026-10-14)_
 - [ ] Denying that permission falls back to the web player and shows a short message
 - [ ] With the permission denied, the message says where to allow it (System Settings, Privacy & Security, Automation)
 - [ ] Autoplay with Spotify not installed falls back to the web player and shows a short message
@@ -36,12 +41,12 @@ that count for the release.
 
 ## Window and system
 
-- [x] The menu bar icon is readable in light mode and dark mode _(dev, 2026-10-08)_
+- [ ] The menu bar icon is readable in light mode and dark mode
 - [ ] Clicking the icon opens a window of 360 by 520 under the icon, and there is no Dock icon
 - [ ] With two Spaces on one display, clicking the icon from the second Space opens the window there, without switching to the first. Same on a second display
 - [ ] The footer stays visible without scrolling at the default window size, with a fallback comment, the "Add a ... playlist" link and the autoplay hint all showing
-- [x] No unthemed band appears below the content in dark mode, at any scroll position _(dev, 2026-10-08)_
-- [x] The buttons and the footer stay put while the chips and the pick card scroll _(dev, 2026-10-08)_
+- [ ] No unthemed band appears below the content in dark mode, at any scroll position
+- [ ] The buttons and the footer stay put while the chips and the pick card scroll
 - [ ] "Add a playlist" opens the contributing page in the default browser, not inside the window
 - [ ] Before the first sync the footer says "Built-in playlists"
 - [ ] The footer links underline on hover and on focus, are easy to hit, and a short line sets Quit apart from Settings
@@ -130,15 +135,22 @@ on for the last two checks.
 ## Release
 
 - [ ] The DMG installs on a Mac that has never run the app
-- [ ] Gatekeeper does not block the signed and notarized build
+- [x] Gatekeeper does not block the signed and notarized build _(1.0.1, 2026-10-14)_
+  _Downloaded copies of 1.0.0 and 1.0.1 open after the single "downloaded from the internet" question. A copy carried out of the DMG with no network was not tried: in 1.0.1 only the DMG is stapled, not the app inside it. Fixed in scripts/macos/release.sh for the next release_
 - [ ] The Sudo Play icon, not the NativePHP one, shows on the DMG volume, and on the app in Finder and Applications
+  _Fails on 1.0.1, 2026-10-14: the app shows the Sudo Play icon (its icon.icns is the one in art/icon), but the DMG volume shows the generic disk icon, because the hand-made DMG had no .VolumeIcon.icns. Fixed in scripts/macos/release.sh for the next release_
 - [ ] The Sudo Play icon shows in System Settings, General, Login Items, after turning on launch at login
 - [ ] The Sudo Play icon shows on the daily reminder notification and in System Settings, Notifications
 - [ ] The Sudo Play icon shows on the macOS prompt that asks to control Spotify, and in System Settings, Privacy & Security, Automation
-- [ ] The About panel shows the version, the GitHub link and "Not affiliated with Spotify"
+  _Seen on 1.0.0, 2026-10-14: the prompt showed the generic Automation icon, gears with a hand, not the app icon. Check whether that is how macOS draws every Automation prompt, and look at the Automation list in System Settings_
+- [x] The About panel shows the version, the GitHub link and "Not affiliated with Spotify" _(1.0.1, 2026-10-14)_
 - [ ] The About panel links to `PRIVACY.md` and the link opens
 - [ ] The Credits section lists the curators in the current catalog, and an empty catalog shows no broken list
+  _Partial, 1.0.0, 2026-10-14: Credits lists @albertoarena for the shipped catalog. The empty catalog case is still to do_
 - [ ] "Contributors on GitHub" in Credits opens the contributors page in the default browser
-- [ ] `PRIVACY.md` still matches what the app does, in particular the list of network calls
+- [x] `PRIVACY.md` still matches what the app does, in particular the list of network calls _(1.0.1, 2026-10-14)_
+  _Checked against the code: one outbound call, the catalog download in HttpCatalogDownloader, at startup and daily. The frontend only calls the local server. Links open through shell.openExternal. Since 1.0.0 the bundle declares no camera, microphone, Bluetooth or folder access either_
 - [ ] With a network monitor such as LuLu or Little Snitch, the installed app makes no request other than the catalog download, from start to quit. In particular no update check: the NativePHP updater is off
-- [ ] No Spotify logo anywhere in the app or the README
+  _Partial, 1.0.1, 2026-10-14: open connections of every app process sampled every 0.2 s from start to quit, over one minute. One outbound connection, from the bundled php, to GitHub on 443 (2606:50c0:8000::154). Nothing from Electron. Sampling can miss a very short connection, so LuLu is still to do_
+- [x] No Spotify logo anywhere in the app or the README _(1.0.1, 2026-10-14)_
+  _The only images are the app icon, the menu bar template, the favicon and the two screenshots of the app window_

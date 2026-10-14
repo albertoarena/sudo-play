@@ -80,7 +80,7 @@ Keep the private key and the `.p8` file out of every repository. The certificate
    ```
    scripts/macos/release.sh <version> arm64
    ```
-   It checks the bundle id and version, applies `scripts/macos/info.json` to the Info.plist, signs every binary with the hardened runtime and `scripts/macos/entitlements.plist`, makes and signs the DMG, waits for notarization, staples the ticket and checks both with `spctl`. It ends with the DMG's path and SHA-256. The first notarization of a new account took about half an hour, later ones are usually minutes
+   It checks the bundle id and version, applies `scripts/macos/info.json` to the Info.plist, and signs every binary with the hardened runtime and `scripts/macos/entitlements.plist`. Then it notarizes and staples the app on its own, so the copy inside the DMG carries its ticket and opens even with no network. It makes the DMG from that app, with the app icon on the volume, signs it, notarizes and staples it too, and checks the DMG, the app inside it and the volume icon. It ends with the DMG's path and SHA-256. Up to 1.0.1 only the DMG was stapled, and the volume had the generic disk icon. The first notarization of a new account took about half an hour, later ones are usually minutes
 6. Test the DMG as a download: `xattr -w com.apple.quarantine "0081;$(printf %x $(date +%s));Safari;" <dmg>`, reset the Spotify permission with `tccutil reset AppleEvents com.albertoarena.sudoplay`, install, open, press Play. Expect only the "downloaded from the internet" question, then **"Sudo Play.app" wants access to control "Spotify.app"** with the line from `info.json`, then playback in the Spotify app, not the browser
 7. Tag the commit, create the GitHub Release, attach the DMG and put the SHA-256 in the notes
 

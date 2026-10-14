@@ -41,30 +41,58 @@ codesign --verify --deep --strict --verbose=2 "$app"
 codesign -d --entitlements - --xml "$app" 2>/dev/null | grep -q 'com.apple.security.automation.apple-events' \
     || { echo "The app is missing the Apple events entitlement." >&2; exit 1; }
 
-echo "2. Make the DMG"
-stage="$(mktemp -d)"
-trap 'rm -rf "$stage"' EXIT
-ditto "$app" "$stage/Sudo Play.app"
-ln -s /Applications "$stage/Applications"
+# Submits a file to Apple and waits. Prints Apple's log when it is refused.
+notarize() {
+    local file="$1" result="$out/notary-$(basename "$1").json"
+    xcrun notarytool submit "$file" "${notary_auth[@]}" --wait --output-format json | tee "$result"
+    if ! grep -q '"status":"Accepted"' "$result"; then
+        echo "Notarization of $(basename "$file") was not accepted. Apple's log:" >&2
+        local id
+        id="$(sed -n 's/.*"id":"\([^"]*\)".*/\1/p' "$result")"
+        [ -n "$id" ] && xcrun notarytool log "$id" "${notary_auth[@]}" >&2
+        exit 1
+    fi
+}
+
 mkdir -p "$out"
+stage="$(mktemp -d)"
+trap 'hdiutil detach -quiet "$stage/mnt" 2>/dev/null || true; rm -rf "$stage"' EXIT
+
+# The app is notarized and stapled on its own first, so the copy inside the
+# DMG carries its ticket. Without it, a first launch with no network can be
+# refused once the app is out of the DMG.
+echo "2. Notarize and staple the app (usually a few minutes)"
+ditto -c -k --keepParent "$app" "$stage/app.zip"
+notarize "$stage/app.zip"
+xcrun stapler staple "$app"
+
+echo "3. Make the DMG"
+mkdir "$stage/content"
+ditto "$app" "$stage/content/Sudo Play.app"
+ln -s /Applications "$stage/content/Applications"
 rm -f "$dmg"
-hdiutil create -quiet -volname "Sudo Play" -srcfolder "$stage" -format UDZO "$dmg"
+hdiutil create -quiet -volname "Sudo Play" -srcfolder "$stage/content" -fs APFS -format UDRW "$stage/rw.dmg"
+mkdir "$stage/mnt"
+hdiutil attach -quiet -nobrowse -mountpoint "$stage/mnt" "$stage/rw.dmg"
+# The volume shows the app icon in Finder: .VolumeIcon.icns plus the custom icon flag
+cp "$app/Contents/Resources/icon.icns" "$stage/mnt/.VolumeIcon.icns"
+SetFile -a C "$stage/mnt"
+hdiutil detach -quiet "$stage/mnt"
+hdiutil convert -quiet "$stage/rw.dmg" -format UDZO -o "$dmg"
 codesign --sign "$identity" --timestamp "$dmg"
 
-echo "3. Notarize (usually a few minutes)"
-xcrun notarytool submit "$dmg" "${notary_auth[@]}" --wait --output-format json | tee "$out/notary.json"
-if ! grep -q '"status":"Accepted"' "$out/notary.json"; then
-    echo "Notarization was not accepted. Apple's log:" >&2
-    id="$(sed -n 's/.*"id":"\([^"]*\)".*/\1/p' "$out/notary.json")"
-    [ -n "$id" ] && xcrun notarytool log "$id" "${notary_auth[@]}" >&2
-    exit 1
-fi
-
-echo "4. Staple and check"
+echo "4. Notarize and staple the DMG"
+notarize "$dmg"
 xcrun stapler staple "$dmg"
-xcrun stapler staple "$app"
+
+echo "5. Check"
 spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg"
-spctl --assess --type execute --verbose=2 "$app"
+xcrun stapler validate "$dmg"
+hdiutil attach -quiet -nobrowse -readonly -mountpoint "$stage/mnt" "$dmg"
+xcrun stapler validate "$stage/mnt/Sudo Play.app"
+spctl --assess --type execute --verbose=2 "$stage/mnt/Sudo Play.app"
+[ -f "$stage/mnt/.VolumeIcon.icns" ] || { echo "The DMG has no volume icon." >&2; exit 1; }
+hdiutil detach -quiet "$stage/mnt"
 
 echo
 echo "Done: $dmg"
