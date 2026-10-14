@@ -618,3 +618,17 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Why:** the `menubar` package NativePHP uses defaults to every Space, but NativePHP passes `false` unless the app asks (`menuBar.ts` in nativephp/electron). A window that belongs to one Space makes macOS switch to that Space to show it. A menu bar app should open where the user is, like a native menu. The setting only adds the window to every Space, it does not change how the window is shown or hidden.
 
 **Would change if:** NativePHP changes its default, or the window ever needs to stay on one Space.
+
+## 2026-10-14: The catalog ships with 14 playlists
+
+**Choice:** `catalog/playlists.yaml` holds 14 playlists curated by Alberto (three classical, one rock, two for each other genre), each tagged with the two moods of its family: Flow State and Debugging, Coffee Needed and Blue Monday, Shipped It and Friday Deploy. The tests that required an empty shipped catalog are replaced by tests that it passes the release gate, covers every mood and every genre, lists each Spotify playlist once, and holds none of the three playlists used for layout testing.
+
+**Why:** the release gate refuses an empty catalog, and requirements 10.1 wants the app to play something on first run. The first fallback is the same mood in another genre, so covering every mood means no pick is ever empty, whatever genre is chosen. Tagging each playlist with two moods that sound alike covers all six moods with 14 playlists instead of 42. The layout-testing playlists had invented titles and one reused a real title, so the guard checks their Spotify ids.
+
+**Note:** the choices this left open:
+
+- Ids follow `{genre}-{first mood}-01`, so a second playlist for the same genre and family becomes `-02`
+- Every playlist has `curator: albertoarena`, so the About panel lists one curator until contributions arrive
+- Each playlist is public. The Spotify pages were checked without a login on 2026-10-14. Playing while logged out is still a check by hand
+
+**Would change if:** a mood needs a playlist of its own rather than a shared one, for example if Debugging and Flow State drift apart.
