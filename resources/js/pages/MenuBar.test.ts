@@ -75,7 +75,8 @@ describe('MenuBar', () => {
         expect(wrapper.text()).toContain('$ sudo play --genre rock --mood friday-deploy');
         expect(wrapper.text()).toContain('🐛 Debugging');
         expect(wrapper.text()).toContain('Riffs for risky releases');
-        expect(wrapper.text()).toContain('Catalog updated 2026-10-07');
+        expect(wrapper.get('footer').text()).toContain('Updated 2026-10-07');
+        expect(wrapper.text()).not.toContain('Catalog updated');
     });
 
     it('says the playlists are the built-in ones when the catalog was never synced', () => {
@@ -528,6 +529,16 @@ describe('MenuBar', () => {
             );
         });
 
+        // The window is narrow: a wrapped date or link breaks mid-word, as
+        // "2026-" over "10-14" did in 1.0.0.
+        it('keeps the date and every link on one line', () => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
+            const items = wrapper.get('footer').findAll('span:not([aria-hidden]), button');
+
+            expect(items).toHaveLength(4);
+            items.forEach((item) => expect(item.classes()).toContain('whitespace-nowrap'));
+        });
+
         it('puts a divider between Settings and Quit', () => {
             const wrapper = mount(MenuBar, { props: { state: state(), api: fakeApi() } });
             const quit = button(wrapper, 'Quit').element;
@@ -574,7 +585,7 @@ describe('MenuBar', () => {
         await flushPromises();
 
         expect(api.state).toHaveBeenCalledWith(1, '2026-10-08');
-        expect(wrapper.text()).toContain('Catalog updated 2026-10-08');
+        expect(wrapper.get('footer').text()).toContain('Updated 2026-10-08');
         wrapper.unmount();
     });
 
