@@ -22,7 +22,7 @@ Every choice the plan leaves open goes in `docs/DECISIONS.md` as one short entry
 - [x] M4 Player
 - [x] M5 Menu bar UI
 - [x] M6 Settings window and daily reminder
-- [ ] M7 Repository, CI and release
+- [x] M7 Repository, CI and release
 
 ---
 
@@ -185,11 +185,15 @@ Requirements: section 9.
 
 Note on order: the repository goes public at this milestone. Before flipping it, check that `CONTRIBUTING.md` has the licensing paragraph and that `catalog-live` exists, because both are harder to add once people are watching.
 
+**Closed on 2026-10-14.** The repository is public, `main` is protected with `Checks` required, and the signed and notarized `v1.0.0` and `v1.0.1` are released, built with `scripts/macos/release.sh` as `docs/RELEASE.md` describes. The maintainer checked the signed build on a downloaded copy: no Gatekeeper block, the Spotify permission prompt, Play in the Spotify app, the footer and the About panel. Two items of the list above are follow-ups, not done:
+
+- Run the full `docs/QA.md` list against the signed DMG. So far only the flows named above were checked on it
+- Merge `release.yml` (pull request 41), set up the `release` environment and its secrets, and check it with a dry run on an existing tag
+
 ---
 
 ## After v1 (do not build now)
 
 - Homebrew cask
-- Landing page (Astro + Tailwind)
 - Apple Music and YouTube Music links in the catalog
 - Share today's pick as a link or image
