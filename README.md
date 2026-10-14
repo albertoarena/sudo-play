@@ -14,7 +14,7 @@ The documentation lives at [sudoplay.dev](https://sudoplay.dev).
 
 ## Status
 
-The app is built and works in development. There is no release yet: the first one waits for a signed and notarized build.
+The first build is out: [1.0.0 beta 1](https://github.com/albertoarena/sudo-play/releases/tag/v1.0.0-beta.1), for Macs with Apple silicon. It is not signed yet. A signed and notarized build follows in a few days, as soon as Apple approves the developer account.
 
 Follow the Status list in [docs/INSTRUCTIONS.md](docs/INSTRUCTIONS.md) to see how far along it is.
 
@@ -45,7 +45,18 @@ Genres and moods live in the catalog, so adding one takes no code.
 
 ## Install
 
-Nothing to install yet. The first release will be a signed DMG attached to a GitHub Release, so it opens without a security warning. Until then, you can run it from source.
+Download the DMG from the [1.0.0 beta 1 release](https://github.com/albertoarena/sudo-play/releases/tag/v1.0.0-beta.1). It needs a Mac with Apple silicon (M1 or later).
+
+**This build is not signed yet.** The Apple Developer account for Sudo Play is waiting for Apple's approval, and a signed and notarized build follows in a few days, as soon as Apple approves it. That one opens with no warning.
+
+Until then, macOS blocks the beta the first time you open it, because it cannot check who made it. To open it anyway:
+
+1. Open the DMG and drag Sudo Play to Applications
+2. Open Sudo Play from Applications. macOS says it cannot verify the app. Click **Done**
+3. Open **System Settings**, then **Privacy & Security**, and scroll down to Security
+4. Next to "Sudo Play was blocked", click **Open Anyway** and confirm
+
+You only do this once. If you would rather not, wait for the signed build, or run it from source.
 
 ## Run it from source
 
