@@ -632,3 +632,13 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 - Each playlist is public. The Spotify pages were checked without a login on 2026-10-14. Playing while logged out is still a check by hand
 
 **Would change if:** a mood needs a playlist of its own rather than a shared one, for example if Debugging and Flow State drift apart.
+
+## 2026-10-14: The macOS build is signed by our script, not by NativePHP
+
+**Choice:** the app is built unsigned (`CSC_IDENTITY_AUTO_DISCOVERY=false`), then `scripts/macos/release.sh` signs it with the Developer ID and the hardened runtime, using `scripts/macos/entitlements.plist` and the Info.plist changes in `scripts/macos/info.json`, and makes, notarizes and staples the DMG. The bundle id defaults to `com.albertoarena.sudoplay` in `config/nativephp.php`.
+
+**Why:** notarization requires the hardened runtime, and under it macOS refuses Apple events unless the app has the `com.apple.security.automation.apple-events` entitlement and an `NSAppleEventsUsageDescription`. NativePHP ships neither and has no setting for them, and editing `vendor/` would be undone on update. Without them Play is refused with no prompt and falls back to the browser, which passes a casual check. The same step drops the camera, microphone, Bluetooth and folder usage strings NativePHP and Electron add, which a menu bar music app should not declare. A missing `NATIVEPHP_APP_ID` used to fall back to NativePHP's id, which would make a build a different app to macOS, losing the user's permissions and unable to replace an installed copy.
+
+**Note:** checked on 2026-10-14 with a notarized `1.0.0` build installed over the beta: only the "downloaded from the internet" question, then the Spotify permission prompt with our line, then playback in the Spotify app. `tests/Feature/Native/MacSigningTest.php` fails if NativePHP or Electron add an entitlement or a usage string we do not handle.
+
+**Would change if:** NativePHP gains settings for entitlements and Info.plist keys, so the script can go back to being configuration.

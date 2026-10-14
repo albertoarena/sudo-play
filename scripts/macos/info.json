@@ -4,6 +4,8 @@
         "NSAppleEventsUsageDescription": "Sudo Play controls Spotify to start today's playlist."
     },
     "remove": [
+        "NSBluetoothAlwaysUsageDescription",
+        "NSBluetoothPeripheralUsageDescription",
         "NSCameraUsageDescription",
         "NSMicrophoneUsageDescription",
         "NSDocumentsFolderUsageDescription",
