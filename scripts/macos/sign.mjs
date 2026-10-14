@@ -49,6 +49,14 @@ for (const key of info.remove) {
     }
 }
 
+const keys = Object.keys(JSON.parse(plutil('-convert', 'json', '-o', '-', plist)));
+const unexpected = keys.filter((key) => key.endsWith('UsageDescription') && !(key in info.set));
+
+if (unexpected.length > 0) {
+    console.error(`Unexpected usage strings: ${unexpected.join(', ')}. Add them to "remove" in scripts/macos/info.json.`);
+    process.exit(1);
+}
+
 const require = createRequire(join(root, 'vendor/nativephp/electron/resources/js/package.json'));
 const { signAsync } = require('@electron/osx-sign');
 

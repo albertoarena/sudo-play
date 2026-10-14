@@ -6,8 +6,8 @@ declare(strict_types=1);
  * The signed macOS build is made by scripts/macos, not by NativePHP. NativePHP
  * has no setting for entitlements or Info.plist keys, and its defaults break
  * Spotify control under the hardened runtime that notarization requires. These
- * tests keep our files in step with what NativePHP and Electron ship, so an
- * update to either cannot quietly drop an entitlement or add a usage string.
+ * tests keep our files in step with what NativePHP ships, and sign.mjs refuses
+ * to sign a build that still carries a usage string we did not choose.
  */
 
 function nativePhpBuilderConfig(): string
@@ -95,17 +95,20 @@ it('explains to the user why it controls Spotify', function (): void {
         ->not->toContain('—');
 });
 
-it('removes every usage string NativePHP and Electron add', function (): void {
-    preg_match_all('/\b(NS\w+UsageDescription)\b/', nativePhpBuilderConfig(), $fromNativePhp);
+it('removes every usage string NativePHP adds', function (): void {
+    preg_match_all('/\b(NS\w+UsageDescription)\b/', nativePhpBuilderConfig(), $matches);
 
-    $electronPlist = (string) file_get_contents(base_path('vendor/nativephp/electron/resources/js/node_modules/electron/dist/Electron.app/Contents/Info.plist'));
-    preg_match_all('/<key>(NS\w+UsageDescription)<\/key>/', $electronPlist, $fromElectron);
+    expect($matches[1])->not->toBeEmpty()
+        ->and(macInfo()['remove'])->toContain(...array_unique($matches[1]));
+});
 
-    expect($fromNativePhp[1])->not->toBeEmpty()
-        ->and($fromElectron[1])->not->toBeEmpty();
+it('removes the Bluetooth usage strings Electron adds', function (): void {
+    // Electron's own Info.plist is not installed on the Linux CI runner, so
+    // sign.mjs makes the full check against the real build: it refuses to sign
+    // while any usage string other than the ones in "set" is left.
+    expect(macInfo()['remove'])->toContain('NSBluetoothAlwaysUsageDescription', 'NSBluetoothPeripheralUsageDescription');
+});
 
-    $added = array_values(array_unique([...$fromNativePhp[1], ...$fromElectron[1]]));
-    $kept = array_keys(macInfo()['set']);
-
-    expect(macInfo()['remove'])->toEqualCanonicalizing(array_values(array_diff($added, $kept)));
+it('never removes a usage string it sets', function (): void {
+    expect(array_intersect(array_keys(macInfo()['set']), macInfo()['remove']))->toBeEmpty();
 });
