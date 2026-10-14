@@ -101,7 +101,7 @@ Notarization requires the hardened runtime. Under it, macOS refuses to let an ap
 - A version with a dash, such as `1.1.0-beta.1`, becomes a pre-release
 - Signing and notarization go through the same `scripts/macos/release.sh` as a local release, with the `.p8` key passed directly instead of a keychain profile
 - The app comes from the tag, `scripts/macos` from the commit the workflow runs from, so a dry run of an older tag signs with today's scripts
-- First dry run, on `v1.0.1`, passed on 2026-10-14: signed, notarized and stapled in about a quarter of an hour, approval included
+- First dry run, on `v1.0.1`, passed on 2026-10-14: signed, notarized and stapled in 9 minutes, approval included (the job itself took 7 and a half)
 
 macOS runners are free for public repositories but bill at ten times the Linux rate on private ones, which is why only this workflow uses one.
 
