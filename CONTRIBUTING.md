@@ -62,6 +62,7 @@ Read [AGENTS.md](AGENTS.md) first. It has the stack, the architecture and the ru
 - **Tests first.** Write a failing test, make it pass, then clean up. Pest for PHP, Vitest for Vue
 - **No Spotify Web API**, no accounts, no analytics. The only network call is the catalog download
 - Small commits in the `type: short subject` format, like `fix: keep the pick after a sync`
+- **No AI attribution:** no `Co-Authored-By` trailers for AI tools in commits, and no "Generated with" footers in pull requests, issues or comments. Using a tool is fine; you are the author of what you submit
 - **Colours come from the tokens** in `resources/css/app.css`, not from Tailwind palette classes. A test measures every pair against WCAG AA and fails on a palette class in a component
 - Every change goes through a pull request
 
