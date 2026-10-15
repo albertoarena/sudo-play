@@ -26,6 +26,7 @@ else
 fi
 
 root="$(cd "$(dirname "$0")/../.." && pwd)"
+source "$root/scripts/macos/retry.sh"
 app="$root/dist/mac-$arch/Sudo Play.app"
 out="$root/dist/release"
 dmg="$out/Sudo-Play-$version-$arch.dmg"
@@ -64,7 +65,7 @@ trap 'hdiutil detach -quiet "$stage/mnt" 2>/dev/null || true; rm -rf "$stage"' E
 echo "2. Notarize and staple the app (usually a few minutes)"
 ditto -c -k --keepParent "$app" "$stage/app.zip"
 notarize "$stage/app.zip"
-xcrun stapler staple "$app"
+retry xcrun stapler staple "$app"
 
 echo "3. Make the DMG"
 mkdir "$stage/content"
@@ -83,13 +84,13 @@ codesign --sign "$identity" --timestamp "$dmg"
 
 echo "4. Notarize and staple the DMG"
 notarize "$dmg"
-xcrun stapler staple "$dmg"
+retry xcrun stapler staple "$dmg"
 
 echo "5. Check"
 spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg"
-xcrun stapler validate "$dmg"
+retry xcrun stapler validate "$dmg"
 hdiutil attach -quiet -nobrowse -readonly -mountpoint "$stage/mnt" "$dmg"
-xcrun stapler validate "$stage/mnt/Sudo Play.app"
+retry xcrun stapler validate "$stage/mnt/Sudo Play.app"
 spctl --assess --type execute --verbose=2 "$stage/mnt/Sudo Play.app"
 [ -f "$stage/mnt/.VolumeIcon.icns" ] || { echo "The DMG has no volume icon." >&2; exit 1; }
 hdiutil detach -quiet "$stage/mnt"

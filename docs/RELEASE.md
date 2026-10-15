@@ -102,6 +102,8 @@ Notarization requires the hardened runtime. Under it, macOS refuses to let an ap
 - Signing and notarization go through the same `scripts/macos/release.sh` as a local release, with the `.p8` key passed directly instead of a keychain profile
 - The app comes from the tag, `scripts/macos` from the commit the workflow runs from, so a dry run of an older tag signs with today's scripts
 - First dry run, on `v1.0.1`, passed on 2026-10-14: signed, notarized and stapled in 9 minutes, approval included (the job itself took 7 and a half)
+- `xcrun stapler` asks Apple's ticket service online, and on the runner that connection sometimes drops (error 68, "The network connection was lost"). It failed `v1.0.2` twice on 2026-10-15, both times after the notarizations were accepted. `release.sh` now tries each stapler call up to five times, through `scripts/macos/retry.sh`
+- On a tag push, the workflow's commit is the tagged one, so re-running a failed release uses the scripts at that tag. To build a tag with a newer script fix, run the dry run from `main` on that tag and attach its DMG to the draft by hand
 
 macOS runners are free for public repositories but bill at ten times the Linux rate on private ones, which is why only this workflow uses one.
 
