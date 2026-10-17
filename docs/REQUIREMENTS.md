@@ -60,6 +60,8 @@ Moods:
 | `flow-state` | Flow State | Deep focus, no distractions |
 | `debugging` | Debugging | Calm and patient, long investigation |
 | `friday-deploy` | Friday Deploy | Brave, energetic, a bit risky |
+| `agent-mode` | Agent Mode | Calm, watching the machines work |
+| `night-shift` | Night Shift | Wired, past midnight, one more commit |
 
 Genres and moods are defined in the catalog, so new ones need no code change.
 
