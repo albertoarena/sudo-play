@@ -642,3 +642,13 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Note:** checked on 2026-10-14 with a notarized `1.0.0` build installed over the beta: only the "downloaded from the internet" question, then the Spotify permission prompt with our line, then playback in the Spotify app. `tests/Feature/Native/MacSigningTest.php` fails if NativePHP or Electron add an entitlement or a usage string we do not handle.
 
 **Would change if:** NativePHP gains settings for entitlements and Info.plist keys, so the script can go back to being configuration.
+
+## 2026-10-17: Two new moods and six more playlists
+
+**Choice:** the catalog gains the moods Agent Mode (`agent-mode`, 🤖) and Night Shift (`night-shift`, 🌙), and six playlists curated by Alberto, 20 in all. Agent Mode has an electronic, a jazz and a classical playlist. Night Shift has one electronic playlist. The other four fill gaps: rock for Debugging, indie for Shipped It. Each new playlist pairs its first mood with Flow State, except the indie one, which pairs Shipped It with Coffee Needed.
+
+**Why:** themes reach users only through a genre and a mood, so two developer situations that had no playlist became moods: watching an agent do the work, and coding late at night. Pairing them with Flow State keeps the fallback useful, since a calm or wired night still wants focus. Moods are catalog data, so this needs no code.
+
+**Note:** ids follow `{genre}-{first mood}-01` as before. No song appears in two playlists across all 20. Each Spotify page was checked without a login on 2026-10-17. Night Shift has one genre for now, so in the other six genres its pick is a fallback until a second playlist (lofi or jazz) is added.
+
+**Would change if:** eight mood chips no longer fit the menu bar window comfortably, in which case the moods need grouping or a smaller chip.

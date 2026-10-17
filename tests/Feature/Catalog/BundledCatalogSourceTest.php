@@ -72,6 +72,8 @@ it('ships the moods from the requirements, each with an emoji and a description'
         'flow-state',
         'debugging',
         'friday-deploy',
+        'agent-mode',
+        'night-shift',
     ]);
 
     foreach ($moods as $mood) {

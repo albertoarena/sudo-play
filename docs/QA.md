@@ -47,6 +47,7 @@ result or a failure, and the check stays open until it fully passes.
 - [ ] The footer stays visible without scrolling at the default window size, with a fallback comment, the "Add a ... playlist" link and the autoplay hint all showing
 - [ ] No unthemed band appears below the content in dark mode, at any scroll position
 - [ ] The buttons and the footer stay put while the chips and the pick card scroll
+- [ ] With all eight moods, the mood chips wrap cleanly and the pick card is still in view at the default window size, or a short scroll away
 - [ ] "Add a playlist" opens the contributing page in the default browser, not inside the window
 - [ ] Before the first sync the footer says "Built-in playlists"
 - [ ] The footer links underline on hover and on focus, are easy to hit, and a short line sets Quit apart from Settings

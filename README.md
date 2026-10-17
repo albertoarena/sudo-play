@@ -40,6 +40,8 @@ There is an optional daily reminder, so a playlist is waiting when you start wor
 | Flow State | Deep focus, no distractions |
 | Debugging | Calm and patient, long investigation |
 | Friday Deploy | Brave, energetic, a bit risky |
+| Agent Mode | Calm, watching the machines work |
+| Night Shift | Wired, past midnight, one more commit |
 
 Genres and moods live in the catalog, so adding one takes no code.
 

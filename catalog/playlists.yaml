@@ -72,6 +72,16 @@ moods:
     emoji: "🚀"
     description: Brave, energetic, a bit risky.
 
+  - id: agent-mode
+    label: Agent Mode
+    emoji: "🤖"
+    description: Calm, watching the machines work.
+
+  - id: night-shift
+    label: Night Shift
+    emoji: "🌙"
+    description: Wired, past midnight, one more commit.
+
 playlists:
   - id: lofi-flow-state-01
     title: Beats to refactor to
@@ -169,4 +179,46 @@ playlists:
     url: https://open.spotify.com/playlist/3AzNOcVQtseCrxwvo284na
     genre: classical
     moods: [friday-deploy, shipped-it]
+    curator: albertoarena
+
+  - id: rock-debugging-01
+    title: Stairway to mainframe
+    url: https://open.spotify.com/playlist/7MJHEJXJbEkzs8fTUFQkrb
+    genre: rock
+    moods: [debugging, flow-state]
+    curator: albertoarena
+
+  - id: electronic-agent-mode-01
+    title: Human in the loop
+    url: https://open.spotify.com/playlist/0yxNg3fICQCsaZm5mj2AcM
+    genre: electronic
+    moods: [agent-mode, flow-state]
+    curator: albertoarena
+
+  - id: jazz-agent-mode-01
+    title: A Prompt Supreme
+    url: https://open.spotify.com/playlist/15HXVqksVeKKogujYa9v3v
+    genre: jazz
+    moods: [agent-mode, flow-state]
+    curator: albertoarena
+
+  - id: classical-agent-mode-01
+    title: Music for 18 agents
+    url: https://open.spotify.com/playlist/4NTzxbPsLrtl6vgG8KhK2q
+    genre: classical
+    moods: [agent-mode, flow-state]
+    curator: albertoarena
+
+  - id: indie-shipped-it-01
+    title: One-person band
+    url: https://open.spotify.com/playlist/4xjQHjX7HaGjWJhTsCLuJ7
+    genre: indie
+    moods: [shipped-it, coffee-needed]
+    curator: albertoarena
+
+  - id: electronic-night-shift-01
+    title: Outrun the deadline
+    url: https://open.spotify.com/playlist/0MZMYdUC4t1MAfrzug0ano
+    genre: electronic
+    moods: [night-shift, flow-state]
     curator: albertoarena
