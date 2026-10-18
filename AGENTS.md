@@ -124,6 +124,12 @@ Add these scripts to `composer.json` and `package.json` in milestone 0 if they d
   released does not belong on the site. A change here and its page there are
   one unit of work spanning two repositories, but the second half lands with
   the release
+- **Catalog changes need a site sync too, without waiting for a release.** A
+  new mood, genre or playlist in `catalog/playlists.yaml` reaches the shipped
+  apps through `catalog-live` within a day, so the site must follow as soon as
+  it is merged. The pull request that changes the catalog is not finished
+  until the matching change to `sudo-play-docs` is requested: the moods page,
+  the genres, and any playlist list or count
 - **While the site is still being built**, the documentation in this repository
   is the documentation. Do not skip writing it on the grounds that a site is
   coming: the site will be assembled from this, and what is missing here is
