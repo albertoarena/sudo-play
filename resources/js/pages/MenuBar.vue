@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import ChipGroup from '../components/ChipGroup.vue';
 import CommandLine from '../components/CommandLine.vue';
 import PickCard from '../components/PickCard.vue';
-import { createMenuBarApi } from '../api';
+import { AppStoppedError, createMenuBarApi, failureMessage } from '../api';
 import type { MenuBarApi } from '../api';
 import type { MenuBarState } from '../types/menuBar';
 import type { PlayerMode } from '../types/settings';
@@ -111,8 +111,8 @@ async function run(action: () => Promise<MenuBarState>): Promise<void> {
 
     try {
         current.value = await action();
-    } catch {
-        message.value = 'Something went wrong. Please try again.';
+    } catch (error) {
+        message.value = failureMessage(error, 'Something went wrong. Please try again.');
     } finally {
         busy.value = false;
     }
@@ -162,8 +162,8 @@ async function play(): Promise<void> {
         } else {
             message.value = result.message;
         }
-    } catch {
-        message.value = 'Could not open the playlist.';
+    } catch (error) {
+        message.value = failureMessage(error, 'Could not open the playlist.');
     } finally {
         busy.value = false;
     }
@@ -172,32 +172,32 @@ async function play(): Promise<void> {
 async function openContributing(): Promise<void> {
     try {
         await props.api.addPlaylist();
-    } catch {
-        message.value = 'Could not open the browser.';
+    } catch (error) {
+        message.value = failureMessage(error, 'Could not open the browser.');
     }
 }
 
 async function openSettings(): Promise<void> {
     try {
         await props.api.openSettings();
-    } catch {
-        message.value = 'Could not open the settings. Please try again.';
+    } catch (error) {
+        message.value = failureMessage(error, 'Could not open the settings. Please try again.');
     }
 }
 
 async function quit(): Promise<void> {
     try {
         await props.api.quit();
-    } catch {
-        message.value = 'Could not quit. Please try again.';
+    } catch (error) {
+        message.value = failureMessage(error, 'Could not quit. Please try again.');
     }
 }
 
 async function hide(): Promise<void> {
     try {
         await props.api.hide();
-    } catch {
-        message.value = 'Could not hide the window. Please try again.';
+    } catch (error) {
+        message.value = failureMessage(error, 'Could not hide the window. Please try again.');
     }
 }
 
@@ -206,13 +206,19 @@ async function hide(): Promise<void> {
 // It happens on every open, so it is silent: the buttons stay as they are, a
 // failure says nothing, and the state is replaced only when it changed. An
 // answer that arrives after a click is older than that click, so it is dropped.
+// A stopped app is the exception: no click can work, so it says so at once,
+// unless a line is already on screen.
 async function refresh(): Promise<void> {
     const started = actions;
     let answer: MenuBarState;
 
     try {
         answer = await props.api.state(current.value.presses, current.value.date);
-    } catch {
+    } catch (error) {
+        if (error instanceof AppStoppedError && started === actions && quiet.value) {
+            message.value = failureMessage(error, '');
+        }
+
         return;
     }
 

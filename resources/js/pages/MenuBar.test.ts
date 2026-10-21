@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
 import { defineComponent, h } from 'vue';
 import MenuBar from './MenuBar.vue';
+import { AppStoppedError } from '../api';
 import type { MenuBarApi } from '../api';
 import type { MenuBarState, PlayResponse } from '../types/menuBar';
 
@@ -677,6 +678,77 @@ describe('MenuBar', () => {
             await flushPromises();
 
             expect(wrapper.text()).toContain('--genre jazz');
+            wrapper.unmount();
+        });
+    });
+
+    // NativePHP's PHP server has stopped, so nothing in the window can work
+    // until the app is opened again. Every action says so, not "try again".
+    describe('a stopped app', () => {
+        const stopped = 'Sudo Play stopped in the background. Press ⌘Q and open it again.';
+
+        function stoppedApi(): MenuBarApi {
+            const api = fakeApi();
+
+            for (const name of Object.keys(api) as (keyof MenuBarApi)[]) {
+                api[name] = vi.fn(async () => {
+                    throw new AppStoppedError();
+                });
+            }
+
+            return api;
+        }
+
+        it.each(['Play', 'Next', 'Surprise me', 'Jazz', 'Add a playlist', 'Settings', 'Quit'])(
+            'says so when "%s" is pressed',
+            async (label) => {
+                const wrapper = mount(MenuBar, { props: { state: state(), api: stoppedApi() } });
+
+                await button(wrapper, label).trigger('click');
+                await flushPromises();
+
+                expect(wrapper.get('[role="status"]').text()).toBe(stopped);
+            },
+        );
+
+        it('says so when Esc cannot hide the window', async () => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: stoppedApi() }, attachTo: document.body });
+
+            press('Escape');
+            await flushPromises();
+
+            expect(wrapper.get('[role="status"]').text()).toBe(stopped);
+            wrapper.unmount();
+        });
+
+        // The focus refresh is silent about a failed request, but a stopped
+        // app is not a passing failure: saying it on open saves a useless click.
+        it('says so as soon as the window opens', async () => {
+            const wrapper = mount(MenuBar, { props: { state: state(), api: stoppedApi() }, attachTo: document.body });
+
+            window.dispatchEvent(new Event('focus'));
+            await flushPromises();
+
+            expect(wrapper.get('[role="status"]').text()).toBe(stopped);
+            wrapper.unmount();
+        });
+
+        it('keeps a message that is on screen when the window opens', async () => {
+            const api = fakeApi();
+            api.openSettings = vi.fn(async () => {
+                throw new Error('The app answered 500');
+            });
+            api.state = vi.fn(async () => {
+                throw new AppStoppedError();
+            });
+            const wrapper = mount(MenuBar, { props: { state: state(), api }, attachTo: document.body });
+
+            await button(wrapper, 'Settings').trigger('click');
+            await flushPromises();
+            window.dispatchEvent(new Event('focus'));
+            await flushPromises();
+
+            expect(wrapper.get('[role="status"]').text()).toBe('Could not open the settings. Please try again.');
             wrapper.unmount();
         });
     });
