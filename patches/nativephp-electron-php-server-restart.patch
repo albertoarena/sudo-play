@@ -186,7 +186,7 @@ diff --git a/resources/js/electron-plugin/dist/server/php.js b/resources/js/elec
      }));
  }
  export { startScheduler, serveApp, getAppPath, retrieveNativePHPConfig, retrievePhpIniSettings, getDefaultEnvironmentVariables, getDefaultPhpIniSettings, runningSecureBuild };
-diff --git b/resources/js/electron-plugin/dist/server/phpServerWatchdog.js b/resources/js/electron-plugin/dist/server/phpServerWatchdog.js
+diff --git a/resources/js/electron-plugin/dist/server/phpServerWatchdog.js b/resources/js/electron-plugin/dist/server/phpServerWatchdog.js
 new file mode 100644
 --- /dev/null
 +++ b/resources/js/electron-plugin/dist/server/phpServerWatchdog.js
