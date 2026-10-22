@@ -660,3 +660,11 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Why:** a failed refresh usually clears itself on the next click, so saying nothing is right. A stopped PHP server never recovers on its own (the 2026-10-21 incident), and every click would fail. Saying so when the window opens saves the user a click that cannot work.
 
 **Would change if:** the app restarts its PHP server by itself and the restart proves reliable, so the window can wait for it instead of asking for ⌘Q.
+
+## 2026-10-22: We patch NativePHP to restart the PHP server
+
+**Choice:** `cweagans/composer-patches` 2.0 applies `patches/nativephp-electron-php-server-restart.patch` to `nativephp/electron` on every `composer install`. The patch changes the compiled `dist/` JS the build ships (`native:build` does not compile `src/`). When `php -S` exits and the app is not quitting, it restarts the server on the same port after a second. If that fails, the app relaunches itself. After 3 recoveries in 5 minutes it gives up and the window shows the stopped app message. The decisions live in `dist/server/phpServerWatchdog.js`, a pure module tested from `tests/electron/`.
+
+**Why:** on 2026-10-21 the server was killed from outside and every click failed until the user quit, because NativePHP only logs the exit and nothing restarts it. `nativephp/desktop` 2.3.1 has the same handler, so upgrading does not help, and no upstream fix exists. A patch that fails to apply fails `composer install` (the default in composer-patches 2), and the Vitest checks fail if an update drops the wiring, so neither CI nor a release can ship without it. This is the extra package rule 4 asks to record.
+
+**Would change if:** we migrate to `nativephp/desktop` and it restarts the server itself, ideally through our upstream PR. Then the patch and the package go.
