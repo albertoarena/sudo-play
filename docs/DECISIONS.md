@@ -652,3 +652,11 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Note:** ids follow `{genre}-{first mood}-01` as before. No song appears in two playlists across all 20. Each Spotify page was checked without a login on 2026-10-17. Night Shift has one genre for now, so in the other six genres its pick is a fallback until a second playlist (lofi or jazz) is added.
 
 **Would change if:** eight mood chips no longer fit the menu bar window comfortably, in which case the moods need grouping or a smaller chip.
+
+## 2026-10-22: The focus refresh reports a stopped app
+
+**Choice:** when the menu bar window gains focus it refreshes in the background and stays silent if a request fails, except for `AppStoppedError`: then it shows "Sudo Play stopped in the background. Press ⌘Q and open it again." at once. Confirmed by Alberto on 2026-10-22.
+
+**Why:** a failed refresh usually clears itself on the next click, so saying nothing is right. A stopped PHP server never recovers on its own (the 2026-10-21 incident), and every click would fail. Saying so when the window opens saves the user a click that cannot work.
+
+**Would change if:** the app restarts its PHP server by itself and the restart proves reliable, so the window can wait for it instead of asking for ⌘Q.
