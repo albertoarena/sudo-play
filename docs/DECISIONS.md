@@ -668,3 +668,11 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Why:** on 2026-10-21 the server was killed from outside and every click failed until the user quit, because NativePHP only logs the exit and nothing restarts it. `nativephp/desktop` 2.3.1 has the same handler, so upgrading does not help, and no upstream fix exists. A patch that fails to apply fails `composer install` (the default in composer-patches 2), and the Vitest checks fail if an update drops the wiring, so neither CI nor a release can ship without it. This is the extra package rule 4 asks to record.
 
 **Would change if:** we migrate to `nativephp/desktop` and it restarts the server itself, ideally through our upstream PR. Then the patch and the package go.
+
+## 2026-10-22: A log file for the Electron side
+
+**Choice:** the same NativePHP patch copies Electron's console to `storage/logs/electron.log` in the app's support folder, next to the Laravel log, in a packaged app only. Each line has a timestamp and a level. At about 1 MB the file becomes `electron.old.log`, replacing the previous one. `PRIVACY.md` lists it.
+
+**Why:** in a packaged app the Electron console goes nowhere, so the 2026-10-21 server exit left no trace. The restarts in the entry above need a record too. Writing is synchronous and swallows its own errors, so logging can never stop the app.
+
+**Would change if:** the routine lines (the scheduler runs every minute) push useful history out too fast, in which case the file keeps warnings and errors only.

@@ -12,7 +12,7 @@ function source(file: string): string {
     return readFileSync(join(dist, file), 'utf8');
 }
 
-describe('php server restart patch', () => {
+describe('nativephp electron patch', () => {
     it('lets php.js restart the server on the same port', () => {
         const php = source('server/php.js');
 
@@ -32,5 +32,12 @@ describe('php server restart patch', () => {
 
         expect(main).toMatch(/app\.on\("before-quit", \(\) => \{\s+markQuitting\(\);/);
         expect(main).toContain('this.replaceProcess(oldProcess, newProcess)');
+    });
+
+    it('copies the console to electron.log in a packaged app', () => {
+        const main = source('index.js');
+
+        expect(main).toContain("from \"./server/electronLog.js\"");
+        expect(main).toMatch(/if \(app\.isPackaged\) \{\s+copyConsoleTo\(createLogFile\(join\(app\.getPath\('userData'\), 'storage', 'logs', 'electron\.log'\)\)\);/);
     });
 });

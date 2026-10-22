@@ -1,12 +1,12 @@
 {
-    "_hash": "e259a74887989a25b646918c9087eb2a7fd5037e39f1814940e4747d35d95edb",
+    "_hash": "2f18e61d59fc66c449750f748a85e87dfc8ec0cabda27b5ee4b862d133e92798",
     "patches": {
         "nativephp/electron": [
             {
                 "package": "nativephp/electron",
-                "description": "Restart the PHP server when it exits",
+                "description": "Restart the PHP server when it exits, and copy the Electron console to storage/logs/electron.log",
                 "url": "patches/nativephp-electron-php-server-restart.patch",
-                "sha256": "8f59d23bfd2f3201ce18b515c767d1b0737ed8f989e731af34e64539078de181",
+                "sha256": "160b1e2e969ebcd32e825bc4963771290f400d373901d70f1fac50d99d456b31",
                 "depth": 1,
                 "extra": {
                     "provenance": "root"

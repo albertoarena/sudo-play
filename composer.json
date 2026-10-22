@@ -95,7 +95,7 @@
         },
         "patches": {
             "nativephp/electron": {
-                "Restart the PHP server when it exits": "patches/nativephp-electron-php-server-restart.patch"
+                "Restart the PHP server when it exits, and copy the Electron console to storage/logs/electron.log": "patches/nativephp-electron-php-server-restart.patch"
             }
         }
     },
