@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createMenuBarApi, createSettingsApi, ValidationError } from './api';
+import { AppStoppedError, createMenuBarApi, createSettingsApi, failureMessage, ValidationError } from './api';
 import type { SettingsValues } from './types/settings';
 
 function fakeFetch(body: unknown = {}, status = 200) {
@@ -173,5 +173,48 @@ describe('settings api', () => {
 
         expect(sent(fetcher).url).toBe('/settings/open-contributors');
         expect(sent(fetcher).init.method).toBe('POST');
+    });
+});
+
+// NativePHP serves the window from one PHP process. When it has stopped, fetch
+// gets no answer at all and rejects, which is not the same as an error page.
+describe('a stopped app', () => {
+    function unreachable() {
+        return vi.fn(async (): Promise<Response> => {
+            throw new TypeError('Failed to fetch');
+        });
+    }
+
+    it('says the app stopped when nothing answers', async () => {
+        const api = createMenuBarApi(unreachable(), () => '');
+
+        await expect(api.play('jazz-debugging-01')).rejects.toBeInstanceOf(AppStoppedError);
+    });
+
+    it('says the same from the settings window', async () => {
+        const api = createSettingsApi(unreachable(), () => '');
+
+        await expect(api.updateCatalog()).rejects.toBeInstanceOf(AppStoppedError);
+    });
+
+    it('keeps an error page apart from a stopped app', async () => {
+        const api = createMenuBarApi(fakeFetch({ message: 'Server Error' }, 500), () => '');
+
+        const failed = await api.surprise().catch((error: unknown) => error);
+
+        expect(failed).not.toBeInstanceOf(AppStoppedError);
+        expect((failed as Error).message).toContain('500');
+    });
+
+    it('tells the user to quit and open the app again', () => {
+        expect(failureMessage(new AppStoppedError(), 'Could not quit. Please try again.')).toBe(
+            'Sudo Play stopped in the background. Press ⌘Q and open it again.',
+        );
+    });
+
+    it('keeps the action message for any other failure', () => {
+        expect(failureMessage(new Error('The app answered 500'), 'Could not quit. Please try again.')).toBe(
+            'Could not quit. Please try again.',
+        );
     });
 });

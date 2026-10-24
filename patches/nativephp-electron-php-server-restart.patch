@@ -1,0 +1,298 @@
+diff --git a/resources/js/electron-plugin/dist/index.js b/resources/js/electron-plugin/dist/index.js
+--- a/resources/js/electron-plugin/dist/index.js
++++ b/resources/js/electron-plugin/dist/index.js
+@@ -11,9 +11,10 @@ import { app, session, powerMonitor } from "electron";
+ import { initialize } from "@electron/remote/main/index.js";
+ import state from "./server/state.js";
+ import { electronApp, optimizer } from "@electron-toolkit/utils";
+-import { retrieveNativePHPConfig, retrievePhpIniSettings, runScheduler, killScheduler, startAPI, startPhpApp, } from "./server/index.js";
++import { retrieveNativePHPConfig, retrievePhpIniSettings, runScheduler, killScheduler, startAPI, startPhpApp, markQuitting, } from "./server/index.js";
+ import { notifyLaravel } from "./server/utils.js";
+-import { resolve } from "path";
++import { join, resolve } from "path";
++import { copyConsoleTo, createLogFile } from "./server/electronLog.js";
+ import { stopAllProcesses } from "./server/api/childProcess.js";
+ import ps from "ps-node";
+ import killSync from "kill-sync";
+@@ -26,6 +27,9 @@ class NativePHP {
+         this.schedulerInterval = undefined;
+     }
+     bootstrap(app, icon, phpBinary, cert) {
++        if (app.isPackaged) {
++            copyConsoleTo(createLogFile(join(app.getPath('userData'), 'storage', 'logs', 'electron.log')));
++        }
+         initialize();
+         state.icon = icon;
+         state.php = phpBinary;
+@@ -52,6 +56,7 @@ class NativePHP {
+             }
+         });
+         app.on("before-quit", () => {
++            markQuitting();
+             if (this.schedulerInterval) {
+                 clearInterval(this.schedulerInterval);
+             }
+@@ -184,9 +189,18 @@ class NativePHP {
+     }
+     startPhpApp() {
+         return __awaiter(this, void 0, void 0, function* () {
+-            this.processes.push(yield startPhpApp());
++            this.processes.push(yield startPhpApp((oldProcess, newProcess) => this.replaceProcess(oldProcess, newProcess)));
+         });
+     }
++    replaceProcess(oldProcess, newProcess) {
++        const index = this.processes.indexOf(oldProcess);
++        if (index === -1) {
++            this.processes.push(newProcess);
++        }
++        else {
++            this.processes[index] = newProcess;
++        }
++    }
+     stopScheduler() {
+         if (this.schedulerInterval) {
+             clearInterval(this.schedulerInterval);
+diff --git a/resources/js/electron-plugin/dist/server/electronLog.js b/resources/js/electron-plugin/dist/server/electronLog.js
+new file mode 100644
+--- /dev/null
++++ b/resources/js/electron-plugin/dist/server/electronLog.js
+@@ -0,0 +1,43 @@
++// Sudo Play patch: copies the console to a log file. In a packaged app the
++// console goes nowhere, so without this an exit of the PHP server leaves no
++// trace. The file stays on this Mac, and is rotated at about 1 MB.
++import { appendFileSync, mkdirSync, renameSync, statSync } from 'fs';
++import { dirname } from 'path';
++import { format } from 'util';
++export const MAX_LOG_BYTES = 1024 * 1024;
++const LEVELS = { log: 'INFO', info: 'INFO', warn: 'WARNING', error: 'ERROR' };
++export function createLogFile(file, { maxBytes = MAX_LOG_BYTES, now = () => new Date() } = {}) {
++    const oldFile = file.replace(/\.log$/, '.old.log');
++    return function write(level, args) {
++        if (args.length === 0) {
++            return;
++        }
++        try {
++            const line = `[${now().toISOString()}] ${level}: ${format(...args)}\n`;
++            mkdirSync(dirname(file), { recursive: true });
++            let size = 0;
++            try {
++                size = statSync(file).size;
++            }
++            catch (_a) {
++                size = 0;
++            }
++            if (size > 0 && size + Buffer.byteLength(line) > maxBytes) {
++                renameSync(file, oldFile);
++            }
++            appendFileSync(file, line);
++        }
++        catch (_b) {
++            // Logging must never break the app.
++        }
++    };
++}
++export function copyConsoleTo(write, target = console) {
++    Object.entries(LEVELS).forEach(([method, level]) => {
++        const original = target[method].bind(target);
++        target[method] = (...args) => {
++            original(...args);
++            write(level, args);
++        };
++    });
++}
+diff --git a/resources/js/electron-plugin/dist/server/index.js b/resources/js/electron-plugin/dist/server/index.js
+--- a/resources/js/electron-plugin/dist/server/index.js
++++ b/resources/js/electron-plugin/dist/server/index.js
+@@ -11,12 +11,66 @@ import startAPIServer from "./api.js";
+ import { retrieveNativePHPConfig, retrievePhpIniSettings, serveApp, startScheduler, } from "./php.js";
+ import { appendCookie } from "./utils.js";
+ import state from "./state.js";
++import { app } from "electron";
++import Store from "electron-store";
++import { createPhpServerWatchdog, MAX_RECOVERIES, RESTART_DELAY_MS } from "./phpServerWatchdog.js";
+ let schedulerProcess = null;
+-export function startPhpApp() {
++// Sudo Play patch: restart the php -S server when it exits. The recoveries
++// are carried across a relaunch we cause, and only then, so a user who
++// quits and opens the app again starts with a clean count.
++const recoveryStore = new Store({ name: 'nativephp' });
++const phpServerWatchdog = createPhpServerWatchdog({
++    history: recoveryStore.get('php_server_recoveries', []),
++});
++recoveryStore.delete('php_server_recoveries');
++export function markQuitting() {
++    phpServerWatchdog.markQuitting();
++}
++function giveUp(reason) {
++    console.error(`${reason} Gave up after ${MAX_RECOVERIES} recoveries in 5 minutes.`);
++}
++function superviseServer(result, phpServer, onReplaced) {
++    phpServer.on('close', (code, signal) => {
++        const action = phpServerWatchdog.onExit();
++        if (action === 'ignore') {
++            return;
++        }
++        if (action === 'give-up') {
++            giveUp(`PHP server exited (code ${code}, signal ${signal}).`);
++            return;
++        }
++        console.log(`PHP server exited (code ${code}, signal ${signal}). Restarting it on port ${result.port}.`);
++        setTimeout(() => {
++            if (phpServerWatchdog.isQuitting()) {
++                return;
++            }
++            result.restart().then((newServer) => {
++                console.log(`PHP server restarted on port ${result.port}.`);
++                onReplaced(phpServer, newServer);
++                superviseServer(result, newServer, onReplaced);
++            }).catch((error) => {
++                const fallback = phpServerWatchdog.onRestartFailed();
++                if (fallback === 'ignore') {
++                    return;
++                }
++                if (fallback === 'give-up') {
++                    giveUp(`PHP server restart failed: ${error.message}.`);
++                    return;
++                }
++                console.error(`PHP server restart failed: ${error.message}. Relaunching the app.`);
++                recoveryStore.set('php_server_recoveries', phpServerWatchdog.history());
++                app.relaunch();
++                app.quit();
++            });
++        }, RESTART_DELAY_MS);
++    });
++}
++export function startPhpApp(onReplaced = () => { }) {
+     return __awaiter(this, void 0, void 0, function* () {
+         const result = yield serveApp(state.randomSecret, state.electronApiPort, state.phpIni);
+         state.phpPort = result.port;
+         yield appendCookie();
++        superviseServer(result, result.process, onReplaced);
+         return result.process;
+     });
+ }
+diff --git a/resources/js/electron-plugin/dist/server/php.js b/resources/js/electron-plugin/dist/server/php.js
+--- a/resources/js/electron-plugin/dist/server/php.js
++++ b/resources/js/electron-plugin/dist/server/php.js
+@@ -18,6 +18,7 @@ import { execFile, spawn, spawnSync } from 'child_process';
+ import { createServer } from 'net';
+ import state from "./state.js";
+ import getPort, { portNumbers } from 'get-port';
++const RESTART_TIMEOUT_MS = 10000;
+ const storagePath = join(app.getPath('userData'), 'storage');
+ const databasePath = join(app.getPath('userData'), 'database');
+ const databaseFile = join(databasePath, 'database.sqlite');
+@@ -269,10 +270,20 @@ function serveApp(secret, apiPort, phpIniSettings) {
+         }
+         console.log('Starting PHP server...');
+         const phpPort = yield getPhpPort();
+-        const phpServer = callPhp(['-S', `127.0.0.1:${phpPort}`, serverPath], {
++        // Sudo Play patch: launch() can run again on the same port, so a
++        // server that exits can be restarted. See server/index.js.
++        const launch = (port, timeoutMs) => new Promise((resolve, reject) => {
++        let started = false;
++        const phpServer = callPhp(['-S', `127.0.0.1:${port}`, serverPath], {
+             cwd: cwd,
+             env
+         }, phpIniSettings);
++        const timer = timeoutMs ? setTimeout(() => {
++            if (!started) {
++                phpServer.kill();
++                reject(new Error(`PHP server did not start within ${timeoutMs} ms`));
++            }
++        }, timeoutMs) : null;
+         const portRegex = /Development Server \(.*:([0-9]+)\) started/gm;
+         phpServer.stdout.on('data', (data) => {
+             if (parseInt(process.env.SHELL_VERBOSITY) > 0) {
+@@ -285,10 +296,9 @@ function serveApp(secret, apiPort, phpIniSettings) {
+             if (match) {
+                 const port = parseInt(match[1]);
+                 console.log("PHP Server started on port: ", port);
+-                resolve({
+-                    port,
+-                    process: phpServer,
+-                });
++                started = true;
++                clearTimeout(timer);
++                resolve(phpServer);
+             }
+             else {
+                 if (error.includes('[NATIVE_EXCEPTION]:')) {
+@@ -303,11 +313,27 @@ function serveApp(secret, apiPort, phpIniSettings) {
+             }
+         });
+         phpServer.on('error', (error) => {
++            clearTimeout(timer);
+             reject(error);
+         });
+-        phpServer.on('close', (code) => {
+-            console.log(`PHP server exited with code ${code}`);
++        phpServer.on('close', (code, signal) => {
++            console.log(`PHP server exited with code ${code}, signal ${signal}`);
++            if (!started) {
++                clearTimeout(timer);
++                reject(new Error(`PHP server exited with code ${code} before it started`));
++            }
++        });
+         });
++        try {
++            resolve({
++                port: phpPort,
++                process: yield launch(phpPort),
++                restart: () => launch(phpPort, RESTART_TIMEOUT_MS),
++            });
++        }
++        catch (error) {
++            reject(error);
++        }
+     }));
+ }
+ export { startScheduler, serveApp, getAppPath, retrieveNativePHPConfig, retrievePhpIniSettings, getDefaultEnvironmentVariables, getDefaultPhpIniSettings, runningSecureBuild };
+diff --git a/resources/js/electron-plugin/dist/server/phpServerWatchdog.js b/resources/js/electron-plugin/dist/server/phpServerWatchdog.js
+new file mode 100644
+--- /dev/null
++++ b/resources/js/electron-plugin/dist/server/phpServerWatchdog.js
+@@ -0,0 +1,43 @@
++// Sudo Play patch: decides what to do when the php -S server exits.
++// Pure on purpose (no Electron imports) so it can be tested on its own.
++export const RESTART_DELAY_MS = 1000;
++export const MAX_RECOVERIES = 3;
++export const RECOVERY_WINDOW_MS = 5 * 60 * 1000;
++export function createPhpServerWatchdog({ now = Date.now, history = [] } = {}) {
++    let quitting = false;
++    let recoveries = Array.isArray(history)
++        ? history.filter((time) => typeof time === 'number')
++        : [];
++    function prune() {
++        recoveries = recoveries.filter((time) => now() - time < RECOVERY_WINDOW_MS);
++    }
++    function recover(action) {
++        if (quitting) {
++            return 'ignore';
++        }
++        prune();
++        if (recoveries.length >= MAX_RECOVERIES) {
++            return 'give-up';
++        }
++        recoveries.push(now());
++        return action;
++    }
++    return {
++        markQuitting() {
++            quitting = true;
++        },
++        isQuitting() {
++            return quitting;
++        },
++        onExit() {
++            return recover('restart');
++        },
++        onRestartFailed() {
++            return recover('relaunch');
++        },
++        history() {
++            prune();
++            return [...recoveries];
++        },
++    };
++}

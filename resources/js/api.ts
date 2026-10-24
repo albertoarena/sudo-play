@@ -37,6 +37,23 @@ export class ValidationError extends Error {
     }
 }
 
+/**
+ * Nothing answered. NativePHP serves the window from one PHP process, and when
+ * that process has stopped, fetch rejects instead of giving an error page.
+ */
+export class AppStoppedError extends Error {
+    constructor() {
+        super('The app did not answer: its PHP server has stopped');
+    }
+}
+
+const APP_STOPPED_MESSAGE = 'Sudo Play stopped in the background. Press ⌘Q and open it again.';
+
+/** What to tell the user. A stopped app needs a restart, so trying again is no use. */
+export function failureMessage(error: unknown, fallback: string): string {
+    return error instanceof AppStoppedError ? APP_STOPPED_MESSAGE : fallback;
+}
+
 function xsrfToken(cookies: string): string {
     const entry = cookies
         .split(';')
@@ -64,15 +81,21 @@ async function refusal(response: Response): Promise<ValidationError | null> {
 
 function sender(fetcher: Fetcher, cookies: () => string): Send {
     return async <T>(method: 'GET' | 'POST', url: string, body?: object): Promise<T> => {
-        const response = await fetcher(url, {
-            method,
-            headers: {
-                Accept: 'application/json',
-                'Content-Type': 'application/json',
-                'X-XSRF-TOKEN': xsrfToken(cookies()),
-            },
-            body: body === undefined ? undefined : JSON.stringify(body),
-        });
+        let response: Response;
+
+        try {
+            response = await fetcher(url, {
+                method,
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': xsrfToken(cookies()),
+                },
+                body: body === undefined ? undefined : JSON.stringify(body),
+            });
+        } catch {
+            throw new AppStoppedError();
+        }
 
         if (response.status === 422) {
             throw (await refusal(response)) ?? new Error(`The app answered 422 to ${url}`);
