@@ -26,6 +26,7 @@ Everything stays on your Mac:
 - The date of the last successful catalog download
 - The date the daily reminder was last shown, so it is shown once a day at most
 - A log file with warnings and errors, for example a catalog row that was skipped or a playlist that could not play
+- A second log file from the part of the app that runs the window, for example that its internal web server stopped and was started again. It also records routine start-up steps and folder paths on your Mac, and it is kept to about 2 MB
 
 Nothing is synced anywhere. Deleting the app and its application support folder removes all of it.
 

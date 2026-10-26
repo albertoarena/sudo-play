@@ -85,6 +85,7 @@ Add these scripts to `composer.json` and `package.json` in milestone 0 if they d
 - The pointer cursor comes from one base rule in `resources/css/app.css`, which `resources/js/theme.test.ts` checks. Do not add `cursor-pointer` to a component. Keep `disabled:cursor-default` on a control that can be disabled
 - Emoji are for moods only. An emoji goes in its own `aria-hidden="true"` part, so a screen reader reads the label alone. An `<option>` holds plain text only, so it takes the label as its `aria-label` instead
 - Never use the Spotify logo. Text only: "Open in Spotify". The README must say the project is not affiliated with Spotify.
+- `nativephp/electron` carries a patch (`patches/`, applied by `cweagans/composer-patches` on install). Never edit the `.patch` file by hand: edit the files under `vendor/nativephp/electron/resources/js/electron-plugin/dist`, run `scripts/patches/nativephp-electron.sh`, then `npm test`. The tests in `tests/electron/` import the patched files from `vendor/`, so they need `composer install` first
 
 ## Git conventions
 

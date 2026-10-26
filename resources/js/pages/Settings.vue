@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
-import { createSettingsApi, ValidationError } from '../api';
+import { createSettingsApi, failureMessage, ValidationError } from '../api';
 import type { SettingsApi } from '../api';
 import type { About, PlayerMode, SettingsOptions, SettingsValues } from '../types/settings';
 
@@ -66,7 +66,7 @@ async function save(): Promise<void> {
             errors.value = error.errors;
             message.value = 'Please check the values marked below.';
         } else {
-            message.value = 'Could not save. Please try again.';
+            message.value = failureMessage(error, 'Could not save. Please try again.');
         }
     } finally {
         saving.value = false;
@@ -81,8 +81,8 @@ async function updateCatalog(): Promise<void> {
         const answer = await props.api.updateCatalog();
         syncedOn.value = answer.catalogDate;
         catalogMessage.value = answer.message;
-    } catch {
-        catalogMessage.value = 'Could not update the catalog. Please try again.';
+    } catch (error) {
+        catalogMessage.value = failureMessage(error, 'Could not update the catalog. Please try again.');
     } finally {
         updating.value = false;
     }
@@ -93,8 +93,8 @@ async function updateCatalog(): Promise<void> {
 async function openLink(open: () => Promise<void>): Promise<void> {
     try {
         await open();
-    } catch {
-        message.value = 'Could not open the browser.';
+    } catch (error) {
+        message.value = failureMessage(error, 'Could not open the browser.');
     }
 }
 

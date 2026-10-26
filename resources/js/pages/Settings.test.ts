@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { flushPromises, mount } from '@vue/test-utils';
 import Settings from './Settings.vue';
-import { ValidationError } from '../api';
+import { AppStoppedError, ValidationError } from '../api';
 import type { SettingsApi } from '../api';
 import type { SettingsPageProps, SettingsValues } from '../types/settings';
 
@@ -298,5 +298,41 @@ describe('Settings', () => {
         await flushPromises();
 
         expect(wrapper.get('[role="status"]').text()).toBe('Could not open the browser.');
+    });
+
+    // NativePHP's PHP server has stopped, so nothing in the window can work
+    // until the app is opened again.
+    describe('a stopped app', () => {
+        const stopped = 'Sudo Play stopped in the background. Press ⌘Q and open it again.';
+        const failing = vi.fn(async () => {
+            throw new AppStoppedError();
+        });
+
+        it('says so when saving', async () => {
+            const wrapper = mountSettings(props(), fakeApi({ save: failing }));
+
+            await button(wrapper, 'Save').trigger('click');
+            await flushPromises();
+
+            expect(wrapper.get('[role="status"]').text()).toBe(stopped);
+        });
+
+        it('says so when updating the catalog', async () => {
+            const wrapper = mountSettings(props(), fakeApi({ updateCatalog: failing }));
+
+            await button(wrapper, 'Update catalog now').trigger('click');
+            await flushPromises();
+
+            expect(wrapper.get('#catalog-status').text()).toBe(stopped);
+        });
+
+        it('says so when opening a link', async () => {
+            const wrapper = mountSettings(props(), fakeApi({ openPrivacy: failing }));
+
+            await button(wrapper, 'Privacy').trigger('click');
+            await flushPromises();
+
+            expect(wrapper.get('[role="status"]').text()).toBe(stopped);
+        });
     });
 });
