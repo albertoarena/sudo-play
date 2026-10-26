@@ -79,12 +79,12 @@ You need a Mac, PHP 8.4 with Composer, and Node 22 or later. The `.nvmrc` file p
 git clone https://github.com/albertoarena/sudo-play.git
 cd sudo-play
 composer setup
-php artisan native:serve
+php artisan native:run
 ```
 
 `composer setup` installs the PHP and JavaScript dependencies, creates `.env` and the app key, sets up the local database and builds the frontend. Run it once.
 
-`php artisan native:serve` starts the app. The first run also downloads Electron, so it takes a while. Stop it with Ctrl+C.
+`php artisan native:run` starts the app. The first run also downloads Electron, so it takes a while. Stop it with Ctrl+C.
 
 If you are changing the interface, run `composer native:dev` instead. It starts the app and the Vite dev server together, so your changes show up without a rebuild.
 

@@ -123,7 +123,7 @@ on for the last two checks.
 
 - [ ] Settings in the menu bar footer opens the settings window, with a title bar and no Dock icon
 - [ ] A second click on Settings brings the open window to the front, it does not open a second one
-- [ ] In `native:serve` with `APP_DEBUG=true`, the window opens without the Chrome inspector
+- [ ] In `native:run` with `APP_DEBUG=true`, the window opens without the Chrome inspector
 - [ ] Buttons, links, the player mode radios and the checkboxes with their labels show the pointer cursor. The weekdays box, while the reminder is off, shows the plain one
 - [ ] The window shows every section without the Save button going below the window edge
 - [ ] A saved player mode is used by the next Play, without a restart

@@ -676,3 +676,11 @@ The rule in requirements 5 compared today's raw crc32 index with yesterday's raw
 **Why:** in a packaged app the Electron console goes nowhere, so the 2026-10-21 server exit left no trace. The restarts in the entry above need a record too. Writing is synchronous and swallows its own errors, so logging can never stop the app.
 
 **Would change if:** the routine lines (the scheduler runs every minute) push useful history out too fast, in which case the file keeps warnings and errors only.
+
+## 2026-10-26: We move to nativephp/desktop 2.4
+
+**Choice:** `nativephp/desktop` ^2.4 replaces `nativephp/electron` 1.3, `nativephp/laravel` 1.3 and `nativephp/php-bin`. Decided by Alberto on 2026-10-26. The PHP namespace becomes `Native\Desktop`, `native:serve` becomes `native:run`, and the build lands in `nativephp/electron/dist` (ignored, with the downloaded PHP binaries in `nativephp/binaries`). The restart and `electron.log` patch is ported as it was, to `patches/nativephp-desktop-php-server-restart.patch`, because 2.4 still only logs the server exit. `scripts/macos/release.sh` refuses an app whose bundled PHP is older than the October 2026 fixes (8.3.36, 8.4.27, 8.5.12).
+
+**Why:** PHP 8.3.36, 8.4.27 and 8.5.12 fixed two critical CVEs (CVE-2026-109618, CVE-2026-109619) on 2026-10-21. Every release up to 1.0.2 bundles PHP 8.4.21 from `php-bin` 1.2.0, and the 1.x line gets no new binaries: its last release was in September 2025. Desktop 2.4 downloads current binaries at build time and checks them against a SHA-256 manifest (NativePHP blog, 2026-10-25). The seven NativePHP advisories of the same week are for `nativephp/mobile` only. The app's PHP server listens on 127.0.0.1 alone, but NativePHP's secret is checked in Laravel, after PHP has parsed the request, so it does not shield these bugs. The build falls back to an older cached binary with only a warning when the download fails, hence the check in `release.sh`.
+
+**Would change if:** NativePHP signs its binaries and checks the signature itself, or ships the restart upstream. Then the version check or the patch can go.
