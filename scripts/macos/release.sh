@@ -4,6 +4,7 @@
 #
 # Run it from a clean clone, after `php artisan native:build mac arm64` with
 # CSC_IDENTITY_AUTO_DISCOVERY=false, so electron-builder leaves signing to us.
+# NativePHP 2 writes the build to nativephp/electron/dist.
 #
 # Usage: scripts/macos/release.sh <version> [arch]
 #   SUDO_PLAY_SIGN_IDENTITY  certificate name, "Developer ID Application" by default
@@ -27,7 +28,7 @@ fi
 
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 source "$root/scripts/macos/retry.sh"
-app="$root/dist/mac-$arch/Sudo Play.app"
+app="$root/nativephp/electron/dist/mac-$arch/Sudo Play.app"
 out="$root/dist/release"
 dmg="$out/Sudo-Play-$version-$arch.dmg"
 
@@ -35,6 +36,23 @@ dmg="$out/Sudo-Play-$version-$arch.dmg"
 
 built="$(plutil -extract CFBundleShortVersionString raw "$app/Contents/Info.plist")"
 [ "$built" = "$version" ] || { echo "The app is version $built, not $version." >&2; exit 1; }
+
+# NativePHP downloads the PHP binary at build time and falls back to an older
+# cached or bundled copy when it cannot, with only a warning. The app must not
+# ship a PHP older than the release that fixed the last advisory we know of
+# (CVE-2026-109618 and CVE-2026-109619, October 2026).
+php_bin="$(find "$app/Contents/Resources" -type f -name php -perm -u+x | head -n 1)"
+[ -n "$php_bin" ] || { echo "No PHP binary in $app." >&2; exit 1; }
+php_version="$("$php_bin" -r 'echo PHP_VERSION;')"
+case "$php_version" in
+    8.3.*) min_php="8.3.36" ;;
+    8.4.*) min_php="8.4.27" ;;
+    8.5.*) min_php="8.5.12" ;;
+    *) echo "The app bundles PHP $php_version, which this check does not know." >&2; exit 1 ;;
+esac
+printf '%s\n%s\n' "$min_php" "$php_version" | sort -V -C \
+    || { echo "The app bundles PHP $php_version, older than $min_php." >&2; exit 1; }
+echo "The app bundles PHP $php_version."
 
 echo "1. Sign the app"
 node "$root/scripts/macos/sign.mjs" "$app"
