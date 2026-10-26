@@ -37,7 +37,7 @@ use App\Settings\SettingsStore;
 use App\SettingsWindow\LoginItem;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
-use Native\Laravel\Events\Notifications\NotificationClicked;
+use Native\Desktop\Events\Notifications\NotificationClicked;
 
 class AppServiceProvider extends ServiceProvider
 {

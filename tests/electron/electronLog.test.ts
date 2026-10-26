@@ -9,7 +9,7 @@ import {
     copyConsoleTo,
     createLogFile,
     MAX_LOG_BYTES,
-} from '../../vendor/nativephp/electron/resources/js/electron-plugin/dist/server/electronLog.js';
+} from '../../vendor/nativephp/desktop/resources/electron/electron-plugin/dist/server/electronLog.js';
 
 const at = () => new Date('2026-10-22T09:30:00.000Z');
 

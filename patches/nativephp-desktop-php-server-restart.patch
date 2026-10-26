@@ -1,38 +1,39 @@
-diff --git a/resources/js/electron-plugin/dist/index.js b/resources/js/electron-plugin/dist/index.js
---- a/resources/js/electron-plugin/dist/index.js
-+++ b/resources/js/electron-plugin/dist/index.js
-@@ -11,9 +11,10 @@ import { app, session, powerMonitor } from "electron";
- import { initialize } from "@electron/remote/main/index.js";
- import state from "./server/state.js";
- import { electronApp, optimizer } from "@electron-toolkit/utils";
--import { retrieveNativePHPConfig, retrievePhpIniSettings, runScheduler, killScheduler, startAPI, startPhpApp, } from "./server/index.js";
-+import { retrieveNativePHPConfig, retrievePhpIniSettings, runScheduler, killScheduler, startAPI, startPhpApp, markQuitting, } from "./server/index.js";
- import { notifyLaravel } from "./server/utils.js";
--import { resolve } from "path";
-+import { join, resolve } from "path";
-+import { copyConsoleTo, createLogFile } from "./server/electronLog.js";
- import { stopAllProcesses } from "./server/api/childProcess.js";
- import ps from "ps-node";
- import killSync from "kill-sync";
-@@ -26,6 +27,9 @@ class NativePHP {
-         this.schedulerInterval = undefined;
+diff --git a/resources/electron/electron-plugin/dist/index.js b/resources/electron/electron-plugin/dist/index.js
+--- a/resources/electron/electron-plugin/dist/index.js
++++ b/resources/electron/electron-plugin/dist/index.js
+@@ -11,10 +11,11 @@ import { electronApp, optimizer } from '@electron-toolkit/utils';
+ import { initialize } from '@electron/remote/main/index.js';
+ import { app, powerMonitor, session } from 'electron';
+ import killSync from 'kill-sync';
+-import { resolve } from 'path';
++import { join, resolve } from 'path';
+ import ps from 'ps-node';
+ import { stopAllProcesses } from './server/api/childProcess.js';
+-import { killScheduler, retrieveNativePHPConfig, retrievePhpIniSettings, runScheduler, startAPI, startPhpApp, } from './server/index.js';
++import { copyConsoleTo, createLogFile } from './server/electronLog.js';
++import { killScheduler, retrieveNativePHPConfig, retrievePhpIniSettings, runScheduler, markQuitting, startAPI, startPhpApp, } from './server/index.js';
+ import state from './server/state.js';
+ import { notifyLaravel } from './server/utils.js';
+ import electronUpdater from 'electron-updater';
+@@ -27,6 +28,9 @@ class NativePHP {
+         this.quitting = false;
      }
-     bootstrap(app, icon, phpBinary, cert) {
+     bootstrap(app, icon, phpBinary, cert, appPath) {
 +        if (app.isPackaged) {
 +            copyConsoleTo(createLogFile(join(app.getPath('userData'), 'storage', 'logs', 'electron.log')));
 +        }
          initialize();
          state.icon = icon;
          state.php = phpBinary;
-@@ -52,6 +56,7 @@ class NativePHP {
+@@ -54,6 +58,7 @@ class NativePHP {
              }
          });
-         app.on("before-quit", () => {
+         app.on('before-quit', (event) => __awaiter(this, void 0, void 0, function* () {
 +            markQuitting();
-             if (this.schedulerInterval) {
-                 clearInterval(this.schedulerInterval);
+             if (this.quitting) {
+                 return;
              }
-@@ -184,9 +189,18 @@ class NativePHP {
+@@ -201,9 +206,18 @@ class NativePHP {
      }
      startPhpApp() {
          return __awaiter(this, void 0, void 0, function* () {
@@ -52,10 +53,10 @@ diff --git a/resources/js/electron-plugin/dist/index.js b/resources/js/electron-
      stopScheduler() {
          if (this.schedulerInterval) {
              clearInterval(this.schedulerInterval);
-diff --git a/resources/js/electron-plugin/dist/server/electronLog.js b/resources/js/electron-plugin/dist/server/electronLog.js
+diff --git a/resources/electron/electron-plugin/dist/server/electronLog.js b/resources/electron/electron-plugin/dist/server/electronLog.js
 new file mode 100644
 --- /dev/null
-+++ b/resources/js/electron-plugin/dist/server/electronLog.js
++++ b/resources/electron/electron-plugin/dist/server/electronLog.js
 @@ -0,0 +1,43 @@
 +// Sudo Play patch: copies the console to a log file. In a packaged app the
 +// console goes nowhere, so without this an exit of the PHP server leaves no
@@ -100,16 +101,16 @@ new file mode 100644
 +        };
 +    });
 +}
-diff --git a/resources/js/electron-plugin/dist/server/index.js b/resources/js/electron-plugin/dist/server/index.js
---- a/resources/js/electron-plugin/dist/server/index.js
-+++ b/resources/js/electron-plugin/dist/server/index.js
-@@ -11,12 +11,66 @@ import startAPIServer from "./api.js";
- import { retrieveNativePHPConfig, retrievePhpIniSettings, serveApp, startScheduler, } from "./php.js";
- import { appendCookie } from "./utils.js";
- import state from "./state.js";
-+import { app } from "electron";
-+import Store from "electron-store";
-+import { createPhpServerWatchdog, MAX_RECOVERIES, RESTART_DELAY_MS } from "./phpServerWatchdog.js";
+diff --git a/resources/electron/electron-plugin/dist/server/index.js b/resources/electron/electron-plugin/dist/server/index.js
+--- a/resources/electron/electron-plugin/dist/server/index.js
++++ b/resources/electron/electron-plugin/dist/server/index.js
+@@ -11,12 +11,66 @@ import startAPIServer from './api.js';
+ import { retrieveNativePHPConfig, retrievePhpIniSettings, serveApp, startScheduler } from './php.js';
+ import state from './state.js';
+ import { appendCookie } from './utils.js';
++import { app } from 'electron';
++import Store from 'electron-store';
++import { createPhpServerWatchdog, MAX_RECOVERIES, RESTART_DELAY_MS } from './phpServerWatchdog.js';
  let schedulerProcess = null;
 -export function startPhpApp() {
 +// Sudo Play patch: restart the php -S server when it exits. The recoveries
@@ -171,87 +172,88 @@ diff --git a/resources/js/electron-plugin/dist/server/index.js b/resources/js/el
          return result.process;
      });
  }
-diff --git a/resources/js/electron-plugin/dist/server/php.js b/resources/js/electron-plugin/dist/server/php.js
---- a/resources/js/electron-plugin/dist/server/php.js
-+++ b/resources/js/electron-plugin/dist/server/php.js
-@@ -18,6 +18,7 @@ import { execFile, spawn, spawnSync } from 'child_process';
- import { createServer } from 'net';
- import state from "./state.js";
- import getPort, { portNumbers } from 'get-port';
+diff --git a/resources/electron/electron-plugin/dist/server/php.js b/resources/electron/electron-plugin/dist/server/php.js
+--- a/resources/electron/electron-plugin/dist/server/php.js
++++ b/resources/electron/electron-plugin/dist/server/php.js
+@@ -18,6 +18,7 @@ import { createServer } from 'net';
+ import { join } from 'path';
+ import { promisify } from 'util';
+ import state from './state.js';
 +const RESTART_TIMEOUT_MS = 10000;
  const storagePath = join(app.getPath('userData'), 'storage');
  const databasePath = join(app.getPath('userData'), 'database');
  const databaseFile = join(databasePath, 'database.sqlite');
-@@ -269,10 +270,20 @@ function serveApp(secret, apiPort, phpIniSettings) {
+@@ -329,12 +330,21 @@ function serveApp(secret, apiPort, phpIniSettings) {
          }
          console.log('Starting PHP server...');
          const phpPort = yield getPhpPort();
 -        const phpServer = callPhp(['-S', `127.0.0.1:${phpPort}`, serverPath], {
+-            cwd: cwd,
+-            env,
+-        }, phpIniSettings);
+-        const portRegex = /Development Server \(.*:([0-9]+)\) started/gm;
+-        return new Promise((resolve, reject) => {
 +        // Sudo Play patch: launch() can run again on the same port, so a
 +        // server that exits can be restarted. See server/index.js.
 +        const launch = (port, timeoutMs) => new Promise((resolve, reject) => {
-+        let started = false;
-+        const phpServer = callPhp(['-S', `127.0.0.1:${port}`, serverPath], {
-             cwd: cwd,
-             env
-         }, phpIniSettings);
-+        const timer = timeoutMs ? setTimeout(() => {
-+            if (!started) {
-+                phpServer.kill();
-+                reject(new Error(`PHP server did not start within ${timeoutMs} ms`));
-+            }
-+        }, timeoutMs) : null;
-         const portRegex = /Development Server \(.*:([0-9]+)\) started/gm;
-         phpServer.stdout.on('data', (data) => {
-             if (parseInt(process.env.SHELL_VERBOSITY) > 0) {
-@@ -285,10 +296,9 @@ function serveApp(secret, apiPort, phpIniSettings) {
-             if (match) {
-                 const port = parseInt(match[1]);
-                 console.log("PHP Server started on port: ", port);
--                resolve({
--                    port,
--                    process: phpServer,
--                });
-+                started = true;
++            let started = false;
++            const phpServer = callPhp(['-S', `127.0.0.1:${port}`, serverPath], {
++                cwd: cwd,
++                env,
++            }, phpIniSettings);
++            const timer = timeoutMs ? setTimeout(() => {
++                if (!started) {
++                    phpServer.kill();
++                    reject(new Error(`PHP server did not start within ${timeoutMs} ms`));
++                }
++            }, timeoutMs) : null;
++            const portRegex = /Development Server \(.*:([0-9]+)\) started/gm;
+             phpServer.stdout.on('data', (data) => {
+                 if (parseInt(process.env.SHELL_VERBOSITY) > 0) {
+                     console.log(data.toString().trim());
+@@ -346,10 +356,9 @@ function serveApp(secret, apiPort, phpIniSettings) {
+                 if (match) {
+                     const port = parseInt(match[1]);
+                     console.log('PHP Server started on port: ', port);
+-                    resolve({
+-                        port,
+-                        process: phpServer,
+-                    });
++                    started = true;
++                    clearTimeout(timer);
++                    resolve(phpServer);
+                 }
+                 else if (error.includes('[NATIVE_EXCEPTION]:')) {
+                     const logFile = join(storagePath, 'logs');
+@@ -362,12 +371,22 @@ function serveApp(secret, apiPort, phpIniSettings) {
+                 }
+             });
+             phpServer.on('error', (error) => {
 +                clearTimeout(timer);
-+                resolve(phpServer);
-             }
-             else {
-                 if (error.includes('[NATIVE_EXCEPTION]:')) {
-@@ -303,11 +313,27 @@ function serveApp(secret, apiPort, phpIniSettings) {
-             }
+                 reject(error);
+             });
+-            phpServer.on('close', (code) => {
+-                console.log(`PHP server exited with code ${code}`);
++            phpServer.on('close', (code, signal) => {
++                console.log(`PHP server exited with code ${code}, signal ${signal}`);
++                if (!started) {
++                    clearTimeout(timer);
++                    reject(new Error(`PHP server exited with code ${code} before it started`));
++                }
+             });
          });
-         phpServer.on('error', (error) => {
-+            clearTimeout(timer);
-             reject(error);
-         });
--        phpServer.on('close', (code) => {
--            console.log(`PHP server exited with code ${code}`);
-+        phpServer.on('close', (code, signal) => {
-+            console.log(`PHP server exited with code ${code}, signal ${signal}`);
-+            if (!started) {
-+                clearTimeout(timer);
-+                reject(new Error(`PHP server exited with code ${code} before it started`));
-+            }
-+        });
-         });
-+        try {
-+            resolve({
-+                port: phpPort,
-+                process: yield launch(phpPort),
-+                restart: () => launch(phpPort, RESTART_TIMEOUT_MS),
-+            });
-+        }
-+        catch (error) {
-+            reject(error);
-+        }
-     }));
++        return {
++            port: phpPort,
++            process: yield launch(phpPort),
++            restart: () => launch(phpPort, RESTART_TIMEOUT_MS),
++        };
+     });
  }
- export { startScheduler, serveApp, getAppPath, retrieveNativePHPConfig, retrievePhpIniSettings, getDefaultEnvironmentVariables, getDefaultPhpIniSettings, runningSecureBuild };
-diff --git a/resources/js/electron-plugin/dist/server/phpServerWatchdog.js b/resources/js/electron-plugin/dist/server/phpServerWatchdog.js
+ export { getAppPath, getDefaultEnvironmentVariables, getDefaultPhpIniSettings, retrieveNativePHPConfig, retrievePhpIniSettings, runningSecureBuild, serveApp, startScheduler, };
+diff --git a/resources/electron/electron-plugin/dist/server/phpServerWatchdog.js b/resources/electron/electron-plugin/dist/server/phpServerWatchdog.js
 new file mode 100644
 --- /dev/null
-+++ b/resources/js/electron-plugin/dist/server/phpServerWatchdog.js
++++ b/resources/electron/electron-plugin/dist/server/phpServerWatchdog.js
 @@ -0,0 +1,43 @@
 +// Sudo Play patch: decides what to do when the php -S server exits.
 +// Pure on purpose (no Electron imports) so it can be tested on its own.

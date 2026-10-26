@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 function nativePhpBuilderConfig(): string
 {
-    return (string) file_get_contents(base_path('vendor/nativephp/electron/resources/js/electron-builder.js'));
+    return (string) file_get_contents(base_path('vendor/nativephp/desktop/resources/electron/electron-builder.mjs'));
 }
 
 /**
@@ -73,7 +73,7 @@ it('signs for the bundle id in the config', function (): void {
 
 it('keeps every entitlement NativePHP signs with', function (): void {
     $ours = entitlementsIn(base_path('scripts/macos/entitlements.plist'));
-    $theirs = entitlementsIn(base_path('vendor/nativephp/electron/resources/js/build/entitlements.mac.plist'));
+    $theirs = entitlementsIn(base_path('vendor/nativephp/desktop/resources/electron/build/entitlements.mac.plist'));
 
     expect($theirs)->not->toBeEmpty();
 

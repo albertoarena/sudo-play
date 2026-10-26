@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# Rebuilds patches/nativephp-electron-php-server-restart.patch from the edited
+# Rebuilds patches/nativephp-desktop-php-server-restart.patch from the edited
 # files in vendor/. See docs/DECISIONS.md, 2026-10-22.
 #
-# The patch only touches resources/js/electron-plugin/dist, the compiled JS
+# The patch only touches resources/electron/electron-plugin/dist, the compiled JS
 # the build ships. To change it:
 #
-#   1. Edit the files under vendor/nativephp/electron/resources/js/electron-plugin/dist
+#   1. Edit the files under vendor/nativephp/desktop/resources/electron/electron-plugin/dist
 #   2. Run this script
 #   3. npm test, then commit the patch, patches.lock.json and the tests
 #
@@ -15,14 +15,14 @@
 # package so Composer applies the patch itself. It fails if the result is not
 # exactly the files you edited.
 #
-# Usage: scripts/patches/nativephp-electron.sh
+# Usage: scripts/patches/nativephp-desktop.sh
 
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/../.." && pwd)"
-package="nativephp/electron"
-subdir="resources/js/electron-plugin/dist"
-patch="patches/nativephp-electron-php-server-restart.patch"
+package="nativephp/desktop"
+subdir="resources/electron/electron-plugin/dist"
+patch="patches/nativephp-desktop-php-server-restart.patch"
 vendor_dist="$root/vendor/$package/$subdir"
 
 cd "$root"

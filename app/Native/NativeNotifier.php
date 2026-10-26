@@ -6,7 +6,7 @@ namespace App\Native;
 
 use App\Notifications\Notifier;
 use App\Notifications\Reminder;
-use Native\Laravel\Facades\Notification;
+use Native\Desktop\Facades\Notification;
 
 /**
  * Shows a reminder as a native macOS notification, through NativePHP.

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Native;
 
 use App\Catalog\SyncLauncher;
-use Native\Laravel\Facades\ChildProcess;
+use Native\Desktop\Facades\ChildProcess;
 
 /**
  * Runs `catalog:sync` in a PHP process of its own, through NativePHP.

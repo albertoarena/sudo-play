@@ -57,7 +57,7 @@ if (unexpected.length > 0) {
     process.exit(1);
 }
 
-const require = createRequire(join(root, 'vendor/nativephp/electron/resources/js/package.json'));
+const require = createRequire(join(root, 'vendor/nativephp/desktop/resources/electron/package.json'));
 const { signAsync } = require('@electron/osx-sign');
 
 await signAsync({

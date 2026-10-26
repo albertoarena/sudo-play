@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Native;
 
 use App\SettingsWindow\LoginItem;
-use Native\Laravel\Facades\App;
+use Native\Desktop\Facades\App;
 
 /**
  * Adds the app to the macOS login items, or takes it off, through Electron's

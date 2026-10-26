@@ -6,8 +6,8 @@ namespace App\Providers;
 
 use App\Catalog\SyncLauncher;
 use Illuminate\Support\Facades\Log;
-use Native\Laravel\Contracts\ProvidesPhpIni;
-use Native\Laravel\Facades\MenuBar;
+use Native\Desktop\Contracts\ProvidesPhpIni;
+use Native\Desktop\Facades\MenuBar;
 use Throwable;
 
 final class NativeAppServiceProvider implements ProvidesPhpIni

@@ -5,7 +5,7 @@ declare(strict_types=1);
 use App\Native\NativeNotifier;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
-use Native\Laravel\Events\Notifications\NotificationClicked;
+use Native\Desktop\Events\Notifications\NotificationClicked;
 
 /*
  * Requirements 7.3: clicking the reminder opens the menu bar window. NativePHP
