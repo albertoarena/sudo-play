@@ -7,7 +7,7 @@ import {
     createPhpServerWatchdog,
     MAX_RECOVERIES,
     RECOVERY_WINDOW_MS,
-} from '../../vendor/nativephp/electron/resources/js/electron-plugin/dist/server/phpServerWatchdog.js';
+} from '../../vendor/nativephp/desktop/resources/electron/electron-plugin/dist/server/phpServerWatchdog.js';
 
 function clock(start = 1_000_000) {
     let time = start;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Native;
 
 use App\MenuBar\SettingsWindow;
-use Native\Laravel\Facades\Window;
+use Native\Desktop\Facades\Window;
 
 /**
  * The settings window, as a normal macOS window with a title bar.

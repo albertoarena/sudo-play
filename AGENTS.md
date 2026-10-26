@@ -70,7 +70,7 @@ composer analyse       # larastan
 composer lint          # pint --test
 npm test               # vitest run
 npm run typecheck      # vue-tsc --noEmit
-php artisan native:serve   # run the app in development
+php artisan native:run # run the app in development
 ```
 
 Add these scripts to `composer.json` and `package.json` in milestone 0 if they do not exist.
@@ -85,7 +85,7 @@ Add these scripts to `composer.json` and `package.json` in milestone 0 if they d
 - The pointer cursor comes from one base rule in `resources/css/app.css`, which `resources/js/theme.test.ts` checks. Do not add `cursor-pointer` to a component. Keep `disabled:cursor-default` on a control that can be disabled
 - Emoji are for moods only. An emoji goes in its own `aria-hidden="true"` part, so a screen reader reads the label alone. An `<option>` holds plain text only, so it takes the label as its `aria-label` instead
 - Never use the Spotify logo. Text only: "Open in Spotify". The README must say the project is not affiliated with Spotify.
-- `nativephp/electron` carries a patch (`patches/`, applied by `cweagans/composer-patches` on install). Never edit the `.patch` file by hand: edit the files under `vendor/nativephp/electron/resources/js/electron-plugin/dist`, run `scripts/patches/nativephp-electron.sh`, then `npm test`. The tests in `tests/electron/` import the patched files from `vendor/`, so they need `composer install` first
+- `nativephp/desktop` carries a patch (`patches/`, applied by `cweagans/composer-patches` on install). Never edit the `.patch` file by hand: edit the files under `vendor/nativephp/desktop/resources/electron/electron-plugin/dist`, run `scripts/patches/nativephp-desktop.sh`, then `npm test`. The tests in `tests/electron/` import the patched files from `vendor/`, so they need `composer install` first
 
 ## Git conventions
 
@@ -158,7 +158,7 @@ established, not guessed: every line cost a session time before it was written
 down. Treat it as fact and do not spend a milestone rediscovering it.
 
 - **There is no macOS.** No menu bar, no notification centre, no login items, no
-  `native:serve`, no AppleScript, no Automation prompt. Anything needing those
+  `native:run`, no AppleScript, no Automation prompt. Anything needing those
   is written into `docs/QA.md` for a human to run, and is never reported as
   verified here
 - **PHP is 8.3, the project needs 8.4.** Install with
@@ -170,8 +170,8 @@ down. Treat it as fact and do not spend a milestone rediscovering it.
   "GitHub access to this repository is not enabled for this session", and it is
   the session's repository authorization, not a network rule, so no token
   changes it. Composer therefore cannot fetch package zips and falls back to
-  cloning from git, which is slow. `nativephp/php-bin` is a very long clone, and
-  `phpstan/phpstan` has no git source at all and needs a zip built from its tag.
+  cloning from git, which is slow. `phpstan/phpstan` has no git source at all
+  and needs a zip built from its tag.
   Start the install in the background and read the codebase while it runs
 - **Attach the repository with `add_repo` before the first commit**, not before
   the push. The tool is often absent at startup and appears part way through, so

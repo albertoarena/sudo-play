@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Native\Electron\Traits\InstallsAppIcon;
+use Native\Desktop\Drivers\Electron\Traits\InstallsAppIcon;
 
 /*
  * The app icon is not set in config/nativephp.php. NativePHP copies fixed file

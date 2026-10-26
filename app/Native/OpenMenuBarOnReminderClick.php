@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Native;
 
-use Native\Laravel\Events\Notifications\NotificationClicked;
-use Native\Laravel\Facades\MenuBar;
+use Native\Desktop\Events\Notifications\NotificationClicked;
+use Native\Desktop\Facades\MenuBar;
 
 /**
  * Opens the menu bar window when the daily reminder is clicked.

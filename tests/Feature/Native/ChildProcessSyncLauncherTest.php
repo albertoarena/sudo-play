@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use App\Catalog\SyncLauncher;
 use App\Native\ChildProcessSyncLauncher;
-use Native\Laravel\Facades\ChildProcess;
+use Native\Desktop\Facades\ChildProcess;
 
 /*
  * The NativePHP fake spreads everything it recorded into the closure by name,

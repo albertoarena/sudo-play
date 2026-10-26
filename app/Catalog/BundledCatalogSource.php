@@ -7,7 +7,7 @@ namespace App\Catalog;
 /**
  * The bundled catalog, read from the file that ships with the app.
  *
- * `base_path()` is correct in both `native:serve` and a packaged app, which is
+ * `base_path()` is correct in both `native:run` and a packaged app, which is
  * the question M3 had to settle. NativePHP starts PHP with the Laravel project
  * root as its working directory either way: in development that is the project
  * on disk, and in a packaged app it is the copy inside the bundle, unpacked

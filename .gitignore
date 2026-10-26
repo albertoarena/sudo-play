@@ -58,3 +58,6 @@ Thumbs.db
 /database/*.sqlite-journal
 /database/*.sqlite-wal
 /database/*.sqlite-shm
+
+# NativePHP 2: downloaded PHP binaries and the Electron build output
+/nativephp/

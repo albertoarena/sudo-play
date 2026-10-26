@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Native;
 
 use App\MenuBar\MenuBarWindow;
-use Native\Laravel\Client\Client;
+use Native\Desktop\Client\Client;
 
 /**
  * Hides the menu bar window through Electron.

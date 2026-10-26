@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Native;
 
 use App\Player\UrlOpener;
-use Native\Laravel\Facades\Shell;
+use Native\Desktop\Facades\Shell;
 
 /**
  * Opens a link through Electron's `shell.openExternal`, which hands it to macOS.
