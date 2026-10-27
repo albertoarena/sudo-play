@@ -102,11 +102,15 @@ it('removes every usage string NativePHP adds', function (): void {
         ->and(macInfo()['remove'])->toContain(...array_unique($matches[1]));
 });
 
-it('removes the Bluetooth usage strings Electron adds', function (): void {
+it('removes the Bluetooth and audio capture usage strings Electron adds', function (): void {
     // Electron's own Info.plist is not installed on the Linux CI runner, so
     // sign.mjs makes the full check against the real build: it refuses to sign
     // while any usage string other than the ones in "set" is left.
-    expect(macInfo()['remove'])->toContain('NSBluetoothAlwaysUsageDescription', 'NSBluetoothPeripheralUsageDescription');
+    expect(macInfo()['remove'])->toContain(
+        'NSAudioCaptureUsageDescription',
+        'NSBluetoothAlwaysUsageDescription',
+        'NSBluetoothPeripheralUsageDescription',
+    );
 });
 
 it('never removes a usage string it sets', function (): void {
