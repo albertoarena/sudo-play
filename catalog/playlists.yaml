@@ -222,3 +222,31 @@ playlists:
     genre: electronic
     moods: [night-shift, flow-state]
     curator: albertoarena
+
+  - id: classical-night-shift-01
+    title: Eine kleine Nachtbuild
+    url: https://open.spotify.com/playlist/7HqqHYZBnUfcWypLbqvtb5
+    genre: classical
+    moods: [night-shift, flow-state]
+    curator: albertoarena
+
+  - id: jazz-night-shift-01
+    title: "'Round midnight merge"
+    url: https://open.spotify.com/playlist/3dM7ldtqTLpLQ2y9XJKc0V
+    genre: jazz
+    moods: [night-shift, shipped-it]
+    curator: albertoarena
+
+  - id: indie-flow-state-01
+    title: "Post-rock, pre-commit"
+    url: https://open.spotify.com/playlist/0xBg9v3VCOPSx4p8qSGUSY
+    genre: indie
+    moods: [flow-state, debugging]
+    curator: albertoarena
+
+  - id: electronic-coffee-needed-01
+    title: Wake on LAN
+    url: https://open.spotify.com/playlist/2GU4g17R8CQvmQ0C2l7dPK
+    genre: electronic
+    moods: [coffee-needed, blue-monday]
+    curator: albertoarena
