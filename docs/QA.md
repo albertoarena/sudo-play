@@ -138,6 +138,8 @@ on for the last two checks.
 - [ ] The DMG installs on a Mac that has never run the app
 - [x] Gatekeeper does not block the signed and notarized build _(1.0.1, 2026-10-14)_
   _Downloaded copies of 1.0.0 and 1.0.1 open after the single "downloaded from the internet" question. A copy carried out of the DMG with no network was not tried: in 1.0.1 only the DMG is stapled, not the app inside it. Fixed in scripts/macos/release.sh for the next release_
+- [ ] After the first launch, `spctl -a -vv "/Applications/Sudo Play.app"` still says accepted, and `config.php`, `routes-v7.php` and `events.php` are in `~/Library/Application Support/sudo-play/bootstrap/cache`, not in the bundle
+  _Fails on 1.0.0 to 1.0.3: "a sealed resource is missing or invalid" after one launch. Fixed for 1.0.4_
 - [ ] The Sudo Play icon, not the NativePHP one, shows on the DMG volume, and on the app in Finder and Applications
   _Fails on 1.0.1, 2026-10-14: the app shows the Sudo Play icon (its icon.icns is the one in art/icon), but the DMG volume shows the generic disk icon, because the hand-made DMG had no .VolumeIcon.icns. Fixed in scripts/macos/release.sh for the next release_
 - [ ] The Sudo Play icon shows in System Settings, General, Login Items, after turning on launch at login

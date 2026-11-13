@@ -12,6 +12,8 @@
 #   SUDO_PLAY_NOTARY_KEY     path to an App Store Connect .p8 key, used instead of the
 #                            profile when set, with SUDO_PLAY_NOTARY_KEY_ID and
 #                            SUDO_PLAY_NOTARY_ISSUER. release.yml uses this
+#
+# Quit Sudo Play first: step 6 launches a copy of the build, see check-launch.sh.
 
 set -euo pipefail
 
@@ -112,6 +114,9 @@ retry xcrun stapler validate "$stage/mnt/Sudo Play.app"
 spctl --assess --type execute --verbose=2 "$stage/mnt/Sudo Play.app"
 [ -f "$stage/mnt/.VolumeIcon.icns" ] || { echo "The DMG has no volume icon." >&2; exit 1; }
 hdiutil detach -quiet "$stage/mnt"
+
+echo "6. Launch a copy and check the signature again"
+"$root/scripts/macos/check-launch.sh" "$app"
 
 echo
 echo "Done: $dmg"
