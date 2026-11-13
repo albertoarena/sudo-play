@@ -129,8 +129,8 @@ jobs:
       - name: Sign, notarize and staple
         env:
           SUDO_PLAY_NOTARY_KEY: ${{ runner.temp }}/notary.p8
-          SUDO_PLAY_NOTARY_KEY_ID: ${{ vars.APPLE_API_KEY_ID }}
-          SUDO_PLAY_NOTARY_ISSUER: ${{ vars.APPLE_API_ISSUER }}
+          SUDO_PLAY_NOTARY_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          SUDO_PLAY_NOTARY_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: scripts/macos/release.sh "$VERSION" arm64
 
       - name: Keep the DMG (dry run)
