@@ -46,11 +46,13 @@ touch "$stage/started"
 executable="$(plutil -extract CFBundleExecutable raw "$copy/Contents/Info.plist")"
 "$copy/Contents/MacOS/$executable" > "$stage/launch.log" 2>&1 &
 pid=$!
+# Stopped on purpose later, so bash need not report it as terminated
+disown "$pid"
 
 waited=0
 until [ -f "$config" ] && [ "$config" -nt "$stage/started" ]; do
     if [ "$waited" -ge "$wait" ]; then
-        echo "No new $config after ${wait}s. The app's output:" >&2
+        echo "No new $config after ${wait}s. If macOS said the app is damaged, its signature is already broken. The app's output:" >&2
         cat "$stage/launch.log" >&2
         exit 1
     fi
