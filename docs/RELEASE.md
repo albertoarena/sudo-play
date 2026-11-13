@@ -21,7 +21,7 @@ Playlist changes are not releases. They reach users through the `catalog-live` b
 
 Signing and notarization need a paid Apple Developer account.
 
-`release.yml` reads four secrets and two variables from the **`release` environment**, never from the repository, so only an approved release job can reach them. A local release uses the keychain instead, see below.
+`release.yml` reads six secrets from the **`release` environment**, never from the repository, so only an approved release job can reach them. A local release uses the keychain instead, see below.
 
 | Secret | What it is |
 |---|---|
@@ -29,13 +29,10 @@ Signing and notarization need a paid Apple Developer account.
 | `APPLE_CERT_PASSWORD` | The password used when exporting that .p12 |
 | `KEYCHAIN_PASSWORD` | Any strong value, used to create a temporary keychain on the runner |
 | `APPLE_API_KEY` | The App Store Connect `.p8` key used by `notarytool`, base64 encoded |
-
-| Variable | What it is |
-|---|---|
 | `APPLE_API_KEY_ID` | The key's id, as in its file name `AuthKey_<id>.p8` |
 | `APPLE_API_ISSUER` | The issuer id shown above the Team Keys table |
 
-The two ids are not secret on their own: they only work with the `.p8` file.
+The two ids are not secret on their own: they only work with the `.p8` file. They are secrets anyway because the repository is public, so its Actions logs are too, and GitHub masks secrets in logs but prints variables as they are.
 
 An App Store Connect API key is used rather than an Apple ID and an app specific password, because the key is scoped and can be revoked without touching the Apple account.
 
@@ -118,11 +115,11 @@ base64 -i developer-id.p12 | gh secret set APPLE_CERT_P12_BASE64 --env release
 gh secret set APPLE_CERT_PASSWORD --env release
 gh secret set KEYCHAIN_PASSWORD --env release
 base64 -i AuthKey_<key id>.p8 | gh secret set APPLE_API_KEY --env release
-gh variable set APPLE_API_KEY_ID --env release --body <key id>
-gh variable set APPLE_API_ISSUER --env release --body <issuer id>
+gh secret set APPLE_API_KEY_ID --env release --body <key id>
+gh secret set APPLE_API_ISSUER --env release --body <issuer id>
 ```
 
-`-legacy` keeps the .p12 readable by the macOS `security` tool, which does not read OpenSSL 3's default encryption. The two `gh secret set` lines without a pipe ask for the value, so it never lands in the shell history.
+`-legacy` keeps the .p12 readable by the macOS `security` tool, which does not read OpenSSL 3's default encryption. The two `gh secret set` lines with neither a pipe nor `--body` ask for the value, so it never lands in the shell history.
 
 ## Hotfixes
 

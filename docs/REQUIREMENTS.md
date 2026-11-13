@@ -258,5 +258,5 @@ Apple Music and YouTube Music are out of scope, and section 3 already says the f
 
 - Releases are signed and notarized with a paid Apple Developer account, so the DMG opens without a Gatekeeper warning
 - Notarization uses an App Store Connect API key, not an Apple ID with an app specific password, because a key is scoped and can be revoked without touching the account
-- Four repository secrets: the Developer ID certificate as base64 p12, its password, a keychain password, and the API key. None of them live in the repository
+- Six secrets in the `release` environment: the Developer ID certificate as base64 p12, its password, a keychain password, the API key, its key id and its issuer id. None of them live in the repository
 - The first release is built, signed and notarized by hand on the maintainer's Mac. `docs/RELEASE.md` records what worked. `release.yml` is written afterwards from those same commands, because notarization fails in ways that are slow to debug inside a workflow
