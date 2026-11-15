@@ -14,7 +14,7 @@ The documentation lives at [sudoplay.dev](https://sudoplay.dev).
 
 ## Status
 
-[Sudo Play 1.0.3](https://github.com/albertoarena/sudo-play/releases/tag/v1.0.3) is out, signed and notarized, for Macs with Apple silicon.
+[Sudo Play 1.0.4](https://github.com/albertoarena/sudo-play/releases/tag/v1.0.4) is out, signed and notarized, for Macs with Apple silicon.
 
 Follow the Status list in [docs/INSTRUCTIONS.md](docs/INSTRUCTIONS.md) to see how far along it is.
 
@@ -49,7 +49,7 @@ Genres and moods live in the catalog, so adding one takes no code.
 
 **You need** a Mac with Apple silicon, M1 or later, and the Spotify app or a browser. There is no Intel build yet.
 
-1. Download [Sudo-Play-1.0.3-arm64.dmg](https://github.com/albertoarena/sudo-play/releases/download/v1.0.3/Sudo-Play-1.0.3-arm64.dmg) (163 MB) from the [1.0.3 release](https://github.com/albertoarena/sudo-play/releases/tag/v1.0.3).
+1. Download [Sudo-Play-1.0.4-arm64.dmg](https://github.com/albertoarena/sudo-play/releases/download/v1.0.4/Sudo-Play-1.0.4-arm64.dmg) (163 MB) from the [1.0.4 release](https://github.com/albertoarena/sudo-play/releases/tag/v1.0.4).
 2. Open the DMG and drag Sudo Play to Applications.
 3. Open Sudo Play. macOS asks once whether to open an app downloaded from the internet. Click **Open**.
 
@@ -62,10 +62,10 @@ The first time you press Play, macOS asks whether Sudo Play may control Spotify.
 This step is optional. In Terminal, run:
 
 ```
-shasum -a 256 ~/Downloads/Sudo-Play-1.0.3-arm64.dmg
+shasum -a 256 ~/Downloads/Sudo-Play-1.0.4-arm64.dmg
 ```
 
-It should print `43ad8b4b56c47856fa266b807e114efcbbbca26955e964608a1e78ddee46d479`.
+It should print `c4ae4f0547b6b641c0739c47beba9f595bae1e4c51a7595f0d598e2ee62c03cd`.
 
 ### Hear about new releases
 
